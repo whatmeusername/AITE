@@ -1,0 +1,49 @@
+.ATE__editor{
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border: 0;
+    cursor: text;
+    display: block;
+    position: relative;
+    tab-size: 1;
+    outline: none;
+}
+
+
+.ATEditor__standart__BOLD{
+    font-weight: bold;
+}
+
+.ATEditor__standart__ITALIC{
+   font-style: italic;
+}
+
+.ATEditor__standart__SUPERSCRIPT{
+    position: relative;
+    margin-bottom: -8px;
+    font-size: 8px;
+}
+
+.ATEditor__standart__UNDERLINE{
+    text-decoration: underline;
+}
+
+.ATEditor__standart__STRIKETHROUGH{
+    text-decoration: line-through;
+}
+
+
+.image__test__fixed{
+    width: 200px;
+    height: 200px;
+}
+
+.ATE_editor_horizontal-rule{
+    width: 95%;
+    height: 2.5px;
+    border: 0px;
+    border-radius: 4px;
+    margin: 20px 0px;
+    background-color: rgb(220, 220, 220);
+    margin-left: 2.5%;
+}
