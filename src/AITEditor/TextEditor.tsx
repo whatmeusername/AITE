@@ -7,7 +7,6 @@ import StandartToolBar from './StandartToolbars'
 
 import EditorManagmentUtils from './EditorManagmentUtils'
 import {createReactEditor, BlockManagmentUtils} from './BlockManagmentUtils'
-import SelectionUtils from './SelectionUtils'
 import RenderUtils from './RenderUtils'
 import SearchUtils from './SearchUtils'
 import FormatingUtils from './FormatingUtils'
@@ -121,7 +120,7 @@ export default function AITEditor(){
         }
 
     }
-
+    
     useEffect(() => { 
         if(EditorState.selectionState.isDirty ){
             EditorState.selectionState.$getSelectionDataFromDirty(EditorRef)

@@ -40,6 +40,12 @@ export default class TextNode{
     returnType(){return this.d[0]}
     returnContent(){return this.d[1]}
     returnContentLength(){return this.d[1].length}
+
+    getSliceContent(startFromZero: boolean = true, start: number, end?: number){
+        if(end) return this.d[1].slice(start, end)
+        else if(startFromZero === true) return this.d[1].slice(0, start)
+        else return this.d[1].slice(start)
+    }
 }
 
 type ImageElement = [
@@ -47,7 +53,7 @@ type ImageElement = [
     {
         src: string,
         alt: string
-        class?: string
+        className?: string
     }
 ]
 
@@ -62,7 +68,7 @@ export class ImageGifNode{
             {
                 src: src,
                 alt: '',
-                class: 'image__test__fixed',
+                className: 'image__test__fixed',
             }
         ]
     }

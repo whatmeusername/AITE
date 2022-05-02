@@ -86,7 +86,7 @@ export class SelectionState{
     }
 
 
-    moveSelectionStraight(){
+    moveSelectionForward(){
         this.anchorOffset += 1
         this.focusOffset += 1
     }
@@ -103,6 +103,17 @@ export class SelectionState{
 
         this.anchorType = 'text'
         this.focusType = 'text'
+    }
+
+    isFullBlockSelected(): boolean {
+        if(
+            (this.anchorCharKey === 0 || this.anchorCharKey === -1) &&
+            this.anchorOffset === 0 &&
+            this.anchorKey !== this.focusKey &&
+            (this.focusCharKey === 0 || this.focusCharKey === -1) &&
+            this.focusOffset === 0 
+        ) return true
+        else return false
     }
 
     toggleCollapse(focus: boolean = false){
@@ -272,7 +283,9 @@ export class SelectionState{
 
             let anchorBlockNode = this.$getBlockNode<boolean>(anchorTextNode, EditorNodes, true)
 
+
             if(anchorBlockNode.blockNode !== null){
+
 
                 this.anchorType = anchorBlockNode.elementType
                 this.anchorNode = anchorTextNode
@@ -280,7 +293,7 @@ export class SelectionState{
                 this.anchorCharKey = anchorBlockNode.charKey
 
                 let anchorRange = range.cloneRange();
-
+                
                 anchorRange.selectNodeContents(anchorTextNode);
                 anchorRange.setEnd(focusTextNode, range.endOffset);
 
@@ -304,7 +317,6 @@ export class SelectionState{
                 focusRange.setStart(range.endContainer, range.endOffset);
 
                 this.focusOffset = selection.focusOffset
-
             }
         }
     }
@@ -367,206 +379,3 @@ export class SelectionState{
     }
 }
 
-const SelectionUtils = {
-
-    createEmptySelection: (): EditorSelection => {
-        return(
-            {
-                anchorOffset: 0, 
-                focusOffset: 0,
-                SelectionText: '',
-                anchorKey: '',
-                focusKey: '',
-            }
-        )
-    },
-
-    GetNodesBySelection: function(node: Node, offsetStart: number, offsetEnd: number, blockKey: string){
-
-        let tw =  document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
-        let TotalCount: number = 0
-
-        let offsetStartNode: {node: Node, LetterIndex: number} | null= null
-        let offsetEndNode: {node: Node, LetterIndex: number} | null = null
-        let blockFounded: boolean = false
-
-        function NodeInfoCollect(CurrentNode: Node){
-            let NodeTextContent: string = CurrentNode.textContent ?? ''
-            TotalCount += NodeTextContent.length
-            if(TotalCount >= offsetStart && offsetStartNode === null){
-                let LetterIndex = 0
-                if(blockFounded === true){
-                    LetterIndex = offsetStart - (TotalCount - NodeTextContent.length)
-                    offsetStartNode = {node: CurrentNode, LetterIndex: LetterIndex}
-                    if(offsetEnd === offsetStart){
-                        LetterIndex = offsetStart - (TotalCount - NodeTextContent.length)
-                        offsetEndNode = {node: CurrentNode, LetterIndex: LetterIndex}
-                    }
-                }
-            }
-            if(TotalCount >= offsetEnd && offsetEndNode === null && blockFounded === true){
-                let LetterIndex = offsetEnd - (TotalCount - NodeTextContent.length)
-                offsetEndNode = {node: CurrentNode, LetterIndex: LetterIndex}
-            }
-        }
-
-        let CurrentNode: Node | null = tw.currentNode
-        while(true){
-            if(CurrentNode === null || (offsetStartNode !== null && offsetEndNode !== null)) break;
-            else{
-                if(blockFounded === false){
-                    let NodeDataset = (CurrentNode as HTMLElement).dataset
-                    if(NodeDataset['setBlockkey'] === blockKey){
-                        blockFounded = true
-                    }
-                }
-                if(CurrentNode.nodeName === 'BR'){
-                    if((CurrentNode as HTMLElement).dataset['blockseparator'] === 'true'){
-                        offsetStartNode = {node: CurrentNode, LetterIndex: 0}
-                        offsetEndNode = {node: CurrentNode, LetterIndex: 0}
-                        break ;
-                    }
-                }
-                else if(CurrentNode.childNodes.length === 1 && CurrentNode.firstChild?.nodeType === 3){
-                    NodeInfoCollect(CurrentNode)
-                }
-                else if(CurrentNode.childNodes.length !== 1 && CurrentNode.firstChild?.nodeType === 3){
-                    CurrentNode.childNodes.forEach((node: Node) => {
-                        if(node.nodeType === 1){
-                            tw.nextNode()
-                        }
-                        NodeInfoCollect(node)
-                    })
-                }
-            
-            }
-            CurrentNode = tw.nextNode()
-        }
-        let NodeData = {offsetStart: offsetStartNode, offsetEnd: offsetEndNode}
-        return NodeData
-    },
-    GetBlockElement: function(node: Node, EditorNodes: Array<Node>){
-        let editorClass = 'ATE__editor'
-        let ParentNode: HTMLElement | null = node as HTMLElement
-        while((ParentNode.parentNode as HTMLElement).classList['0'] as string !== editorClass){
-            ParentNode = (ParentNode ?? node).parentNode as HTMLElement
-        }
-        return {blockNode: node, key: EditorNodes.indexOf(node as HTMLElement)}
-    },
-    GetTextNode: function(node: Node){
-        
-    },
-    GetCaretPosition: function(EditorState: ATEditor, EditorRef: React.MutableRefObject<HTMLDivElement>){
-
-        let caretEnd = 0
-        let caretStart = 0
-        let EditorNode: HTMLDivElement = EditorRef.current
-
-        let CaretText = ''
-        let StartKey: string | undefined = undefined
-        let EndKey: string | undefined = undefined
-
-        let selection = window.getSelection()
-        let CaretRange
-
-        if(selection !== null && EditorNode !== null) {
-
-            let collapsed = selection.isCollapsed
-            let EditorNodes = Array.from(EditorNode.children)
-
-            let range = selection.getRangeAt(0);
-            CaretText = range.toString()
-
-            let selected = range.toString().length
-            
-            let anchorTextNode = range.startContainer
-            let focusTextNode = range.endContainer
-
-            let anchorBlockNode = this.GetBlockElement(anchorTextNode, EditorNodes)
-            let focusBlockNode = this.GetBlockElement(focusTextNode, EditorNodes)
-
-            if(focusTextNode !== undefined){
-                EndKey = (focusTextNode.parentNode as HTMLElement).dataset['setBlockkey'] ?? undefined
-                if(EndKey === undefined){
-                    let SelectedDataSet = (focusTextNode as HTMLElement).dataset
-                    EndKey = SelectedDataSet ? (focusTextNode as HTMLElement).dataset['setBlockkey'] : undefined
-                }
-                if(collapsed === true) StartKey = EndKey
-            }
-            if(anchorTextNode !== undefined && collapsed === false){
-                StartKey = (anchorTextNode.parentNode as HTMLElement).dataset['setBlockkey'] ?? undefined
-                if(StartKey === undefined){
-                    let SelectedDataSet = (anchorTextNode as HTMLElement).dataset
-                    StartKey = SelectedDataSet ? (anchorTextNode as HTMLElement).dataset['setBlockkey'] : undefined
-                }
-            }
-            if(anchorBlockNode.blockNode !== null){
-                CaretRange = range.cloneRange();
-                CaretRange.selectNodeContents(anchorBlockNode.blockNode);
-                CaretRange.setEnd(range.endContainer, range.endOffset);
-                caretStart = CaretRange.toString().length - selected
-                caretEnd = CaretRange.toString().length;
-            }
-            if(collapsed === false && StartKey !== EndKey){
-                if(focusBlockNode.blockNode !== null){
-                    let CaretRange2 = range.cloneRange();
-                    CaretRange2.selectNodeContents(focusBlockNode.blockNode);
-                    CaretRange2.setStart(range.endContainer, range.endOffset);
-                    caretEnd = ((focusBlockNode.blockNode.textContent ?? '').length) - CaretRange2.toString().length
-                }
-            }
-            let SelectionState = {
-                    anchorOffset: caretStart,
-                    focusOffset: caretEnd, 
-                    SelectionText: CaretText,
-                    anchorKey: StartKey ?? '',
-                    focusKey: EndKey ?? '',
-                }
-
-            EditorState.selectionState = SelectionState
-            }
-        return EditorState
-    },
-
-    SetSelection: function(EditorRef: React.MutableRefObject<HTMLDivElement>, offsetStart: number, offsetEnd: number, blockKey: string){
-
-        let BlockNode = EditorRef.current.querySelector(`.ATEditor__content__ATEditorBlock[data-set-blockkey = '${blockKey}' ]`)
-        if(BlockNode !== undefined && BlockNode !== null){
-            let offsetData = this.GetNodesBySelection(BlockNode, offsetStart, offsetEnd, blockKey)
-            let offsetStartNode = offsetData?.offsetStart ?? null
-            let offsetEndNode = offsetData?.offsetEnd ?? null
-            if(BlockNode !== null && offsetStartNode !== null && offsetEndNode !== null) {
-                let range = document.createRange();
-                let selection = window.getSelection();
-
-                if(selection !== null){
-                    BlockNode = (BlockNode?.firstChild?.firstChild as HTMLElement) ?? null
-
-                    let StartNode = offsetStartNode.node.firstChild ?? offsetStartNode.node
-                    StartNode = StartNode === null ? offsetStartNode.node : StartNode
-
-                    let EndNode = offsetEndNode.node.firstChild ?? offsetEndNode.node
-                    
-                    if(offsetStartNode.LetterIndex > -1 && offsetEndNode.LetterIndex > -1){
-                        range.setStart(StartNode, offsetStartNode.LetterIndex);
-                        range.setEnd(EndNode, offsetEndNode.LetterIndex);
-                    }
-
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            }
-        }
-
-    },
-    ForceSelectionData: function(selectionState: EditorSelection, selectionSettings: any){
-        selectionState.anchorOffset = selectionSettings.offsetStart ?? selectionState.anchorOffset
-        selectionState.focusOffset = selectionSettings.offsetEnd ?? selectionState.focusOffset
-        selectionState.SelectionText = selectionSettings.SelectionText ?? selectionState.SelectionText
-        selectionState.anchorKey = selectionSettings.StartKey ?? selectionState.anchorKey
-        selectionState.focusKey = selectionSettings.EndKey ?? selectionState.focusKey
-    }
-}
-
-
-export default SelectionUtils

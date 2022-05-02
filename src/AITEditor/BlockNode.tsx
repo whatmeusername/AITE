@@ -59,9 +59,11 @@ export default class BlockNode{
         }
     }
 
-    splitCharNode(start: number, end?: number, node?: NodeTypes){
-        if(node === undefined) this.CharData = [...this.CharData.slice(0, start), ...this.CharData.slice(end)]
-        else this.CharData = [...this.CharData.slice(0, start), node, ...this.CharData.slice(end)]
+    splitCharNode(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes){
+        let StartSlice = startFromZero === true ? this.CharData.slice(0, start) : this.CharData.slice(start)
+        let EndSlice = end ? this.CharData.slice(end) : []
+        if(node === undefined) this.CharData = [...StartSlice, ...EndSlice]
+        else this.CharData = [...StartSlice, node, ...EndSlice]
     }
 
     CharStylesEqual(C1: TextNode, C2: TextNode): boolean{
@@ -148,6 +150,10 @@ export default class BlockNode{
         let previousSibling = this.CharData[index - 1]
         if(previousSibling !== undefined) return previousSibling
         else return undefined
+    }
+
+    getNodeByIndex(index: number){
+        return this.CharData[index]
     }
 
     getType(){

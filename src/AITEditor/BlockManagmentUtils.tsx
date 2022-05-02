@@ -51,8 +51,8 @@ export function createReactEditor(ContentNode: ContentNode){
         if(currentBlockType === 'standart'){
             let CurrentBlockChildrens: any = []
             if(block.CharData.length === 1 && block.CharData[0].d[1] === ''){
-                let BreakLineNode = React.createElement('br', null)
-                BlockElements.push(React.createElement('div', null, [BreakLineNode]))
+                let BreakLineNode = React.createElement('br', {key: `Editor-block-${count}`})
+                BlockElements.push(React.createElement('div', {key: `Editor-block-${count}`}, [BreakLineNode]))
             }
             else{
                     block.CharData.forEach((CharData: NodeTypes) => {
@@ -64,7 +64,7 @@ export function createReactEditor(ContentNode: ContentNode){
                         }
                         else if(CharData.d[0] === 'image'){
                             let ImageElement = createImageNode(CharData as ImageGifNode)
-                            let WrapperElement = React.createElement('span', null, [ImageElement])
+                            let WrapperElement = React.createElement('span', {key: `Editor-block-${count}`}, [ImageElement])
                             CurrentBlockChildrens.push(WrapperElement)
                         }
                 })
