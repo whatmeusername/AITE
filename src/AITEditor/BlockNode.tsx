@@ -21,10 +21,8 @@ export default class BlockNode{
         this.blockWrapper = blockWrapper ?? 'unstyled'
         this.blockInlineStyles = []
         this.CharData =  CharNodes ?? [
-            new TextNode('Hello world1'), 
-            new ImageGifNode('https://i.pinimg.com/originals/8d/eb/5f/8deb5ff7399326a55d6066cc8f77c762.gif'),
-            new TextNode('Hello world2'),
-            new ImageGifNode('https://i.pinimg.com/originals/8d/eb/5f/8deb5ff7399326a55d6066cc8f77c762.gif'),
+            new TextNode('Государственное бюджетное профессиональное образовательное учреждение города Москвы "Московский колледж управления, гостиничного бизнеса и информационных технологий "Царицыно"'), 
+            new ImageGifNode('https://i.ytimg.com/vi/sr4xiL4HObg/maxresdefault.jpg'),
         ] 
     }
 

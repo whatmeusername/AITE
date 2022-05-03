@@ -3,18 +3,12 @@ import React, {useState, useEffect} from 'react'
 import defaultBlocks from './defaultStyles/defaultBlocks'
 import './defaultinlineStyles.scss'
 
-import StandartToolBar from './StandartToolbars'
-
-import EditorManagmentUtils from './EditorManagmentUtils'
-import {createReactEditor, BlockManagmentUtils} from './BlockManagmentUtils'
-import RenderUtils from './RenderUtils'
-import SearchUtils from './SearchUtils'
-import FormatingUtils from './FormatingUtils'
+import {createReactEditor} from './BlockManagmentUtils'
 import {EditorState as editorState} from './EditorManagmentUtils'
 
 import {EditorSelection} from './Interfaces'
 
-
+import EditorCommands from './EditorCommands'
 
 
 export type CharData = [string, Array<string>, Array<number>]
@@ -23,41 +17,6 @@ export type HTMLBlockStyle = {type: string, tag: string}
 export type HTMLCharStyle = {style: string, tag: string}
 
 
-export interface ATEditorBlock{
-    blockKey: string
-    blockLength: number
-    plainText: string
-    blockStyle: string
-    CharOffset: number
-    blockInlineStyles: Array<string>
-    CharData: Array<CharData>
-
-}
-
-
-
-interface EditorProps{
-    EditorState: any
-    setEditorState: React.Dispatch<React.SetStateAction<ATEditor>>
-
-}
-
-export interface ATEditor{
-    blocks: Array<ATEditorBlock>
-    selectionState: EditorSelection
-
-    // ---- TO CREATE ----
-    // BLOCK TYPE STATE
-    //PAGINATOR STATE
-}
-
-
-export interface blockHTML {
-    blockKey: string, 
-    blockType: string
-    blockInlineStyles: Array<string>
-    HTML: string
-}
 
 export function getElementBlockStyle(Tag: string): HTMLBlockStyle {
     let TagData = {type: 'unstyled', tag: 'div'}
@@ -65,24 +24,12 @@ export function getElementBlockStyle(Tag: string): HTMLBlockStyle {
     return TagData
 }
 
- // CreateStateFromHTML(`
-    //     <h1 class = 'ATEditorBlock__wrapper'>
-    //         <p>Hello</p>
-    //         <p> World</p>
-    //         <strong> FROM</strong>
-    //         <em> DENIS</em>
-    //         <em> DENIS2</em>
-    //     </h1>
-    //     <div>
-    //         <p>Hello two</p>
-    //     </div>
-    //     `)
 
 export default function AITEditor(){
 
     const EditorRef = React.useRef<HTMLDivElement>(null!)
 
-    const [EditorState, setEditorState] = useState<any>(new editorState())
+    const [EditorState, setEditorState] = useState<editorState>(new editorState())
 
 
     function KeyBoardCodeValidator(key: string){
@@ -112,8 +59,7 @@ export default function AITEditor(){
         }
         else if(!AllowedKeys.includes(Key) && KeyBoardCodeValidator(Key)){
             event.preventDefault()
-            EditorState.contentNode.insertLetterIntoBlock(event, EditorState.selectionState)
-            setEditorState({...EditorState})
+            EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', event)
         }
         else if(!AllowedKeys.includes(Key)){
             event.preventDefault()
@@ -122,15 +68,33 @@ export default function AITEditor(){
     }
     
     useEffect(() => { 
+        if(EditorState.EditorCommands === undefined){
+            EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}))
+
+            EditorState.EditorCommands.registerCommand(
+                'KEYBOARD_COMMAND',
+                'IMMEDIATELY_EDITOR_COMMAND',
+                (event) => EditorState.contentNode.insertLetterIntoBlock(event, EditorState.selectionState)
+            )
+        
+            EditorState.EditorCommands.registerCommand(
+                'SELECTION_COMMAND',
+                'IGNOREMANAGER_EDITOR_COMMAND',
+                (_) => EditorState.selectionState.$getCaretPosition(EditorRef)
+            )
+
+            setEditorState({...EditorState})
+        }
         if(EditorState.selectionState.isDirty ){
             EditorState.selectionState.$getSelectionDataFromDirty(EditorRef)
         }
         EditorState.selectionState.setCaretPosition()
     })
 
+
+
     return(
         <>
-        {/* <StandartToolBar EditorState = {EditorState} setEditorState = {setEditorState}/> */}
             <div
                 ref = {EditorRef}
                 style = {{fontSize: '16px'}}
@@ -141,9 +105,7 @@ export default function AITEditor(){
 
                 spellCheck = {false}
                 
-                onSelect = {() => {
-                    EditorState.selectionState.$getCaretPosition(EditorRef)
-                }}
+                onSelect = {(e) => EditorState.EditorCommands?.dispatchCommand('SELECTION_COMMAND', e)}
                 
                 onKeyDown = {HandleKeyClick}
                 onDrop = {(event) => event.preventDefault()}
