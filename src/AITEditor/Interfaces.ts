@@ -7,6 +7,8 @@ export type HTMLBlockStyle = {type: string, tag: string}
 export type HTMLCharStyle = {style: string, tag: string}
 export type CSSUnit = 'px' | '%' | 'rem' | 'em' | 'vh' | 'vw'
 
+export type ClassVariables<T> = {readonly [K in keyof T as T[K] extends Function ? never : K]+?: T[K]}
+
 export interface ATEditorBlock{
     blockKey: string
     blockLength: number

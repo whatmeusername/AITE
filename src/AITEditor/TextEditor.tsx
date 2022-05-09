@@ -1,15 +1,16 @@
 import React, {useState, useEffect} from 'react'
 
 import defaultBlocks from './defaultStyles/defaultBlocks'
-import './defaultinlineStyles.scss'
 
-import {createReactEditor} from './BlockManagmentUtils'
+import {CreateReactEditor} from './BlockManagmentUtils'
 import {EditorState as editorState} from './EditorManagmentUtils'
-
-import {EditorSelection} from './Interfaces'
 
 import EditorCommands from './EditorCommands'
 
+import RichBlock from './packages/AITE_RichBlock/RichBlock'
+import activeElementState from './packages/AITE_ActiveState/activeElementState'
+
+import './defaultinlineStyles.scss'
 
 export type CharData = [string, Array<string>, Array<number>]
 
@@ -59,7 +60,7 @@ export default function AITEditor(){
         }
         else if(!AllowedKeys.includes(Key) && KeyBoardCodeValidator(Key)){
             event.preventDefault()
-            EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', event)
+            EditorState.contentNode.insertLetterIntoBlock(event, EditorState.selectionState)
         }
         else if(!AllowedKeys.includes(Key)){
             event.preventDefault()
@@ -70,11 +71,13 @@ export default function AITEditor(){
     useEffect(() => { 
         if(EditorState.EditorCommands === undefined){
             EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}))
+            EditorState.EditorActiveElementState = new activeElementState(() => setEditorState({...EditorState}))
+
 
             EditorState.EditorCommands.registerCommand(
                 'KEYBOARD_COMMAND',
                 'IMMEDIATELY_EDITOR_COMMAND',
-                (event) => EditorState.contentNode.insertLetterIntoBlock(event, EditorState.selectionState)
+                (event) => HandleKeyClick(event)
             )
         
             EditorState.EditorCommands.registerCommand(
@@ -89,9 +92,11 @@ export default function AITEditor(){
             EditorState.selectionState.$getSelectionDataFromDirty(EditorRef)
         }
         EditorState.selectionState.setCaretPosition()
-    })
+    }, [EditorState])
 
 
+//    let richBlock = new RichBlock(EditorState, () => setEditorState({...EditorState}))
+//    richBlock.toggleBlockWrapper('header-one')
 
     return(
         <>
@@ -100,18 +105,20 @@ export default function AITEditor(){
                 style = {{fontSize: '16px'}}
                 className = 'AITE__editor'
 
+                data-aite_editor_root = {true}
                 contentEditable = {true}
                 suppressContentEditableWarning = {true}
 
                 spellCheck = {false}
+                onClick = {(event) => EditorState.EditorActiveElementState?.handleElementClick(event)}
                 
                 onSelect = {(e) => EditorState.EditorCommands?.dispatchCommand('SELECTION_COMMAND', e)}
                 
-                onKeyDown = {HandleKeyClick}
+                onKeyDown = {(e) => EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', e)}
                 onDrop = {(event) => event.preventDefault()}
             >
                 <React.Fragment>
-                    {createReactEditor(EditorState.contentNode)}
+                    <CreateReactEditor EditorState = {EditorState}/>
                 </React.Fragment>
             </div>
         </>

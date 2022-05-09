@@ -1,6 +1,4 @@
-import React from 'react'
 
-import BlockNode from './BlockNode'
 import SearchUtils from './SearchUtils'
 
 export type CharStyleArr = {c: string | null}
@@ -37,7 +35,8 @@ export default class TextNode{
         this.d[3] = StylesArr
     }
 
-    returnType(){return this.d[0]}
+    returnActualType(){return this.d[0]}
+    returnType(){return 'text'}
     returnContent(){return this.d[1]}
     returnContentLength(){return this.d[1].length}
 
@@ -53,8 +52,9 @@ type ImageElement = [
     {
         src: string,
         alt: string
-        className?: string
-    }
+        className?: string | null
+    },
+    {c: null, s: {height: string, width: string, [K: string]: string}}
 ]
 
 
@@ -62,16 +62,31 @@ export class ImageGifNode{
 
     d: ImageElement
 
+    
+
+
     constructor(src: string){
+
         this.d = [
             'image',
             {
                 src: src,
                 alt: '',
-                className: 'image__test__fixed',
-            }
+                className: null,
+            },
+            {c: null, s: {width: '500px', height: '500px'}}
         ]
     }
+
+    setWidth(newWidth: number){
+        this.d[2] = {...this.d[2], s: {...this.d[2].s, width: newWidth + 'px'}}
+    }
+
+    setHeight(newHeight: number){
+        this.d[2] = {...this.d[2], s: {...this.d[2].s, height: newHeight + 'px'}}
+    }
+
+    returnActualType(){return this.d[0]}
     returnType(){return 'element'}
     returnContent(){return this.d[1].src}
     returnContentLength(){return 1}

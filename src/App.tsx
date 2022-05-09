@@ -9,7 +9,7 @@ function App() {
 
   return (
     <div className="App">
-        <p className="AITEditor__wrapper__label">developing version of AITEditor: 0.02v</p>
+        <p className="AITEditor__wrapper__label">developing version of AITEditor: 0.03v</p>
         <div className="AITEditor__wrapper">
           <AITEditor />
         </div>

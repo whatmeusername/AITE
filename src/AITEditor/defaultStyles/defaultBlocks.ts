@@ -34,6 +34,7 @@ const defaultBlocks = [
     {
         type: 'blockquote',
         tag: 'blockquote',
+        class: 'AITE__editor__blockquote'
     },
 ]
 

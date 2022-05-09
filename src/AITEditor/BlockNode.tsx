@@ -1,29 +1,47 @@
-import React from 'react'
+
+import defaultBlocks from './defaultStyles/defaultBlocks'
+
 
 import TextNode, {ImageGifNode} from './CharNode'
 import {SelectionState} from './SelectionUtils'
+import {ClassVariables} from './Interfaces'
 
 export type NodeTypes = TextNode | ImageGifNode
 export type BlockNodeData = Array<NodeTypes>
 export type BlockTypes = 'standart' | 'horizontal-rule'
+export type BlockType = BlockNode | HorizontalRuleNode
+
+type ContentNodeVariables = ClassVariables<BlockNode>
+
 
 export default class BlockNode{
 
     blockType: BlockTypes
     plainText: string
     blockWrapper: string
-    blockInlineStyles: Array<[Array<string>, Array<string>]>
+    blockInlineStyles: Array<string>
     CharData: BlockNodeData
 
-    constructor(CharNodes?: BlockNodeData, blockWrapper?: string){
-        this.blockType = 'standart'
-        this.plainText = '' 
-        this.blockWrapper = blockWrapper ?? 'unstyled'
-        this.blockInlineStyles = []
-        this.CharData =  CharNodes ?? [
-            new TextNode('Государственное бюджетное профессиональное образовательное учреждение города Москвы "Московский колледж управления, гостиничного бизнеса и информационных технологий "Царицыно"'), 
-            new ImageGifNode('https://i.ytimg.com/vi/sr4xiL4HObg/maxresdefault.jpg'),
-        ] 
+    constructor(initData?: ContentNodeVariables){
+        this.blockType = initData?.blockType ?? 'standart'
+        this.plainText = initData?.plainText ?? '' 
+        this.blockWrapper = initData?.blockWrapper ?? 'unstyled'
+        this.blockInlineStyles = initData?.blockInlineStyles ?? []
+        this.CharData = initData?.CharData ?? [] 
+
+    }
+
+    prepareBlockStyle(){
+        type data = {n: string, c: null | string}
+        let BlockNodeData: data = {n: 'div', c: null}
+        let blockWrapper = defaultBlocks.find(obj => obj.type === this.blockWrapper)
+        if(blockWrapper !== undefined){
+            BlockNodeData.n = blockWrapper.tag
+            BlockNodeData.c = blockWrapper.class ? blockWrapper.class : null
+        }
+        return BlockNodeData
+        
+
     }
 
     FullSelected(selectionState: SelectionState): boolean {
@@ -58,6 +76,7 @@ export default class BlockNode{
     }
 
     splitCharNode(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes){
+
         let StartSlice = startFromZero === true ? this.CharData.slice(0, start) : this.CharData.slice(start)
         let EndSlice = end ? this.CharData.slice(end) : []
         if(node === undefined) this.CharData = [...StartSlice, ...EndSlice]
@@ -87,23 +106,25 @@ export default class BlockNode{
     blockUpdate(){
 
         let NewData: BlockNodeData = this.CharData
-        let hasChange = false
         let previousBlockLength = NewData.length
 
         const ConcatIfEqual = (CharData: BlockNodeData): BlockNodeData => {
             let NewData: BlockNodeData = []
             for(let CharIndex = 0; CharIndex < CharData.length; CharIndex++){
-                if(CharData[CharIndex + 1] !== undefined && CharData[CharIndex + 1].d[0] === 'text' && CharData[CharIndex].d[0] === 'text'){
-                    let StyleIsEqyal = this.CharStylesEqual(CharData[CharIndex] as TextNode, CharData[CharIndex + 1] as TextNode)
-                    if(StyleIsEqyal === true){
-                        CharData[CharIndex].d[1] += (CharData[CharIndex + 1] as TextNode).d[1]
-                        NewData.push(CharData[CharIndex])
-                        CharData.splice(CharIndex, 1)
-                        hasChange = true
-                    }
+                let currentNode = CharData[CharIndex] as TextNode
+                let nextNode = CharData[CharIndex + 1] as TextNode
+                if(
+                    nextNode !== undefined && 
+                    currentNode.returnType() === 'text' && 
+                    nextNode.returnType() === 'text' &&
+                    this.CharStylesEqual(currentNode, nextNode)
+                    ){
+                    currentNode.d[1] += nextNode.d[1]
+                    NewData.push(currentNode)
+                    CharData.splice(CharIndex, 1)
                 }
                 else{
-                    NewData.push(CharData[CharIndex])
+                    NewData.push(currentNode)
                 }
             }
             return NewData
@@ -156,6 +177,11 @@ export default class BlockNode{
 
     getType(){
         return this.blockType
+    }
+
+
+    findCharByIndex(index: number){
+        return this.CharData[index]
     }
 
 

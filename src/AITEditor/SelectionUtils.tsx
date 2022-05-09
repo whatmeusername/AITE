@@ -1,6 +1,6 @@
 import React from 'react'
 
-import {ATEditor, EditorSelection} from './Interfaces'
+import {ClassVariables} from './Interfaces'
 import {TEXT_NODE, BREAK_LINE} from './ConstVariables'
 
 interface blockNodeData {blockNode: HTMLElement | Node, index: number, elementType: string | null}
@@ -8,11 +8,7 @@ interface blockNodeDataExtended extends blockNodeData{
     charKey: number
 }
 
-type SelectionStateVariables<T> = {readonly [K in keyof T as T[K] extends Function ? never : K]+?: T[K]}
-
-
-
-export type SelectionStateData = SelectionStateVariables<SelectionState>
+export type SelectionStateData = ClassVariables<SelectionState>
 
 export class SelectionState{
 

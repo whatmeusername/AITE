@@ -2,7 +2,6 @@
 import {IMMEDIATELY_EDITOR_COMMAND, HIGH_EDITOR_COMMAND, STANDART_EDITOR_COMMAND, EDITOR_PRIORITY, IGNOREMANAGER_EDITOR_COMMAND} from './ConstVariables'
 import {EditorStateManager} from './Interfaces'
 
-import {EditorState} from './EditorManagmentUtils'
 
 
 
@@ -18,8 +17,8 @@ type MouseCOMMAND = React.MouseEvent | MouseEvent | React.SyntheticEvent
 
 
 interface KEYBOARD_COMMAND {
-        commandPriority: commandPriority
-        action: (event: keyboardCOMMAND, ...args: any) =>  void
+    commandPriority: commandPriority
+    action: (event: keyboardCOMMAND, ...args: any) =>  void
 }
 
 interface SELECTION_COMMAND {
@@ -49,10 +48,10 @@ interface commandStorage{
 }
 
 
-type FindAndRemoveUndefined<O, K extends keyof O> = {[I in K]-?: O[K]}
+type FindWithoutUndefined<O, K extends keyof O> = {[I in K]-?: O[K]}
 
 type GetCommandEventType<C extends keyof commandStorage> = (
-    FindAndRemoveUndefined<FindAndRemoveUndefined<commandStorage, C>[C], 'action'>['action'] extends 
+    FindWithoutUndefined<FindWithoutUndefined<commandStorage, C>[C], 'action'>['action'] extends 
     (...args: infer A) => any ? 
         A : 
         never
@@ -96,11 +95,6 @@ export default class EditorCommands{
 
     dispatchCommand(commandType: commandTypes, event: React.SyntheticEvent, ...rest: any){
         const Command = this.CommandStorage[commandType]
-
-        function sleep(ms: number){
-            return new Promise((resolve) => setTimeout(resolve, ms))
-        }
-        
         
         this.commandQueue.unshift(commandType)
 
@@ -114,12 +108,15 @@ export default class EditorCommands{
                     new Promise((res) => {
                     this.dispatchIsBusy = true
                     Command.action(event, ...rest)
-                    res(Command?.commandPriority + ' has been called and succesly completed')
+                    res('')
                 }).then(res => {
                     this.dispatchIsBusy = false
                     if(this.commandQueue[this.commandQueue.length - 1] === Command.commandPriority){
                         this.commandQueue.pop()
                         if(Command.commandPriority !== 'IGNOREMANAGER_EDITOR_COMMAND' && this.preventUpdate === false) this.EditorStateFunction()
+                    }
+                    else{
+                        this.commandQueue.pop()
                     }
                 })
             }
