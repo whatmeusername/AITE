@@ -2,16 +2,21 @@
 import defaultBlocks from './defaultStyles/defaultBlocks'
 
 
-import TextNode, {ImageGifNode} from './CharNode'
+import TextNode from './CharNode'
+import type {imageNode} from './packages/AITE_Image/imageNode'
 import {SelectionState} from './SelectionUtils'
 import {ClassVariables} from './Interfaces'
 
-export type NodeTypes = TextNode | ImageGifNode
+export type NodeTypes = TextNode | imageNode
 export type BlockNodeData = Array<NodeTypes>
 export type BlockTypes = 'standart' | 'horizontal-rule'
 export type BlockType = BlockNode | HorizontalRuleNode
 
 type ContentNodeVariables = ClassVariables<BlockNode>
+interface findNodeOffsetData{
+    offsetKey: number 
+    letterIndex: number
+}
 
 
 export default class BlockNode{
@@ -42,6 +47,12 @@ export default class BlockNode{
         return BlockNodeData
         
 
+    }
+
+    swapCharPosition(FirPosition: number, SecPosition: number){
+        let CharP1 = this.CharData[FirPosition]
+        this.CharData[FirPosition] = this.CharData[SecPosition]
+        this.CharData[SecPosition] = CharP1
     }
 
     FullSelected(selectionState: SelectionState): boolean {
@@ -156,6 +167,22 @@ export default class BlockNode{
         return Count
     }
 
+    findNodeByOffset(offset: number): findNodeOffsetData{
+        let data: findNodeOffsetData = {offsetKey: 0, letterIndex: 0}
+        let letterCount = 0
+        for(let i = 0; i < this.CharData.length; i++){
+            let currentLetterCount = this.CharData[i].returnContentLength()
+            letterCount += currentLetterCount
+            if(letterCount >= offset){
+                data.offsetKey = i
+                data.letterIndex = currentLetterCount - (letterCount - offset)
+                console.log(data)
+                return data
+            }
+        }
+        return data
+    }
+
     lastNodeIndex(){
         return this.CharData.length - 1
     } 
@@ -178,7 +205,6 @@ export default class BlockNode{
     getType(){
         return this.blockType
     }
-
 
     findCharByIndex(index: number){
         return this.CharData[index]

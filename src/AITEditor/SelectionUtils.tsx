@@ -2,21 +2,84 @@ import React from 'react'
 
 import {ClassVariables} from './Interfaces'
 import {TEXT_NODE, BREAK_LINE} from './ConstVariables'
+import {findEditorBlockIndex, findEditorFullPathToCharNode} from './EditorUtils'
 
-interface blockNodeData {blockNode: HTMLElement | Node, index: number, elementType: string | null}
+import type {EditorState} from './EditorManagmentUtils'
+
+interface blockNodeData {blockNode: HTMLElement | Node, index: Array<number>, elementType: string | null}
 interface blockNodeDataExtended extends blockNodeData{
     charKey: number
 }
 
 export type SelectionStateData = ClassVariables<SelectionState>
 
+
+export class BlockPath{
+    path: Array<number>
+
+    constructor(path?: Array<number>){
+        this.path = path ?? [0]
+    }
+
+    set(path: Array<number> | undefined): void{
+        if(path !== undefined) this.path = path
+    }
+
+    get(){
+        return this.path
+    }
+
+    length(){
+        return this.path.length
+    }
+
+    getLastIndex(): number{
+        return this.path[this.path.length - 1]
+    }
+
+    getPathIndexByIndex(index: number): number{
+        if(index < 0){
+            return this.path[this.length() + index]
+        }
+        return this.path[index]
+    }
+
+    getSlicedPath(sliceTo: number): Array<number>{
+        if(sliceTo < 0){
+            return this.path.slice(0, this.length() + sliceTo)
+        }
+        else return this.path.slice(0, sliceTo)
+    }
+
+    setLastPathIndex(index: number): void{
+        this.path[this.path.length - 1] = index
+    }
+
+    getPathBeforeLast(): Array<number>{
+        if(this.length() > 1){
+            return this.path.slice(0, this.length() - 1)
+        }
+        return this.path
+    }
+
+    decrementLastPathIndex(to: number): void{
+        this.path[this.path.length - 1] -= to
+    }
+
+    incrementLastPathIndex(to: number): void{
+        this.path[this.path.length - 1] += to
+    }
+    
+
+}
+
 export class SelectionState{
 
     anchorOffset: number
     focusOffset: number
 
-    anchorKey: number
-    focusKey: number
+    anchorKey: BlockPath
+    focusKey: BlockPath
 
     anchorCharKey: number
     focusCharKey: number
@@ -35,8 +98,8 @@ export class SelectionState{
         this.anchorOffset = 0
         this.focusOffset = 0
         
-        this.anchorKey = 0
-        this.focusKey = 0
+        this.anchorKey = new BlockPath()
+        this.focusKey = new BlockPath()
 
         this.anchorCharKey = 0
         this.focusCharKey = 0
@@ -81,6 +144,15 @@ export class SelectionState{
         return this._focusNode
     }
 
+
+    pathIsEqual(){
+        let focusKeyArr = this.focusKey.get()
+        let anchorKeyArr = this.anchorKey.get()
+        for(let i = 0; i < this.anchorKey.length(); i++){
+            if(anchorKeyArr[i] !== focusKeyArr[i]) return false
+        }
+        return true
+    }
 
     moveSelectionForward(){
         this.anchorOffset += 1
@@ -174,24 +246,17 @@ export class SelectionState{
         return type
     }
 
-    $getBlockNode<S>(node: Node, EditorNodes: Array<Node>, returnCharKey?: S extends boolean ? boolean : undefined): S extends boolean ? blockNodeDataExtended : blockNodeData;
-    $getBlockNode(node: Node, EditorNodes: Array<Node>, returnCharKey?: boolean | undefined): blockNodeDataExtended | blockNodeData {
-        let editorClass = 'AITE__editor'
-        let ParentNode: HTMLElement = node as HTMLElement
+    $getBlockNode<S>(node: Node, returnCharKey?: S extends boolean ? boolean : undefined): S extends boolean ? blockNodeDataExtended : blockNodeData;
+    $getBlockNode(node: Node, returnCharKey?: boolean | undefined): blockNodeDataExtended | blockNodeData {
 
-        while(true){
-            if((ParentNode.parentNode as HTMLElement).classList['0'] as string === editorClass) break;
-            ParentNode = ParentNode.parentNode as HTMLElement
-        }
-        if(returnCharKey === true){
-            let ParentNodes = Array.from(ParentNode.children)
-            let charKey = -1
+        let currentBlockData = findEditorFullPathToCharNode(node as HTMLElement)
+        if(returnCharKey === true && currentBlockData !== undefined){
             let ElementType = null
+            let charIndex = currentBlockData.charIndex ?? -1
             
-
             if(node?.firstChild?.nodeName === BREAK_LINE){
                 ElementType = 'break_line'
-                charKey = 0
+                charIndex = 0
             }
             else{
                 ElementType = this.$getNodeType(node)
@@ -199,22 +264,22 @@ export class SelectionState{
                 if(ElementType !== 'element'){
                     NodeToFind = node.parentNode ?? node
                 }
-                charKey = ParentNodes.indexOf(NodeToFind as HTMLElement)
+                charIndex = charIndex
             }
 
-            let Result = {
-                blockNode: ParentNode, 
-                index: EditorNodes.indexOf(ParentNode as HTMLElement), 
+            let Result: blockNodeDataExtended = {
+                blockNode: currentBlockData.blockNode as HTMLElement, 
+                index: currentBlockData.blockPath,
                 elementType: ElementType,
-                charKey: charKey
+                charKey: charIndex
             }
             return Result
         }
-        else if(returnCharKey === undefined){
-            let Result = {
-                blockNode: ParentNode, 
+        else if(returnCharKey === undefined && currentBlockData !== undefined){
+            let Result: blockNodeData = {
+                blockNode: currentBlockData.blockNode as HTMLElement, 
                 elementType: this.$getNodeType(node),
-                index: EditorNodes.indexOf(ParentNode as HTMLElement), 
+                index: currentBlockData.blockPath, 
             }
             return Result
         }
@@ -222,25 +287,72 @@ export class SelectionState{
     }
     
     $getSelectionDataFromDirty(EditorRef: React.MutableRefObject<HTMLDivElement>){
-        let EditorNode: HTMLDivElement = EditorRef.current
 
+        let EditorNode: HTMLDivElement = EditorRef.current;
+        let EditorNodes = Array.from(EditorNode.children);
+        
+        function getCharNode(path: BlockPath, currentNode: HTMLElement): HTMLElement | undefined {
+            let currentBlock: HTMLElement | undefined;
+            let pathArray = path.get();
+            for(let i = 1; i < path.length(); i++){
+                let childrens = Array.from(currentNode.children);
+                let nextChildrenDataset = (childrens[pathArray[i]] as HTMLElement).dataset;
 
-        if(EditorNode !== null && typeof this.anchorKey === 'number' && typeof this.focusKey === 'number'){
-            let EditorNodes = Array.from(EditorNode.children)
+                if(
+                    nextChildrenDataset.aite_block_node !== undefined || 
+                    nextChildrenDataset.aite_block_content_node !== undefined
+                    )
+                    {
+                    currentNode = childrens[pathArray[i]] as HTMLElement;
+                }
 
-            let anchorBlockNode = EditorNodes[this.anchorKey]
-            let focusBlockNode = EditorNodes[this.focusKey]
-
-            let anchorNode = Array.from(anchorBlockNode.children)[this.anchorCharKey as number]
-            let focusNode = Array.from(focusBlockNode.children)[this.anchorCharKey as number]
-
-            if(anchorNode?.firstChild?.nodeType !== TEXT_NODE) this.anchorNode = anchorNode
-            else this.anchorNode = anchorNode.firstChild
-
-            if(focusNode?.firstChild?.nodeType !== TEXT_NODE) this.focusNode = anchorNode
-            else this.focusNode = anchorNode.firstChild
-            this.isDirty = false
+                else if(
+                    i === path.length() - 1 && (
+                            currentNode.dataset.aite_block_node === undefined || 
+                            currentNode.dataset.aite_block_content_node !== undefined
+                        )
+                    ){
+                        currentBlock = childrens.find(node => {
+                            if(
+                                (node as HTMLElement).dataset.aite_block_node !== undefined ||
+                                (node as HTMLElement).dataset.aite_block_content_node !== undefined
+                                ) return true;
+                        }) as HTMLElement;
+                        if(currentBlock !== undefined){
+                            currentBlock = Array.from(currentBlock.children)[pathArray[i]] as HTMLElement;
+                        }
+                }
+                currentNode = childrens[pathArray[i]] as HTMLElement;
+            };
+            return currentBlock;
         }
+
+
+        let anchorNodeBlock = undefined,
+            focusNodeBlock = undefined;
+
+        if(this.anchorKey.length() === 1) anchorNodeBlock = EditorNodes[this.anchorKey.get()[0]];
+        else anchorNodeBlock = getCharNode(this.anchorKey, EditorNodes[this.anchorKey.get()[0]] as HTMLElement);
+
+        if(this.anchorKey.length() === 1) focusNodeBlock = EditorNodes[this.focusKey.get()[0]];
+        else focusNodeBlock = getCharNode(this.focusKey, EditorNodes[this.focusKey.get()[0]] as HTMLElement);
+
+        let anchorNode = undefined,
+            focusNode = undefined;
+
+        if(anchorNodeBlock !== undefined) anchorNode = Array.from(anchorNodeBlock.children)[this.anchorCharKey] as HTMLElement;
+        if(focusNodeBlock !== undefined) focusNode = Array.from(focusNodeBlock.children)[this.focusCharKey] as HTMLElement;
+
+        if(anchorNode !== undefined && focusNode !== undefined){
+
+            if(anchorNode?.firstChild?.nodeType !== TEXT_NODE) this.anchorNode = anchorNode;
+            else this.anchorNode = anchorNode.firstChild;
+
+            if(focusNode?.firstChild?.nodeType !== TEXT_NODE) this.focusNode = anchorNode;
+            else this.focusNode = anchorNode.firstChild;
+            this.isDirty = false;
+        }
+
     }
 
     $getCountToBlock(nodeIndex: number, BlockNode: Array<Node>): number{
@@ -259,17 +371,12 @@ export class SelectionState{
             return BlockNode.indexOf(CharNode.parentNode as HTMLElement)
         }
     }
-    $getCaretPosition(EditorRef: React.MutableRefObject<HTMLDivElement>): void{
-
-        let EditorNode: HTMLDivElement = EditorRef.current
+    $getCaretPosition(forceRange?: Range | undefined): void{
         let selection = window.getSelection()
-
-        if(selection !== null && EditorNode !== null) {
-
-            let EditorNodes = Array.from(EditorNode.children)
-
+        if(selection !== null) {
+            
             if(selection.anchorNode === null) return;
-            let range = selection.getRangeAt(0);
+            let range = forceRange ?? selection.getRangeAt(0);
 
             let collapsed = selection.isCollapsed
             this.isCollapsed = collapsed
@@ -277,15 +384,13 @@ export class SelectionState{
             let anchorTextNode = range.startContainer
             let focusTextNode = range.endContainer
 
-            let anchorBlockNode = this.$getBlockNode<boolean>(anchorTextNode, EditorNodes, true)
-
+            let anchorBlockNode = this.$getBlockNode<boolean>(anchorTextNode, true)
 
             if(anchorBlockNode.blockNode !== null){
 
-
                 this.anchorType = anchorBlockNode.elementType
                 this.anchorNode = anchorTextNode
-                this.anchorKey = anchorBlockNode.index
+                this.anchorKey.set(anchorBlockNode.index)
                 this.anchorCharKey = anchorBlockNode.charKey
 
                 let anchorRange = range.cloneRange();
@@ -294,18 +399,18 @@ export class SelectionState{
                 anchorRange.setEnd(focusTextNode, range.endOffset);
 
                 this.anchorOffset = selection.anchorOffset
-                
+            
                 if(collapsed === true) this.toggleCollapse()
             }
             
             if(collapsed === false){
 
-                let focusBlockNode = this.$getBlockNode<boolean>(focusTextNode, EditorNodes, true)
+                let focusBlockNode = this.$getBlockNode<boolean>(focusTextNode, true)
 
                 this.focusType = focusBlockNode.elementType
                 this.focusCharKey = focusBlockNode.charKey
                 this._focusNode = focusTextNode
-                this.focusKey = focusBlockNode.index
+                this.focusKey.set(focusBlockNode.index)
 
                 let focusRange = range.cloneRange();
 
@@ -313,6 +418,11 @@ export class SelectionState{
                 focusRange.setStart(range.endContainer, range.endOffset);
 
                 this.focusOffset = selection.focusOffset
+
+                if(anchorBlockNode.index.length !== focusBlockNode.index.length){
+                    this.toggleCollapse()
+                    this.focusOffset = (this.focusNode as HTMLElement).textContent?.length ?? this.focusOffset
+                }
             }
         }
     }
@@ -361,8 +471,8 @@ export class SelectionState{
             this.anchorOffset = nextNodeText.length
             this.focusOffset = nextNodeText.length
 
-            this.anchorKey = NodeKey ?? this.anchorKey 
-            this.focusKey = NodeKey ?? this.focusKey
+            this.anchorKey.set(NodeKey ? [NodeKey] : undefined)
+            this.focusKey.set(NodeKey ? [NodeKey] : undefined)
 
             this.anchorNode = Node
             this.focusNode = Node

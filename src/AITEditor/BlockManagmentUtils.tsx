@@ -2,7 +2,8 @@ import React, {useRef} from 'react'
 import {ATEditorBlock, CharData} from './Interfaces'
 
 import type {EditorState as editorState} from './EditorManagmentUtils'
-import TextNode, {ImageGifNode} from './CharNode'
+import TextNode from './CharNode'
+import type {imageNode} from './packages/AITE_Image/imageNode'
 import BlockNode, {NodeTypes, BlockType} from './BlockNode'
 
 import BlockResizeElemets from './imageNodeActiveElements'
@@ -25,7 +26,6 @@ type StartsWith<T extends string, U extends string> = T extends `${U}${string}`
   : never;
 
 export function CreateReactEditor({EditorState}: {EditorState: editorState}){
-    let BlockElements: any = []
     let blockIndex = 0
     let charIndex = 0
 
@@ -46,6 +46,41 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}){
         return false
     }
 
+    function createBlockElements(blocks: Array<BlockType>){
+        let BlockElements: Array<JSX.Element> = []
+        blocks.forEach((block: BlockType) => {
+            let currentBlockType = block.getType()
+            if(currentBlockType === 'standart'){
+                let CurrentBlockChildrens: any = []
+                if(
+                    (block as BlockNode).CharData.length === 1 && 
+                    (block as BlockNode).CharData[0].returnContent() === '' && 
+                    (block as BlockNode).CharData[0].returnType() === 'text')
+                {
+                    BlockElements.push(createBlockNode(block as BlockNode, [createBreakLine()]))
+                }
+                else{
+                    (block as BlockNode).CharData.forEach((CharData: NodeTypes, index: number) => {
+                        if(CharData.returnActualType() === 'text'){
+                            CurrentBlockChildrens.push(createTextNode(CharData as TextNode))
+                        }
+                        else if(CharData.returnActualType() === 'image'){   
+                            CurrentBlockChildrens.push(createImageNode(CharData as imageNode))
+                        }
+                        charIndex += 1
+                })
+                    BlockElements.push(createBlockNode((block as BlockNode), CurrentBlockChildrens))
+                    charIndex = 0
+                }
+            }
+            else if(currentBlockType === 'horizontal-rule'){
+                BlockElements.push(createHorizontalRule())
+            }
+            blockIndex += 1
+        })
+        return BlockElements
+    }
+
     function createTextNode(TextNode: TextNode): JSX.Element | string{
 
         TextNode.prepareStyles()
@@ -57,30 +92,68 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}){
         return React.createElement('span', s, [TextNode.d[1]])
     }
 
-    function createImageNode(node: ImageGifNode): JSX.Element | string{
+    function createImageNode(node: imageNode): JSX.Element | string{
 
-        let imageAttributes = {
+        interface ImageWrapperAttr{
+            key: string
+            className: string
+            contentEditable: false
+            style?: {[K: string]: string}
+        }
+
+        interface imageAttributes{
+            key: string
+            alt: string,
+            className: string | null | undefined
+            src: string
+            style?: {[K:string] : string}
+        }
+
+        let imageAttributes: imageAttributes = {
             key: `Editor-block-${blockIndex}-${charIndex}`, 
-            alt: node.d[1].alt, 
-            className: node.d[1].className,
-            src: node.d[1].src,
-            style: node.d[2].s,
+            alt: node.imageConf.alt, 
+            className: node.imageConf.className,
+            src: node.imageConf.src,
+            style: node.imageStyle.s,
         }
 
         let imageActive: boolean = isActive(charIndex, blockIndex)
+        let imageElements: Array<JSX.Element> = []
 
-        if(imageActive === true){
-            imageAttributes.className += ' AITE__image__active'
-        }
-
-        const ImageWrapperAttr = {
+        const ImageWrapperAttr: ImageWrapperAttr = {
             key: `Editor-block-${blockIndex}-${charIndex}-wrapper`, 
             className: 'image-wrapper', 
-            contentEditable: false
+            contentEditable: false,
         }
 
+        if(imageActive === true){
+            ImageWrapperAttr.className += ' AITE__image__active'
+            imageElements = [...imageElements, ...BlockResizeElemets(node)]
+        }
+
+        if(node.imageStyle.float.dir !== 'none'){
+            ImageWrapperAttr['style'] = {...ImageWrapperAttr.style, float: node.imageStyle.float.dir}
+        }
+
+
+        if(node.ContentNode.BlockNodes.length > 0){
+            let captionBlockNodes = createBlockElements(node.ContentNode.BlockNodes)
+            let captionWrapper = React.createElement(
+                'div', 
+                {
+                    className: 'AITE_image_caption_wrapper',
+                    contentEditable: true,
+                    suppressContentEditableWarning: true,
+                    'data-aite_block_content_node': true,
+                },
+                captionBlockNodes
+            )
+            imageElements = [...imageElements, captionWrapper]
+        }
+        
+
         const ImageElement = React.createElement('img', imageAttributes, null)
-        return React.createElement('span', ImageWrapperAttr, [ImageElement,  imageActive ? BlockResizeElemets(node) : null])
+        return React.createElement('span', ImageWrapperAttr, [ImageElement,  imageElements])
     }
 
     function createHorizontalRule(): JSX.Element{
@@ -123,34 +196,7 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}){
         return React.createElement(BlockWrapper.n, s, childrens)
     }
 
-
-    EditorState.contentNode.blocks.forEach((block: BlockType) => {
-
-        let currentBlockType = block.getType()
-        if(currentBlockType === 'standart'){
-            let CurrentBlockChildrens: any = []
-            if((block as BlockNode).CharData.length === 1 && (block as BlockNode).CharData[0].d[1] === ''){
-                BlockElements.push(createBlockNode(block as BlockNode, [createBreakLine()]))
-            }
-            else{
-                (block as BlockNode).CharData.forEach((CharData: NodeTypes, index: number) => {
-                    if(CharData.returnActualType() === 'text'){
-                        CurrentBlockChildrens.push(createTextNode(CharData as TextNode))
-                    }
-                    else if(CharData.returnActualType() === 'image'){   
-                        CurrentBlockChildrens.push(createImageNode(CharData as ImageGifNode))
-                    }
-                    charIndex += 1
-            })
-                BlockElements.push(createBlockNode((block as BlockNode), CurrentBlockChildrens))
-                charIndex = 0
-            }
-        }
-        else if(currentBlockType === 'horizontal-rule'){
-            BlockElements.push(createHorizontalRule())
-        }
-        blockIndex += 1
-    })
+    let BlockElements = createBlockElements(EditorState.contentNode.BlockNodes)
     
     return React.createElement(React.Fragment, null, BlockElements)
 

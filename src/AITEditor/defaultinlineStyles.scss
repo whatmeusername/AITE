@@ -35,8 +35,9 @@
 .image-wrapper{
     position: relative;
     display: inline-block;
-    .AITE__image__active{
-        border: 3px solid rgb(50, 85, 185);
+    border: 3px solid transparent;
+    &.AITE__image__active{
+        border: 3px solid rgb(150, 170, 245);
         user-select: none;
     }
 }
@@ -64,50 +65,50 @@
 
 .image-resize{
     position: absolute;
-    width: 12.5px;
-    height: 12.5px;
-    background-color: rgb(50, 85, 185);
-    border: 1.5px solid rgb(255, 255, 255);
-    border-radius: 4px;
+    width: 13px;
+    height: 13px;
+    background-color: rgb(150, 170, 245);
+    border: 2px solid rgb(255, 255, 255);
+    border-radius: 50%;
     user-select: none;
     &.image-resize-n{
-        top: -6px;
+        top: -10px;
         left: 48%;
         cursor: n-resize;
     }
     &.image-resize-ne{
-        top: -6px;
-        right: -6px;
+        top: -10px;
+        right: -10px;
         cursor: ne-resize;
     }
     &.image-resize-e{
         top: 48%;
-        right: -7px;
+        right: -10px;
         cursor: e-resize;
     }
     &.image-resize-se{
-        bottom: -2px;
-        right: -6px;
+        bottom: -10px;
+        right: -10px;
         cursor: se-resize;
     }
     &.image-resize-s{
-        bottom: -3px;
+        bottom: -10px;
         left: 48%;
         cursor: s-resize;
     }
     &.image-resize-sw{
-        bottom: -2px;
-        left: -6px;
+        bottom: -10px;
+        left: -10px;
         cursor: sw-resize;
     }
     &.image-resize-w{
         top: 48%;
-        left: -7px;
+        left: -10px;
         cursor: w-resize;
     }
     &.image-resize-nw{
-        top: -6px;
-        left: -6px;
+        top: -10px;
+        left: -10px;
         cursor: nw-resize;
     }
 }

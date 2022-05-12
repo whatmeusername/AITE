@@ -1,7 +1,7 @@
 import React from 'react'
-import type {ImageGifNode} from './CharNode'
+import type {imageNode} from './packages/AITE_Image/imageNode'
 
-export default function CreateBlockResizeElements(node: ImageGifNode){
+export default function CreateBlockResizeElements(node: imageNode){
 
     let StartX = 0
     let StartY = 0
@@ -59,39 +59,39 @@ export default function CreateBlockResizeElements(node: ImageGifNode){
 
                 if(CurrentDragButtonClass !== null){
                     if(CurrentDragButtonClass.contains('image-resize-se')){
-                        let ratio = Math.min((start_width + (event.pageX - StartX)) / start_width, (start_height + (event.pageY - StartY)) / start_height)
+                        let ratio = Math.min((start_width + (event.clientX - StartX)) / start_width, (start_height + (event.clientY - StartY)) / start_height)
                         CurrentImageNode.style.width = `${start_width * ratio}px`
                         CurrentImageNode.style.height = `${start_height * ratio}px`
                     }
                     else if(CurrentDragButtonClass.contains('image-resize-sw')){
-                        let ratio = Math.min((start_width + (event.pageX - StartX)) / start_width, (start_height + (event.pageY - StartY)) / start_height)
+                        let ratio = Math.min((start_width - (event.clientX - StartX)) / start_width, (start_height + (event.clientY - StartY)) / start_height)
                         CurrentImageNode.style.width = `${start_width * ratio}px`
                         CurrentImageNode.style.height = `${start_height * ratio}px`
                     }
 
                     else if(CurrentDragButtonClass.contains('image-resize-ne')){
-                        let ratio = Math.min((start_width + (event.pageX - StartX)) / start_width, (start_height - (event.pageY - StartY)) / start_height)
+                        let ratio = Math.min((start_width + (event.clientX - StartX)) / start_width, (start_height - (event.clientY - StartY)) / start_height)
                         CurrentImageNode.style.width = `${start_width * ratio}px`
                         CurrentImageNode.style.height = `${start_height * ratio}px`
                     }
                     else if(CurrentDragButtonClass.contains('image-resize-nw')){
-                        let ratio = Math.min((start_width + (event.pageX - StartX)) / start_width, (start_height - (event.pageY - StartY)) / start_height)
+                        let ratio = Math.min((start_width - (event.clientX - StartX)) / start_width, (start_height - (event.clientY - StartY)) / start_height)
                         CurrentImageNode.style.width = `${start_width * ratio}px`
                         CurrentImageNode.style.height = `${start_height * ratio}px`
                     }
         
                     else if(CurrentDragButtonClass.contains('image-resize-e')){
-                        CurrentImageNode.style.width = `${event.pageX - Rect.left}px`
+                        CurrentImageNode.style.width = `${event.clientX - Rect.left}px`
                     }
                     else if(CurrentDragButtonClass.contains('image-resize-w')){
-                        CurrentImageNode.style.width = `${start_width - (event.pageX - StartX)}px`
+                        CurrentImageNode.style.width = `${start_width - (event.clientX - StartX)}px`
                     }
 
                     else if(CurrentDragButtonClass.contains('image-resize-s')){
-                        CurrentImageNode.style.height = `${start_height + (event.pageY -  StartY)}px`
+                        CurrentImageNode.style.height = `${start_height + (event.clientY -  StartY)}px`
                     }
                     else if(CurrentDragButtonClass.contains('image-resize-n')){
-                        CurrentImageNode.style.height = `${start_height - (event.pageY -  StartY)}px`
+                        CurrentImageNode.style.height = `${start_height - (event.clientY -  StartY)}px`
                     }
                     
                 }

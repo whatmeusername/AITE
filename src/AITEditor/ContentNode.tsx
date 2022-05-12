@@ -1,66 +1,114 @@
 import React from 'react'
 
 import BlockNode, {HorizontalRuleNode} from './BlockNode'
-import {SelectionState} from './SelectionUtils'
+import {SelectionState, BlockPath} from './SelectionUtils'
 import {BREAK_LINE} from './ConstVariables'
 import TextNode from './CharNode'
 import createImageNode from './packages/AITE_Image/imageNode'
 
 import ValidationUtils from './ValidationUtils'
-import {BlockType} from './BlockNode'
+import {BlockType, NodeTypes} from './BlockNode'
+
+
+interface contentNodeConf {
+    BlockNodes?: Array<BlockNode | HorizontalRuleNode>
+}
 
 export default class ContentNode{
 
     blocksLength: () => number
-    blocks: Array<BlockNode | HorizontalRuleNode>
+    BlockNodes: Array<BlockNode | HorizontalRuleNode>
+    allowedToInsert: Array<NodeTypes> | 'all'
 
-    constructor(){
-        this.blocksLength = () => {return this.blocks.length}
-        this.blocks = [
+    constructor(contentNodeConf?: contentNodeConf){
+        this.blocksLength = () => {return this.BlockNodes.length}
+        this.allowedToInsert = 'all'
+        this.BlockNodes = contentNodeConf?.BlockNodes ?? [
             new BlockNode(
                 {
-                    CharData: [new TextNode('Рецепт салата цезаря')],
+                    CharData: [new TextNode('Тестовый текст для редактора')],
                     blockWrapper: 'header-two'
                 }
                 ),
             new HorizontalRuleNode(), 
             new BlockNode({
                 blockWrapper: 'blockquote',
-                CharData: [new TextNode(`«Цезарь» (англ. Caesar salad) — популярный салат, одно из самых известных блюд североамериканской кухни. В классической версии основными ингредиентами салата являются пшеничные крутоны, листья салата-ромэн и тёртый пармезан, заправленныеособым соусом, который и составляет суть рецепта.`)]
+                CharData: [new TextNode(`Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.`)]
             }), 
+            new BlockNode({
+                blockWrapper: 'header-one',
+                CharData: [new TextNode(`Языки программирования`)]
+            }),
             new BlockNode(
                 {CharData: [
-                    createImageNode('https://history-doc.ru/wp-content/uploads/2021/12/1617250551_50-p-salat-tsezar-s-kuritsei-klassicheskii-kras-55.jpg'),
-                    createImageNode('https://history-doc.ru/wp-content/uploads/2021/12/1617250551_50-p-salat-tsezar-s-kuritsei-klassicheskii-kras-55.jpg'),
-                    new TextNode(`Салат получил название не по имени Гая Юлия Цезаря, а по имени человека, наиболее часто называемого автором этого блюда — американского повара итальянского происхождения Цезаря Кардини (Caesar Cardini  (англ.)рус.), который в 20-40-х годах XX века владел несколькими ресторанами в городеТихуане, находящемся на территории Мексики (поскольку от Сан-Диего Тихуану отделяет только граница, такое выгодное положение позволяло Кардини избегать ограничений Сухого закона). По легенде, салат был изобретён Кардини 4 июля 1924 года (в День независимости США), когда на кухне почти ничего не осталось, а посетители требовали пищи. В 1953 году салат «Цезарь» отмечен Эпикурейским обществом в Париже как «лучший рецепт, появившийся в Америке за последние 50 лет»`, ['ITALIC']), 
-                    new TextNode(`Салат получил название не по имени Гая Юлия Цезаря, а по имени человека, наиболее часто называемого автором этого блюда — американского повара итальянского происхождения Цезаря Кардини (Caesar Cardini  (англ.)рус.), который в 20-40-х годах XX века владел несколькими ресторанами в городеТихуане, находящемся на территории Мексики (поскольку от Сан-Диего Тихуану отделяет только граница, такое выгодное положение позволяло Кардини избегать ограничений Сухого закона). По легенде, салат был изобретён Кардини 4 июля 1924 года (в День независимости США), когда на кухне почти ничего не осталось, а посетители требовали пищи. В 1953 году салат «Цезарь» отмечен Эпикурейским обществом в Париже как «лучший рецепт, появившийся в Америке за последние 50 лет»`, ['ITALIC']),
-                    createImageNode('https://history-doc.ru/wp-content/uploads/2021/12/1617250551_50-p-salat-tsezar-s-kuritsei-klassicheskii-kras-55.jpg'),
-                    new TextNode(`Салат получил название не по имени Гая Юлия Цезаря, а по имени человека, наиболее часто называемого автором этого блюда — американского повара итальянского происхождения Цезаря Кардини (Caesar Cardini  (англ.)рус.), который в 20-40-х годах XX века владел несколькими ресторанами в городеТихуане, находящемся на территории Мексики (поскольку от Сан-Диего Тихуану отделяет только граница, такое выгодное положение позволяло Кардини избегать ограничений Сухого закона). По легенде, салат был изобретён Кардини 4 июля 1924 года (в День независимости США), когда на кухне почти ничего не осталось, а посетители требовали пищи. В 1953 году салат «Цезарь» отмечен Эпикурейским обществом в Париже как «лучший рецепт, появившийся в Америке за последние 50 лет»`, ['ITALIC']),
+                createImageNode({src: 'https://i.gifer.com/2GU.gif', float: 'right'}),
+                new TextNode(
+`Большая часть работы программистов связана с написанием исходного кода, тестированием и отладкой программ на одном из языков программирования. Исходные тексты и исполняемые файлы программ являются объектами авторского права и являются интеллектуальной собственностью их авторов и правообладателей.
+Различные языки программирования поддерживают различные стили программирования (парадигмы программирования). Выбор нужного языка программирования для некоторых частей алгоритма позволяет сократить время написания программы и решить задачу описания алгоритма наиболее эффективно. Разные языки требуют от программиста различного уровня внимания к деталям при реализации алгоритма, результатом чего часто бывает компромисс между простотой и производительностью (или между «временем программиста» и «временем пользователя»).
+Единственный язык, напрямую выполняемый ЭВМ — это машинный язык (также называемый машинным кодом и языком машинных команд). Изначально все программы писались в машинном коде, но сейчас этого практически уже не делается. Вместо этого программисты пишут исходный код на том или ином языке программирования, затем, используя компилятор, транслируют его в один или несколько этапов в машинный код, готовый к исполнению на целевом процессоре, или в промежуточное представление, которое может быть исполнено специальным интерпретатором — виртуальной машиной. Но это справедливо только для языков высокого уровня. Если требуется полный низкоуровневый контроль над системой на уровне машинных команд и отдельных ячеек памяти, программы пишут на языке ассемблера, мнемонические инструкции которого преобразуются один к одному в соответствующие инструкции машинного языка целевого процессора ЭВМ (по этой причине трансляторы с языков ассемблера получаются алгоритмически простейшими трансляторами).
+`, ['ITALIC']),
                 ]}
             ),
+            new BlockNode({
+                    blockWrapper: 'blockquote',
+                    CharData: [
+                    new TextNode(`В некоторых языках вместо машинного кода генерируется интерпретируемый двоичный код «виртуальной машины», также называемый байт-кодом (byte-code). Такой подход применяется в Forth, некоторых реализациях Lisp, Java, Perl, Python, языках для .NET Framework.`)
+                ]
+            }),
             new HorizontalRuleNode()
-
         ]
     }
 
 
     findBlockByIndex(index: number){
-        return this.blocks[index]
+        return this.BlockNodes[index];
     }
 
+    getBlockByPath(path: Array<number>){
+        let currentBlock: any = this.BlockNodes[path[0]];
+        for(let i = 1; i < path.length; i++){
+            if(currentBlock instanceof BlockNode || currentBlock?.CharData !== undefined){
+                currentBlock = currentBlock.CharData[path[i]];
+            }
+            else if(!(currentBlock instanceof BlockNode)){
+
+                currentBlock = currentBlock.ContentNode !== undefined ? currentBlock.ContentNode.BlockNodes[path[i]] : currentBlock?.CharData[path[i]];
+            }
+        }
+        return currentBlock;
+    }
+
+    spliceBlockByPath(path: Array<number>){
+        let currentBlock: any = this.BlockNodes[path[0]];
+        if(path.length === 0){
+            this.BlockNodes.splice(path[0], 1);
+        }
+        else {
+            for(let i = 1; i < path.length; i++){
+                if(i !== path.length - 1){
+                    if(currentBlock instanceof BlockNode || currentBlock[0] instanceof BlockNode){
+                        currentBlock = currentBlock.CharData[path[i]];
+                    }
+                    else if(!(currentBlock instanceof BlockNode)){
+                        currentBlock = currentBlock?.CharData[path[i]];
+                    }
+                } else currentBlock.splice(path[i], 1);
+            }
+        }
+    }
 
     moveSelectionToNextSibling(selectionState: SelectionState, step?: number){
 
         let blockIndex = selectionState.focusKey
         let focusChar = selectionState.focusCharKey + 1
         
-        let FocusBlock = this.blocks[selectionState.focusKey] as BlockType
+        let FocusBlock = this.getBlockByPath(selectionState.focusKey.get()) as BlockType
         let nextNode = (FocusBlock as BlockNode).CharData[focusChar] ?? undefined 
 
         if(nextNode === undefined){
             while(nextNode === undefined){
-                blockIndex += 1
-                FocusBlock = this.blocks[blockIndex]
+                blockIndex.incrementLastPathIndex(1)
+                this.getBlockByPath(selectionState.focusKey.get())
                 if(FocusBlock === undefined) break;
                 else if(FocusBlock.getType() === 'standart'){
                     nextNode = (FocusBlock as BlockNode).CharData[0]
@@ -70,28 +118,25 @@ export default class ContentNode{
             }
         }
         if(nextNode !== undefined){
-            let SelectionDataCopy = selectionState.$getDataCopy()
 
             let anchorOffset = step !== undefined ? (nextNode.returnContentLength() < step ? nextNode.returnContentLength() : step) : 0
 
-            SelectionDataCopy.anchorKey = blockIndex
-            SelectionDataCopy.focusKey = blockIndex
+            selectionState.anchorKey = blockIndex
+            selectionState.focusKey = blockIndex
 
-            SelectionDataCopy._anchorNode = focusChar
-            SelectionDataCopy._focusNode = focusChar
+            selectionState._anchorNode = focusChar
+            selectionState._focusNode = focusChar
 
-            SelectionDataCopy.anchorOffset = anchorOffset
-            SelectionDataCopy.focusOffset = anchorOffset
+            selectionState.anchorOffset = anchorOffset
+            selectionState.focusOffset = anchorOffset
 
-            SelectionDataCopy.anchorCharKey = focusChar
-            SelectionDataCopy.focusCharKey = focusChar
+            selectionState.anchorCharKey = focusChar
+            selectionState.focusCharKey = focusChar
 
-            SelectionDataCopy.anchorType = nextNode.returnType()
-            SelectionDataCopy.focusType = nextNode.returnType()
+            selectionState.anchorType = nextNode.returnType()
+            selectionState.focusType = nextNode.returnType()
 
-            SelectionDataCopy.isDirty = true
-        
-            return SelectionDataCopy
+            selectionState.isDirty = true
         }
     }
 
@@ -100,13 +145,13 @@ export default class ContentNode{
         let blockIndex = selectionState.anchorKey
         let acnhorChar = selectionState.anchorCharKey - 1
 
-        let anchorBlock = this.blocks[selectionState.anchorKey]
+        let anchorBlock = this.getBlockByPath(blockIndex.get())
         let nextNode = acnhorChar > -1 ? (anchorBlock as BlockNode).CharData[acnhorChar] : undefined
 
         if(nextNode === undefined){
             while(nextNode === undefined){
-                blockIndex -= 1
-                anchorBlock = this.blocks[blockIndex]
+                blockIndex.decrementLastPathIndex(1)
+                this.getBlockByPath(selectionState.anchorKey.get())
                 if(anchorBlock === undefined) break;
                 if(anchorBlock.getType() === 'standart'){
                     nextNode = (anchorBlock as BlockNode).CharData[(anchorBlock as BlockNode).lastNodeIndex()]
@@ -117,26 +162,23 @@ export default class ContentNode{
         }
         if(nextNode !== undefined){
 
-            let SelectionDataCopy = selectionState.$getDataCopy()
+            selectionState.anchorKey = blockIndex
+            selectionState.focusKey = blockIndex
 
-            SelectionDataCopy.anchorKey = blockIndex
-            SelectionDataCopy.focusKey = blockIndex
+            selectionState._anchorNode = acnhorChar
+            selectionState._focusNode = acnhorChar
 
-            SelectionDataCopy._anchorNode = acnhorChar
-            SelectionDataCopy._focusNode = acnhorChar
+            selectionState.anchorOffset = nextNode.returnContentLength()
+            selectionState.focusOffset = nextNode.returnContentLength()
 
-            SelectionDataCopy.anchorOffset = nextNode.returnContentLength()
-            SelectionDataCopy.focusOffset = nextNode.returnContentLength()
+            selectionState.anchorCharKey = acnhorChar
+            selectionState.focusCharKey = acnhorChar
 
-            SelectionDataCopy.anchorCharKey = acnhorChar
-            SelectionDataCopy.focusCharKey = acnhorChar
+            selectionState.anchorType = nextNode.returnType() !== 'text' ? 'element' : 'text'
+            selectionState.focusType = selectionState.anchorType
 
-            SelectionDataCopy.anchorType = nextNode.returnType() !== 'text' ? 'element' : 'text'
-            SelectionDataCopy.focusType = SelectionDataCopy.anchorType
+            selectionState.isDirty = true
 
-            SelectionDataCopy.isDirty = true
-        
-            return SelectionDataCopy
         }
     }
 
@@ -155,102 +197,110 @@ export default class ContentNode{
         }
     }
 
-    MergeBlocks(FBindex: number, SBindex: number): void{
-        let connectingBlock = this.blocks[FBindex] as BlockNode
-        let joiningBlock = this.blocks[SBindex] as BlockNode
+    MergeBlocks(FBpath: Array<number>, SBpath: Array<number>): void{
+        let connectingBlock = this.getBlockByPath(FBpath) as BlockNode
+        let joiningBlock = this.getBlockByPath(SBpath) as BlockNode
 
         connectingBlock.CharData = [...connectingBlock.CharData, ...joiningBlock.CharData]
         connectingBlock.blockUpdate()
-        this.blocks.splice(SBindex, 1)
+        this.spliceBlockByPath(SBpath)
     }
 
-    MergeWithUpdate(selectionState: SelectionState, direction: 'up' | 'down', joiningDirection: 'left' | 'right'): void{
-        
-
-        let AnchorIndex = 0
-        let LastInConnectingChar = undefined
-        let anchorCharKey = 0
-        let newAnchorOffset = 0
-        let ConnectingLength = 0
-
-        if(joiningDirection === 'left'){
-            let joiningBlock = this.blocks[selectionState.anchorKey] as BlockNode
+    MergeWithUpdate(BlockNodes: Array<BlockType> | ContentNode, selectionState: SelectionState, joiningBlockDirection: 'up' | 'down', joiningSideDirection: 'left' | 'right'): void{
 
         
-            AnchorIndex = direction === 'down' ? selectionState.anchorKey - 1: selectionState.anchorKey + 1
-            let connectingBlock = this.blocks[AnchorIndex] as BlockNode
+        let AnchorIndex = new BlockPath([...selectionState.anchorKey.get()]);
+        let lastInConnectingChar = undefined;
+        let anchorCharKey = 0;
+        let newAnchorOffset = 0;
+        let connectingBlockLength = 0;
 
 
-            ConnectingLength = connectingBlock.lastNodeIndex() + 1
+        if(joiningSideDirection === 'left'){
 
-            LastInConnectingChar = connectingBlock.CharData[ConnectingLength - 1]
-            let AnchorJoiningChar = joiningBlock.CharData[selectionState.anchorCharKey]
+            joiningBlockDirection === 'down' ? AnchorIndex.decrementLastPathIndex(1): AnchorIndex.incrementLastPathIndex(1);
 
-            let AnchorJoiningCharLength = AnchorJoiningChar.returnContentLength()
+            let connectingBlock = this.getBlockByPath(selectionState.anchorKey.get()) as BlockNode;
 
-            connectingBlock.CharData = [...connectingBlock.CharData, ...joiningBlock.CharData]
+            connectingBlockLength = connectingBlock.lastNodeIndex() + 1;
+            lastInConnectingChar = connectingBlock.CharData[connectingBlockLength - 1];
+            let connectingMaxSize = connectingBlock.countToIndex(connectingBlockLength - 1)
 
-            connectingBlock.blockUpdate()
-            this.blocks.splice(selectionState.anchorKey, 1)
+            let joiningBlock = this.getBlockByPath(AnchorIndex.get()) as BlockNode;
+            let AnchorJoiningChar = joiningBlock.CharData[selectionState.anchorCharKey];
+            let AnchorJoiningCharLength = AnchorJoiningChar.returnContentLength();
+
+            connectingBlock.CharData = [...connectingBlock.CharData, ...joiningBlock.CharData];
+
+            connectingBlock.blockUpdate();
 
 
-            let updatedCharLength = LastInConnectingChar.returnContentLength()
+            if(BlockNodes instanceof ContentNode) BlockNodes.BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
+            else BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
 
-            newAnchorOffset = (updatedCharLength - AnchorJoiningCharLength) + selectionState.anchorOffset
-            newAnchorOffset = newAnchorOffset < 0 ? 1 : newAnchorOffset
-            anchorCharKey = (selectionState.anchorCharKey + ConnectingLength) - 1
+            let updatedCharLength = lastInConnectingChar.returnContentLength();
+
+            if(connectingBlock.CharData.length < connectingBlockLength){
+                let updateAnchorChar = connectingBlock.findNodeByOffset(connectingMaxSize)
+                anchorCharKey = updateAnchorChar.offsetKey
+                newAnchorOffset = updateAnchorChar.letterIndex
+            }
+            else {
+                anchorCharKey = (selectionState.anchorCharKey + connectingBlockLength) - 1;
+                newAnchorOffset = selectionState.anchorOffset
+            }
         }
         else{
-            AnchorIndex = direction === 'down' ? selectionState.anchorKey - 1: selectionState.anchorKey + 1
-            let connectingBlock = this.blocks[selectionState.anchorKey] as BlockNode
+            joiningBlockDirection === 'down' ? AnchorIndex.decrementLastPathIndex(1): AnchorIndex.incrementLastPathIndex(1);
 
-            let joiningBlock = this.blocks[AnchorIndex] as BlockNode
+            let connectingBlock = this.getBlockByPath(selectionState.anchorKey.get()) as BlockNode;
+            let joiningBlock = this.getBlockByPath(AnchorIndex.get()) as BlockNode;
 
-            ConnectingLength = connectingBlock.lastNodeIndex() + 1
+            connectingBlockLength = connectingBlock.lastNodeIndex() + 1;
 
-            LastInConnectingChar = connectingBlock.CharData[ConnectingLength - 1]
+            lastInConnectingChar = connectingBlock.CharData[connectingBlockLength - 1];
 
-            connectingBlock.CharData = [...connectingBlock.CharData, ...joiningBlock.CharData]
+            connectingBlock.CharData = [...connectingBlock.CharData, ...joiningBlock.CharData];
 
-            connectingBlock.blockUpdate()
-            this.blocks.splice(AnchorIndex, 1)
+            connectingBlock.blockUpdate();
+            if(BlockNodes instanceof ContentNode) BlockNodes.BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
+            else BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
 
-            newAnchorOffset = selectionState.anchorOffset
-            AnchorIndex -= 1
-            anchorCharKey = selectionState.anchorCharKey
+            newAnchorOffset = selectionState.anchorOffset;
+            anchorCharKey = selectionState.anchorCharKey;
+            AnchorIndex.decrementLastPathIndex(1);
         }
 
-        selectionState.focusKey = AnchorIndex
-        selectionState.anchorKey = AnchorIndex
+        selectionState.focusKey = joiningSideDirection !== 'left' ? AnchorIndex : selectionState.anchorKey;
+        selectionState.anchorKey = joiningSideDirection !== 'left' ? AnchorIndex : selectionState.anchorKey;
 
-        selectionState.anchorCharKey = anchorCharKey
-        selectionState.focusCharKey = selectionState.anchorCharKey
+        selectionState.anchorCharKey = anchorCharKey;
+        selectionState.focusCharKey = selectionState.anchorCharKey;
 
-        selectionState._anchorNode = selectionState.anchorCharKey
-        selectionState._focusNode = selectionState.anchorCharKey
+        selectionState._anchorNode = selectionState.anchorCharKey;
+        selectionState._focusNode = selectionState.anchorCharKey;
 
-        selectionState.anchorOffset = newAnchorOffset
-        selectionState.focusOffset = newAnchorOffset
+        selectionState.anchorOffset = newAnchorOffset;
+        selectionState.focusOffset = newAnchorOffset;
 
-        selectionState.anchorType = LastInConnectingChar.returnType() !== 'text' ? 'element' : 'text'
-        selectionState.focusType = LastInConnectingChar.returnType() !== 'text' ? 'element' : 'text'
+        selectionState.anchorType = lastInConnectingChar.returnType() !== 'text' ? 'element' : 'text';
+        selectionState.focusType = lastInConnectingChar.returnType() !== 'text' ? 'element' : 'text';
 
-        selectionState.isDirty = true
-        selectionState.isCollapsed = true
-
+        selectionState.isDirty = true;
+        selectionState.isCollapsed = true;
 
     }
 
     sliceBlockFromContent(start: number, end?: number){
-        this.blocks = [...this.blocks.slice(0, start), ...this.blocks.slice(end ?? start)]
+        this.BlockNodes = [...this.BlockNodes.slice(0, start), ...this.BlockNodes.slice(end ?? start)]
     }
 
     insertBlockBetween(block: BlockNode, start: number, end?: number){
         if(end !== undefined){
-            this.blocks = [...this.blocks.slice(0, start), block, ...this.blocks.slice(end ?? start)]
+            this.BlockNodes = [...this.BlockNodes.slice(0, start), block, ...this.BlockNodes.slice(end ?? start)]
         }
         else{
-            this.blocks = [...this.blocks.slice(0, start), block]
+            this.BlockNodes = [...this.BlockNodes.slice(0, start), block]
         }
     }
 
@@ -316,21 +366,19 @@ export default class ContentNode{
 
     }
 
-
-    insertLetterIntoBlock(KeyBoardEvent: React.KeyboardEvent, selectionState: SelectionState){
-
-        let DirtySelectionState = null
+    insertLetterIntoTextNode(KeyBoardEvent: React.KeyboardEvent, selectionState: SelectionState){
 
         let Key = KeyBoardEvent.key
 
-        let anchorBlockNode = this.blocks[selectionState.anchorKey] as BlockNode
-        let focusBlockNode = this.blocks[selectionState.focusKey] as BlockNode
+        let anchorBlockNode = this.getBlockByPath(selectionState.anchorKey.get()) as BlockNode
+        let focusBlockNode = this.getBlockByPath(selectionState.focusKey.get()) as BlockNode
 
         let CurrentAnchorCharData = anchorBlockNode.CharData !== undefined ? anchorBlockNode.CharData[selectionState.anchorCharKey] : undefined 
         let CurrentFocusCharData = focusBlockNode.CharData !== undefined ? focusBlockNode.CharData[selectionState.focusCharKey] : undefined
 
         if(selectionState.isCollapsed){
 
+            console.log('yes')
             let SliceFrom = selectionState.anchorOffset
             let SliceTo = selectionState.focusOffset
 
@@ -366,59 +414,52 @@ export default class ContentNode{
                 }
             }
         }
-        else if(selectionState.anchorKey === selectionState.focusKey){
+        else if(selectionState.pathIsEqual() === true){
             
-                if(selectionState.anchorCharKey !== selectionState.focusCharKey){
+            if(selectionState.anchorCharKey !== selectionState.focusCharKey){
 
-                    let BlockSplitStart = selectionState.anchorCharKey + 1
-                    let BlockSplitEnd = selectionState.focusCharKey
-                    
-                    if(ValidationUtils.isTextNode(CurrentAnchorCharData) === true){
-                        this.TextNodeSlice(CurrentAnchorCharData as TextNode, Key, selectionState.anchorOffset)
-                    }
-                    else{
-                        let previousSibling = anchorBlockNode.previousSibling(selectionState.anchorCharKey)
-                        if(previousSibling !== undefined && ValidationUtils.isTextNode(previousSibling) === true){
-                            this.TextNodeSlice(previousSibling as TextNode, Key, -1)
-                        }
-                        else anchorBlockNode.splitCharNode(true, BlockSplitStart, BlockSplitStart + 1, new TextNode())
-                        BlockSplitStart -= 1
-                    }
-        
-                    if(ValidationUtils.isTextNode(CurrentFocusCharData) === true){
-                        this.TextNodeSlice(CurrentFocusCharData as TextNode, '', selectionState.focusOffset, -1)
-                    }
-                    else BlockSplitEnd += 1
-                    anchorBlockNode.splitCharNode(true, BlockSplitStart, BlockSplitEnd)
-        
-                    selectionState.moveSelectionForward()
+                let CharSplitStart = selectionState.anchorCharKey + 1
+                let CharSplitEnd = selectionState.focusCharKey
+                
+                if(ValidationUtils.isTextNode(CurrentAnchorCharData) === true){
+                    this.TextNodeSlice(CurrentAnchorCharData as TextNode, Key, selectionState.anchorOffset)
+                } else {
+                    let previousSibling = anchorBlockNode.previousSibling(selectionState.anchorCharKey)
+                    if(previousSibling !== undefined && ValidationUtils.isTextNode(previousSibling) === true){
+                        this.TextNodeSlice(previousSibling as TextNode, Key, -1)
+                    } else anchorBlockNode.splitCharNode(true, CharSplitStart, CharSplitStart + 1, new TextNode())
+                    CharSplitStart -= 1
+                }
+    
+                if(ValidationUtils.isTextNode(CurrentFocusCharData) === true){
+                    this.TextNodeSlice(CurrentFocusCharData as TextNode, '', selectionState.focusOffset, -1)
+                } else CharSplitEnd += 1
 
-                    DirtySelectionState = this.BlockUpdateWithSelection(anchorBlockNode, selectionState) ?? null
-                    if(DirtySelectionState !== null) selectionState.insertSelectionData(DirtySelectionState)
-                }
-                else{
-                    if(ValidationUtils.isTextNode(CurrentAnchorCharData) === true){
-                        CurrentAnchorCharData = CurrentAnchorCharData as TextNode
-                        this.TextNodeSlice(CurrentAnchorCharData, Key, selectionState.anchorOffset, selectionState.focusOffset)
-                        if(CurrentAnchorCharData.returnContent() === ''){
-                            anchorBlockNode.splitCharNode(true, selectionState.anchorCharKey)
-                            let DirtySelectionState = this.moveSelectionToPreviousSibling(selectionState) ?? null
-                            if(DirtySelectionState !== null) selectionState.insertSelectionData(DirtySelectionState)
-                        }
-                        else {
-                            selectionState.toggleCollapse()
-                            selectionState.moveSelectionForward()
-                        }
+                anchorBlockNode.splitCharNode(true, CharSplitStart, CharSplitEnd)
+
+                selectionState.moveSelectionForward()
+                selectionState.toggleCollapse()
+            }
+            else{
+                if(ValidationUtils.isTextNode(CurrentAnchorCharData) === true){
+                    CurrentAnchorCharData = CurrentAnchorCharData as TextNode
+                    this.TextNodeSlice(CurrentAnchorCharData, Key, selectionState.anchorOffset, selectionState.focusOffset)
+                    if(CurrentAnchorCharData.returnContent() === ''){
+                        anchorBlockNode.splitCharNode(true, selectionState.anchorCharKey)
+                        this.moveSelectionToPreviousSibling(selectionState)
+                    } else {
+                        selectionState.toggleCollapse()
+                        selectionState.moveSelectionForward()
                     }
-                    else{
-                        anchorBlockNode.splitCharNode(false, selectionState.anchorCharKey, selectionState.anchorCharKey + 1)
-                    }
+                } else {
+                    anchorBlockNode.splitCharNode(false, selectionState.anchorCharKey, selectionState.anchorCharKey + 1)
                 }
+            }
         }
-        else if(selectionState.anchorKey !== selectionState.focusKey){
+        else if(selectionState.pathIsEqual() === false){
 
-            let BlockSplitStart = selectionState.anchorCharKey + 1
-            let BlockSplitEnd = selectionState.focusCharKey
+            let CharSplitStart = selectionState.anchorCharKey + 1
+            let CharSplitEnd = selectionState.focusCharKey
 
             if(CurrentAnchorCharData !== undefined){
                 if(ValidationUtils.isTextNode(CurrentAnchorCharData) === true){
@@ -431,11 +472,11 @@ export default class ContentNode{
                     }
                     else{
                         let newTextNode = new TextNode()
-                        anchorBlockNode.splitCharNode(false, BlockSplitStart, BlockSplitStart + 1, newTextNode)
+                        anchorBlockNode.splitCharNode(false, CharSplitStart, CharSplitStart + 1, newTextNode)
                     }
-                    BlockSplitStart -= 1
+                    CharSplitStart -= 1
                 }
-                anchorBlockNode.bulkRemoveCharNode(true, BlockSplitStart)
+                anchorBlockNode.bulkRemoveCharNode(true, CharSplitStart)
             }
 
             if(CurrentFocusCharData !== undefined){
@@ -448,15 +489,37 @@ export default class ContentNode{
                         )
                 }
                 else{
-                    BlockSplitEnd += 1
+                    CharSplitEnd += 1
                 }
-                focusBlockNode.bulkRemoveCharNode(false, BlockSplitEnd)
+                focusBlockNode.bulkRemoveCharNode(false, CharSplitEnd, undefined)
             }
 
-            this.sliceBlockFromContent(selectionState.anchorKey + 1, selectionState.focusKey)
+            if(selectionState.anchorKey.length() === 1){
+                this.sliceBlockFromContent(selectionState.anchorKey.getPathIndexByIndex(0) + 1, selectionState.focusKey.getPathIndexByIndex(0));
+            }
+            else{
+                let blockWrapper = this.getBlockByPath(selectionState.anchorKey.getPathBeforeLast());
+                blockWrapper.ContentNode ? 
+                    blockWrapper.ContentNode.sliceBlockFromContent(
+                        selectionState.anchorKey.getPathIndexByIndex(0) + 1, 
+                        selectionState.focusKey.getPathIndexByIndex(0)
+                        )
+                    :
+                    blockWrapper.CharData = [
+                        ...blockWrapper.CharData.slice(0, selectionState.anchorKey.getPathIndexByIndex(0) + 1),
+                        ...blockWrapper.CharData.slice(selectionState.focusKey.getPathIndexByIndex(0))
+                    ];
+            }
 
             if(CurrentFocusCharData !== undefined && CurrentAnchorCharData !== undefined) {
-                this.MergeWithUpdate(selectionState, 'up', 'right')
+                let blocksArray = []
+                if(selectionState.anchorKey.length() === 1){
+                    blocksArray = this.BlockNodes
+                }
+                else{
+                    blocksArray = this.getBlockByPath(selectionState.anchorKey.getPathBeforeLast())
+                }
+                this.MergeWithUpdate(blocksArray.ContentNode ? blocksArray.ContentNode : blocksArray, selectionState, 'up', 'right')
                 selectionState.moveSelectionForward()
             }
             
@@ -471,66 +534,73 @@ export default class ContentNode{
     }      
     removeLetterFromBlock(selectionState: SelectionState){
 
-        let anchorBlock = this.blocks[selectionState.anchorKey] as BlockNode
-        let focusBlock = this.blocks[selectionState.focusKey] as BlockNode
-
-
+        let anchorBlockNode = this.getBlockByPath(selectionState.anchorKey.get()) as BlockNode
+        let focusBlockNode = this.getBlockByPath(selectionState.focusKey.get()) as BlockNode
 
         if(selectionState.isFullBlockSelected() === true){
             let SliceAnchor = selectionState.anchorKey
-            this.sliceBlockFromContent(SliceAnchor, SliceAnchor + 1)
+            this.sliceBlockFromContent(SliceAnchor.getLastIndex(), SliceAnchor.getLastIndex() + 1)
 
             let previousNode = this.moveSelectionToPreviousSibling(selectionState)
             if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
             return ;
         }
         
-        let anchorCharNode = anchorBlock.CharData ?  anchorBlock.CharData[selectionState.anchorCharKey]: undefined
-        let focusCharNode = focusBlock.CharData?  focusBlock.CharData[selectionState.focusCharKey] : undefined;
+        let anchorCharNode = anchorBlockNode.CharData ?  anchorBlockNode.CharData[selectionState.anchorCharKey]: undefined
+        let focusCharNode = focusBlockNode.CharData ? focusBlockNode.CharData[selectionState.focusCharKey] : undefined;
 
         if(anchorCharNode === undefined && focusCharNode === undefined) return;
         else if(selectionState.isCollapsed){
             if(selectionState.anchorCharKey === 0 && selectionState.anchorOffset === 0){
-                if(selectionState.anchorKey !== 0){
-                    let previousBlock = this.blocks[selectionState.anchorKey - 1]
+
+                let currentContentNode = undefined
+                if(selectionState.anchorKey.length() === 1) currentContentNode = this
+                else currentContentNode = this.getBlockByPath(selectionState.anchorKey.getPathBeforeLast())
+
+                currentContentNode = currentContentNode.ContentNode ?? currentContentNode
+
+                if(selectionState.anchorKey.getPathIndexByIndex(0) !== 0 && currentContentNode instanceof ContentNode){
+                    
+                    let previousBlockPath = new BlockPath(selectionState.anchorKey.get())
+                    previousBlockPath.decrementLastPathIndex(1)
+
+                    let previousBlock = currentContentNode.BlockNodes[previousBlockPath.getLastIndex()] as BlockNode
+
                     if(previousBlock.getType() !== 'standart'){
-                        this.sliceBlockFromContent(selectionState.anchorKey - 1, selectionState.anchorKey)
-                        selectionState.anchorKey -= 1
+                        currentContentNode.sliceBlockFromContent(selectionState.anchorKey.getLastIndex(), selectionState.anchorKey.getLastIndex() + 1)
                         selectionState.toggleCollapse()
                         selectionState.convertBreakLineToText()
                     }
                     else{
-                        this.MergeWithUpdate(selectionState, 'down', 'left')
+                        this.MergeWithUpdate(currentContentNode.BlockNodes, selectionState, 'up', 'left')
                     }
                 }
             }
             else{
-                if(anchorCharNode === undefined || anchorBlock === undefined) return;
+                if(anchorCharNode === undefined || anchorBlockNode === undefined) return;
                 let SliceAnchor = selectionState.anchorOffset - 1
                 let SliceFocus = selectionState.focusOffset
                 let anchorCharType = anchorCharNode.returnType()
 
                 if(selectionState.anchorOffset === 0){
-                    if(anchorBlock.previousSibling(selectionState.anchorCharKey)?.returnType() === 'element'){
-                        anchorBlock.removeCharNode(selectionState.anchorCharKey - 1)
+                    if(anchorBlockNode.previousSibling(selectionState.anchorCharKey)?.returnType() === 'element'){
+                        anchorBlockNode.removeCharNode(selectionState.anchorCharKey - 1)
                         selectionState.anchorCharKey -= 1
-                        let previousNode = this.moveSelectionToPreviousSibling(selectionState)
-                        if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
-                        return ;
+                        selectionState.toggleCollapse()
+                        selectionState.isDirty = true
                     }
                 }
                 else if(anchorCharType === 'text'){
                     anchorCharNode = anchorCharNode as TextNode
                     this.TextNodeSlice(anchorCharNode, '', SliceAnchor, SliceFocus)
 
-                    if(anchorBlock.lastNodeIndex() > 0 && anchorCharNode.returnContent() === ''){
-                        anchorBlock.CharData.splice(selectionState.anchorCharKey, 1)
-                        let previousNode = this.moveSelectionToPreviousSibling(selectionState)
-                        if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
+                    if(anchorBlockNode.lastNodeIndex() > 0 && anchorCharNode.returnContent() === ''){
+                        anchorBlockNode.CharData.splice(selectionState.anchorCharKey, 1)
+                        this.moveSelectionToPreviousSibling(selectionState)
                     }
                     else{
                         selectionState.moveSelectionBack()
-                        if(anchorBlock.lastNodeIndex() === 0 && anchorCharNode.returnContentLength() === 0){
+                        if(anchorBlockNode.lastNodeIndex() === 0 && anchorCharNode.returnContentLength() === 0){
                             selectionState.isDirty = true
                         }
                     }
@@ -539,7 +609,7 @@ export default class ContentNode{
             }
         }
         else{
-            if(selectionState.anchorKey === selectionState.focusKey){
+            if(selectionState.pathIsEqual() === true){
                 if(selectionState.anchorCharKey === selectionState.focusCharKey){
                     if(ValidationUtils.isTextNode(anchorCharNode) === true){
                         anchorCharNode = anchorCharNode as TextNode
@@ -550,19 +620,15 @@ export default class ContentNode{
                         this.TextNodeSlice(anchorCharNode, '', SliceAnchor, SliceFocus)
 
                         if(anchorCharNode.returnContent() === ''){
-                            anchorBlock.CharData.splice(selectionState.anchorCharKey, 1)
-                            let previousNode = this.moveSelectionToPreviousSibling(selectionState)
-                            if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
+                            anchorBlockNode.CharData.splice(selectionState.anchorCharKey, 1)
+                            this.moveSelectionToPreviousSibling(selectionState)
                         }
                         else selectionState.toggleCollapse()
                     }
                     else{
-                        anchorBlock.CharData.splice(selectionState.anchorCharKey, 1)
-                        let previousNode = this.moveSelectionToPreviousSibling(selectionState)
-                        if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
-                    }
-
-                    
+                        anchorBlockNode.CharData.splice(selectionState.anchorCharKey, 1)
+                        this.moveSelectionToPreviousSibling(selectionState)
+                    }   
                 }
                 else if(selectionState.anchorCharKey !== selectionState.focusCharKey){
                     
@@ -572,13 +638,13 @@ export default class ContentNode{
                     let CharSliceAnchor = selectionState.anchorCharKey + 1
                     let CharSliceFocus = selectionState.focusCharKey
 
+
                     if(ValidationUtils.isTextNode(anchorCharNode) === true){
                         anchorCharNode = anchorCharNode as TextNode
                         this.TextNodeSlice(anchorCharNode, '', SliceAnchor)
                         if(anchorCharNode.returnContent() === ''){
                             CharSliceAnchor -= 1
-                            let previousNode = this.moveSelectionToPreviousSibling(selectionState)
-                            if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
+                            this.moveSelectionToPreviousSibling(selectionState)
                         }
                         else {
                             selectionState.toggleCollapse()
@@ -587,8 +653,7 @@ export default class ContentNode{
                     }
                     else{
                         CharSliceFocus -= 1
-                        let previousNode = this.moveSelectionToPreviousSibling(selectionState)
-                        if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
+                        this.moveSelectionToPreviousSibling(selectionState)
                     }
 
                     if(ValidationUtils.isTextNode(focusCharNode) === true){
@@ -598,18 +663,18 @@ export default class ContentNode{
                     }
                     else CharSliceFocus += 1
 
-
-                    anchorBlock.CharData = [...anchorBlock.CharData.slice(0, CharSliceAnchor), ...anchorBlock.CharData.slice(CharSliceFocus)]
-         
+                    anchorBlockNode.splitCharNode(true, CharSliceAnchor, CharSliceFocus)
+                    console.log(anchorBlockNode)
                 }
             }
-            else if(selectionState.anchorKey !== selectionState.focusKey){
+            else if(selectionState.pathIsEqual() === false){
+
 
                 let SliceAnchor = selectionState.anchorOffset
                 let SliceFocus = selectionState.focusOffset
 
-                let BlockSliceAnchor = selectionState.anchorKey + 1
-                let BlockSliceFocus =selectionState.focusKey
+                let BlockSliceAnchor = selectionState.anchorKey.getLastIndex() + 1
+                let BlockSliceFocus = selectionState.focusKey.getLastIndex()
 
                 let CharSliceAnchor = selectionState.anchorCharKey + 1
                 let CharSliceFocus = selectionState.focusCharKey
@@ -625,8 +690,7 @@ export default class ContentNode{
                         this.TextNodeSlice(anchorCharNode, '', SliceAnchor)
                         if(anchorCharNode.returnContent() === ''){
                             CharSliceAnchor -= 1
-                            let previousNode = this.moveSelectionToPreviousSibling(selectionState)
-                            if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
+                            this.moveSelectionToPreviousSibling(selectionState)
                         }
                         else {
                             selectionState.toggleCollapse()
@@ -635,23 +699,33 @@ export default class ContentNode{
                     }
                     else{
                         CharSliceAnchor -= 1
-                        let previousNode = this.moveSelectionToPreviousSibling(selectionState)
-                        if(previousNode !== undefined) selectionState.insertSelectionData(previousNode)
+                        this.moveSelectionToPreviousSibling(selectionState)
                     }
-                    anchorBlock.bulkRemoveCharNode(true, CharSliceAnchor)
+                    anchorBlockNode.bulkRemoveCharNode(true, CharSliceAnchor)
                 }
 
-                if(focusCharNode === undefined) {
+                if(focusCharNode !== undefined) {
                     if(ValidationUtils.isTextNode(focusCharNode) === true){
                     focusCharNode = focusCharNode as TextNode
                     this.TextNodeSlice(focusCharNode, '', SliceFocus, -1)
                     if(focusCharNode.returnContent() === '') CharSliceFocus += 1
                     }
                     else CharSliceFocus += 1
-                    focusBlock.bulkRemoveCharNode(false, CharSliceFocus)
+                    focusBlockNode.bulkRemoveCharNode(false, CharSliceFocus)
                 }
 
-                this.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus)
+                if(selectionState.anchorKey.length() > 1){
+                    let ParentNode = this.getBlockByPath(selectionState.anchorKey.getPathBeforeLast());
+                    
+                    if(ParentNode.ContentNode instanceof ContentNode){
+                        ParentNode.ContentNode.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus)
+                        this.MergeWithUpdate(ParentNode.ContentNode, selectionState, 'up', 'left')
+                    }
+                }
+                else {
+                    this.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus)
+                    this.MergeWithUpdate(this.BlockNodes, selectionState, 'up', 'left')
+                }
 
 
             }
@@ -659,92 +733,91 @@ export default class ContentNode{
     }
     handleEnter(selectionState: SelectionState){
 
-        if(
-            selectionState.anchorCharKey === 0 && 
-            selectionState.anchorOffset === 0 && 
-            selectionState.focusOffset === 0 &&
-            (selectionState.anchorNode as HTMLElement)?.tagName !== BREAK_LINE
-        ){
-            this.insertBlockBetween(new BlockNode({CharData: [new TextNode()]}), selectionState.anchorKey, selectionState.anchorKey)
-            selectionState.anchorKey += 1
-            let DirtySelectionState = this.BlockUpdateWithSelection(this.blocks[selectionState.anchorKey] as BlockNode, selectionState) ?? null
-            if(DirtySelectionState !== null) selectionState.insertSelectionData(DirtySelectionState)
-        }
-        else if(selectionState.isCollapsed){
+        // if(
+        //     selectionState.anchorCharKey === 0 && 
+        //     selectionState.anchorOffset === 0 && 
+        //     selectionState.focusOffset === 0 &&
+        //     (selectionState.anchorNode as HTMLElement)?.tagName !== BREAK_LINE
+        // ){
+        //     this.insertBlockBetween(new BlockNode({CharData: [new TextNode()]}), selectionState.anchorKey, selectionState.anchorKey)
+        //     selectionState.anchorKey += 1
+        //     let DirtySelectionState = this.BlockUpdateWithSelection(this.blocks[selectionState.anchorKey] as BlockNode, selectionState) ?? null
+        //     if(DirtySelectionState !== null) selectionState.insertSelectionData(DirtySelectionState)
+        // }
+        // else if(selectionState.isCollapsed){
 
-            let CurrentBlock = this.blocks[selectionState.anchorKey] as BlockNode
-            let anchorOffsetChar = CurrentBlock.CharData[selectionState.anchorCharKey] as TextNode
+        //     let CurrentBlock = this.blocks[selectionState.anchorKey] as BlockNode
+        //     let anchorOffsetChar = CurrentBlock.CharData[selectionState.anchorCharKey] as TextNode
 
-            let CharNodeSlice = selectionState.anchorCharKey
+        //     let CharNodeSlice = selectionState.anchorCharKey
 
-            let SlicedCharNode = undefined
+        //     let SlicedCharNode = undefined
 
-            if(selectionState.anchorOffset !== 0){
-                if(ValidationUtils.isTextNode(anchorOffsetChar) === true){
-                    let SliceContent = anchorOffsetChar.getSliceContent(false, selectionState.anchorOffset)
-                    this.TextNodeSlice(anchorOffsetChar, '', selectionState.anchorOffset)
-                    CharNodeSlice += 1
-                    SlicedCharNode = new TextNode(SliceContent, anchorOffsetChar.d[2])
-                }
-                else{
-                    CharNodeSlice += 1
-                    SlicedCharNode = new TextNode()
-                }
-            }
-            let SliceCharNodes = CurrentBlock.CharData.slice(CharNodeSlice)
-            CurrentBlock.splitCharNode(true, CharNodeSlice)
+        //     if(selectionState.anchorOffset !== 0){
+        //         if(ValidationUtils.isTextNode(anchorOffsetChar) === true){
+        //             let SliceContent = anchorOffsetChar.getSliceContent(false, selectionState.anchorOffset)
+        //             this.TextNodeSlice(anchorOffsetChar, '', selectionState.anchorOffset)
+        //             CharNodeSlice += 1
+        //             SlicedCharNode = new TextNode(SliceContent, anchorOffsetChar.d[2])
+        //         }
+        //         else{
+        //             CharNodeSlice += 1
+        //             SlicedCharNode = new TextNode()
+        //         }
+        //     }
+        //     let SliceCharNodes = CurrentBlock.CharData.slice(CharNodeSlice)
+        //     CurrentBlock.splitCharNode(true, CharNodeSlice)
 
-            if(SlicedCharNode !== undefined){
-                SliceCharNodes = [SlicedCharNode, ...SliceCharNodes]
-            }
+        //     if(SlicedCharNode !== undefined){
+        //         SliceCharNodes = [SlicedCharNode, ...SliceCharNodes]
+        //     }
+
+        //     let NewBlock = new BlockNode({CharData: SliceCharNodes, blockWrapper: CurrentBlock.blockWrapper})
+        //     this.insertBlockBetween(NewBlock, selectionState.anchorKey + 1, selectionState.anchorKey + 1)
+
+        //     selectionState.anchorKey += 1
+
+        //     let DirtySelectionState = this.moveSelectionToNextSibling(selectionState) ?? null
+        //     if(DirtySelectionState !== null) selectionState.insertSelectionData(DirtySelectionState)
+
+        // }
+        // else{
+        //     if(selectionState.anchorKey === selectionState.focusKey){
+
+        //         let AnchorBlock = this.blocks[selectionState.anchorKey] as BlockNode
+
+        //         let anchorCharNode = AnchorBlock.getNodeByIndex(selectionState.anchorCharKey)
+        //         let focusCharNode = AnchorBlock.getNodeByIndex(selectionState.focusCharKey)
+
+        //         let anchorNodeSlice = selectionState.anchorCharKey + 1
+        //         let focusNodeSlice = selectionState.focusCharKey
 
 
-            let NewBlock = new BlockNode({CharData: SliceCharNodes, blockType: CurrentBlock.blockType})
-            this.insertBlockBetween(NewBlock, selectionState.anchorKey + 1, selectionState.anchorKey + 1)
+        //         if(ValidationUtils.isTextNode(anchorCharNode) === true){
+        //             this.TextNodeSlice(anchorCharNode as TextNode, '', selectionState.anchorOffset)
+        //         }
+        //         else focusNodeSlice += 1
 
-            selectionState.anchorKey += 1
+        //         if(ValidationUtils.isTextNode(focusCharNode) === true){
+        //             this.TextNodeSlice(focusCharNode as TextNode, '', selectionState.focusOffset,  -1)
+        //         } else focusNodeSlice += 1
 
-            let DirtySelectionState = this.moveSelectionToNextSibling(selectionState) ?? null
-            if(DirtySelectionState !== null) selectionState.insertSelectionData(DirtySelectionState)
+        //         let SliceCharNodes = AnchorBlock.CharData.slice(focusNodeSlice)
+        //         AnchorBlock.splitCharNode(true, anchorNodeSlice)
 
-        }
-        else{
-            if(selectionState.anchorKey === selectionState.focusKey){
+        //         SliceCharNodes = SliceCharNodes.length > 0 ? SliceCharNodes : [new TextNode()]
 
-                let AnchorBlock = this.blocks[selectionState.anchorKey] as BlockNode
+        //         let NewBlock = new BlockNode({CharData: SliceCharNodes, blockType: AnchorBlock.blockType})
+        //         this.insertBlockBetween(NewBlock, selectionState.anchorKey + 1, selectionState.anchorKey + 1)
 
-                let anchorCharNode = AnchorBlock.getNodeByIndex(selectionState.anchorCharKey)
-                let focusCharNode = AnchorBlock.getNodeByIndex(selectionState.focusCharKey)
+        //         let DirtySelectionState = this.moveSelectionToNextSibling(selectionState) ?? null
+        //         if(DirtySelectionState !== null) selectionState.insertSelectionData(DirtySelectionState)
 
-                let anchorNodeSlice = selectionState.anchorCharKey + 1
-                let focusNodeSlice = selectionState.focusCharKey
-
-
-                if(ValidationUtils.isTextNode(anchorCharNode) === true){
-                    this.TextNodeSlice(anchorCharNode as TextNode, '', selectionState.anchorOffset)
-                }
-                else focusNodeSlice += 1
-
-                if(ValidationUtils.isTextNode(focusCharNode) === true){
-                    this.TextNodeSlice(focusCharNode as TextNode, '', selectionState.focusOffset,  -1)
-                } else focusNodeSlice += 1
-
-                let SliceCharNodes = AnchorBlock.CharData.slice(focusNodeSlice)
-                AnchorBlock.splitCharNode(true, anchorNodeSlice)
-
-                SliceCharNodes = SliceCharNodes.length > 0 ? SliceCharNodes : [new TextNode()]
-
-                let NewBlock = new BlockNode({CharData: SliceCharNodes, blockType: AnchorBlock.blockType})
-                this.insertBlockBetween(NewBlock, selectionState.anchorKey + 1, selectionState.anchorKey + 1)
-
-                let DirtySelectionState = this.moveSelectionToNextSibling(selectionState) ?? null
-                if(DirtySelectionState !== null) selectionState.insertSelectionData(DirtySelectionState)
-
-            }
-            else if(selectionState.anchorKey !== selectionState.focusKey){
-                this.removeLetterFromBlock(selectionState)
-            }
-        }
+        //     }
+        //     else if(selectionState.anchorKey !== selectionState.focusKey){
+        //         this.removeLetterFromBlock(selectionState)
+        //     }
+        // }
         
     }
 }

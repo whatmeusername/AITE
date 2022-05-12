@@ -1,0 +1,31 @@
+function onDrop(event: DropEvent){
+        event.preventDefault()
+        let range;
+        const selection = getSelection();
+        if(!selection) return;
+        if (document.caretRangeFromPoint) {
+            range = document.caretRangeFromPoint(event.clientX, event.clientY);
+        } else {
+            selection.collapse(event.rangeParent || null, (event as any).rangeOffset || 0);
+            range = selection.getRangeAt(0);
+        }
+        document.removeEventListener('drop', onDrop)
+        if(range !== undefined && range !== null) {
+            EditorState.selectionState.$getCaretPosition(EditorRef, range)
+        }
+    }
+
+
+onDragStart = {(event) => {
+        const TRANSPARENT_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        const img = document.createElement('img');
+        img.src = TRANSPARENT_IMAGE;
+        const dataTransfer = event.dataTransfer;
+        if (!dataTransfer) {
+            return false;
+        }
+        dataTransfer.setData('text/plain', '_');
+        dataTransfer.setDragImage(img, 0, 0);
+        EditorRef.current.addEventListener('drop', onDrop)
+
+    }}
