@@ -40,20 +40,39 @@ export default function AITEditor(){
     const [EditorState, setEditorState] = useState<editorState>(new editorState())
 
 
-    function KeyBoardCodeValidator(key: string){
+    function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent){
+
+        const SYMBOLS = [
+            'Comma', 
+            'Period', 
+            'Minus', 
+            'Equal', 
+            'IntlBackslash', 
+            'Slash', 
+            'Quote', 
+            'Semicolon', 
+            'Backslash', 
+            'BracketRight', 
+            'BracketLeft',
+            'Backquote'
+        ]
+
         if(
-            key === ' ' ||
-            (key > 'A' && 'Z' < key) ||
-            (key >= '0' &&  key <= '9') 
-            //(key >= ';' &&  key <= '`') ||
-            //(key >= '[' &&  key <= "'") 
+            event.code.startsWith('Key') ||
+            event.code === 'Space' ||
+            event.code.startsWith('Digit') ||
+            SYMBOLS.includes(event.code)
+
             ) return true
-        else return false
+        return false
     }
 
     function HandleKeyClick(event: React.KeyboardEvent) {
         let Key = event.key
         const AllowedKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
+
+
+        console.log(event)
         if(EditorState.EditorActiveElementState?.isActive === false){
             if(Key === 'Backspace'){
                 event.preventDefault()
@@ -65,7 +84,7 @@ export default function AITEditor(){
                 EditorState.contentNode.handleEnter(EditorState.selectionState)
                 setEditorState({...EditorState})
             }
-            else if(!AllowedKeys.includes(Key) && KeyBoardCodeValidator(Key)){
+            else if(keyCodeValidator(event)){
                 event.preventDefault()
                 EditorState.contentNode.insertLetterIntoTextNode(event, EditorState.selectionState)
             }
@@ -104,7 +123,7 @@ export default function AITEditor(){
         }
         if(EditorState.EditorActiveElementState?.isActive === false){
             if(EditorState.selectionState.isDirty ){
-                EditorState.selectionState.$getSelectionDataFromDirty(EditorRef)
+                EditorState.selectionState.$normailizeDirtySelection(EditorRef)
             }
             EditorState.selectionState.setCaretPosition()
         }
@@ -153,7 +172,6 @@ export default function AITEditor(){
 
                 spellCheck = {false}
                 onClick = {(event) =>  EditorState.EditorCommands?.dispatchCommand('CLICK_COMMAND', event)}
-                
                 onSelect = {(event) => EditorState.EditorCommands?.dispatchCommand('SELECTION_COMMAND', event)}
                 
                 onKeyDown = {(event) => EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', event)}

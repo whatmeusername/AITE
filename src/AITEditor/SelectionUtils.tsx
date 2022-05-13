@@ -2,9 +2,11 @@ import React from 'react'
 
 import {ClassVariables} from './Interfaces'
 import {TEXT_NODE, BREAK_LINE} from './ConstVariables'
-import {findEditorBlockIndex, findEditorFullPathToCharNode} from './EditorUtils'
+import {findEditorFullPathToCharNode} from './EditorUtils'
 
-import type {EditorState} from './EditorManagmentUtils'
+import ContentNode from './ContentNode'
+import type {BlockType} from './BlockNode'
+import type BlockNode from './BlockNode'
 
 interface blockNodeData {blockNode: HTMLElement | Node, index: Array<number>, elementType: string | null}
 interface blockNodeDataExtended extends blockNodeData{
@@ -144,6 +146,90 @@ export class SelectionState{
         return this._focusNode
     }
 
+    moveSelectionToNextSibling(ContentNode: ContentNode, step?: number){
+
+        let blockIndex = this.focusKey
+        let focusChar = this.focusCharKey + 1
+        
+        let FocusBlock = ContentNode.getBlockByPath(this.focusKey.get()) as BlockType
+        let nextNode = (FocusBlock as BlockNode).CharData[focusChar] ?? undefined 
+
+        if(nextNode === undefined){
+            while(nextNode === undefined){
+                blockIndex.incrementLastPathIndex(1)
+                ContentNode.getBlockByPath(this.focusKey.get())
+                if(FocusBlock === undefined) break;
+                else if(FocusBlock.getType() === 'standart'){
+                    nextNode = (FocusBlock as BlockNode).CharData[0]
+                    focusChar = 0
+                    break;
+                }
+            }
+        }
+        if(nextNode !== undefined){
+
+            let anchorOffset = step !== undefined ? (nextNode.returnContentLength() < step ? nextNode.returnContentLength() : step) : 0
+
+            this.anchorKey = blockIndex
+            this.focusKey = blockIndex
+
+            this._anchorNode = focusChar
+            this._focusNode = focusChar
+
+            this.anchorOffset = anchorOffset
+            this.focusOffset = anchorOffset
+
+            this.anchorCharKey = focusChar
+            this.focusCharKey = focusChar
+
+            this.anchorType = nextNode.returnType()
+            this.focusType = nextNode.returnType()
+
+            this.isDirty = true
+        }
+    }
+
+    moveSelectionToPreviousSibling(ContentNode: ContentNode){
+
+        let blockIndex = this.anchorKey
+        let acnhorChar = this.anchorCharKey - 1
+
+        let anchorBlock = ContentNode.getBlockByPath(blockIndex.get())
+        let nextNode = acnhorChar > -1 ? (anchorBlock as BlockNode).CharData[acnhorChar] : undefined
+
+        if(nextNode === undefined){
+            while(nextNode === undefined){
+                blockIndex.decrementLastPathIndex(1)
+                ContentNode.getBlockByPath(this.anchorKey.get())
+                if(anchorBlock === undefined) break;
+                if(anchorBlock.getType() === 'standart'){
+                    nextNode = (anchorBlock as BlockNode).CharData[(anchorBlock as BlockNode).lastNodeIndex()]
+                    acnhorChar = (anchorBlock as BlockNode).lastNodeIndex()
+                    break;
+                }
+            }
+        }
+        if(nextNode !== undefined){
+
+            this.anchorKey = blockIndex
+            this.focusKey = blockIndex
+
+            this._anchorNode = acnhorChar
+            this._focusNode = acnhorChar
+
+            this.anchorOffset = nextNode.returnContentLength()
+            this.focusOffset = nextNode.returnContentLength()
+
+            this.anchorCharKey = acnhorChar
+            this.focusCharKey = acnhorChar
+
+            this.anchorType = nextNode.returnType() !== 'text' ? 'element' : 'text'
+            this.focusType = this.anchorType
+
+            this.isDirty = true
+
+        }
+    }
 
     pathIsEqual(){
         let focusKeyArr = this.focusKey.get()
@@ -203,30 +289,7 @@ export class SelectionState{
         }
     }
 
-    insertSelectionData(SelectionData: SelectionStateData){
-
-
-        this.anchorCharKey = SelectionData.anchorCharKey ?? this.anchorCharKey
-        this.focusCharKey = SelectionData.focusCharKey ?? this.focusCharKey
-
-        this.anchorOffset = SelectionData.anchorOffset ?? this.anchorOffset
-        this.focusOffset = SelectionData.focusOffset ?? this.focusOffset
-
-        this.anchorType = SelectionData.anchorType ?? this.anchorType
-        this.focusType = SelectionData.focusType ?? this.focusType
-        
-        this.anchorKey = SelectionData.anchorKey ?? this.anchorKey
-        this.focusKey = SelectionData.focusKey ?? this.focusKey
-
-        this.anchorNode = SelectionData._anchorNode ?? this._anchorNode
-        this.focusNode = SelectionData._focusNode ?? this._focusNode
-
-        this.isCollapsed = SelectionData.isCollapsed ?? this.isCollapsed
-        this.isDirty = SelectionData.isDirty ?? this.isDirty
-
-    }
-
-    $getDataCopy(){
+    $getSelectionCopy(){
         return {...this}
     }
 
@@ -255,7 +318,7 @@ export class SelectionState{
             let charIndex = currentBlockData.charIndex ?? -1
             
             if(node?.firstChild?.nodeName === BREAK_LINE){
-                ElementType = 'break_line'
+                ElementType = 'breakLine'
                 charIndex = 0
             }
             else{
@@ -286,7 +349,7 @@ export class SelectionState{
         else throw new Error(`Not returned return value during condition check`)
     }
     
-    $getSelectionDataFromDirty(EditorRef: React.MutableRefObject<HTMLDivElement>){
+    $normailizeDirtySelection(EditorRef: React.MutableRefObject<HTMLDivElement>){
 
         let EditorNode: HTMLDivElement = EditorRef.current;
         let EditorNodes = Array.from(EditorNode.children);
@@ -296,11 +359,10 @@ export class SelectionState{
             let pathArray = path.get();
             for(let i = 1; i < path.length(); i++){
                 let childrens = Array.from(currentNode.children);
-                let nextChildrenDataset = (childrens[pathArray[i]] as HTMLElement).dataset;
-
+                let nextChildrenDataset = (childrens[pathArray[i]] as HTMLElement)?.dataset;
                 if(
-                    nextChildrenDataset.aite_block_node !== undefined || 
-                    nextChildrenDataset.aite_block_content_node !== undefined
+                    nextChildrenDataset?.aite_block_node !== undefined || 
+                    nextChildrenDataset?.aite_block_content_node !== undefined
                     )
                     {
                     currentNode = childrens[pathArray[i]] as HTMLElement;
@@ -308,8 +370,8 @@ export class SelectionState{
 
                 else if(
                     i === path.length() - 1 && (
-                            currentNode.dataset.aite_block_node === undefined || 
-                            currentNode.dataset.aite_block_content_node !== undefined
+                            currentNode?.dataset?.aite_block_node === undefined || 
+                            currentNode?.dataset?.aite_block_content_node !== undefined
                         )
                     ){
                         currentBlock = childrens.find(node => {
@@ -362,14 +424,6 @@ export class SelectionState{
             LetterCount += node.textContent?.length ?? 0
         })
         return LetterCount
-    }
-    $getCharNodeIndexFromBlock(CharNode: Node, BlockNode: Array<Node>): number{
-        if(CharNode.nodeType === TEXT_NODE){
-            return BlockNode.indexOf(CharNode.parentNode as HTMLElement)
-        }
-        else{
-            return BlockNode.indexOf(CharNode.parentNode as HTMLElement)
-        }
     }
     $getCaretPosition(forceRange?: Range | undefined): void{
         let selection = window.getSelection()
@@ -443,7 +497,7 @@ export class SelectionState{
                     range.setStart(this.anchorNode as Node, this.anchorOffset);
                 }
             }
-            else if(this.anchorType === 'element' || this.anchorType === 'break_line'){
+            else if(this.anchorType === 'element' || this.anchorType === 'breakLine'){
                 range.setStart(this.anchorNode as HTMLElement as Node, this.anchorOffset);
             }
 
@@ -456,31 +510,12 @@ export class SelectionState{
                     range.setEnd(this.focusNode as Node, this.focusOffset);
                 }
             }
-            else if(this.focusType === 'element' || this.anchorType === 'break_line'){
+            else if(this.focusType === 'element' || this.anchorType === 'breakLine'){
                 range.setEnd(this.focusNode as HTMLElement as Node, this.focusOffset);
             }
 
             selection.removeAllRanges();
             selection.addRange(range);
-        }
-    }
-    setSelectionDataByNode(Node: Node, NodeKey?: number){
-        if(Node.nodeType === TEXT_NODE ){
-            let nextNodeText = Node.textContent ?? ''
-
-            this.anchorOffset = nextNodeText.length
-            this.focusOffset = nextNodeText.length
-
-            this.anchorKey.set(NodeKey ? [NodeKey] : undefined)
-            this.focusKey.set(NodeKey ? [NodeKey] : undefined)
-
-            this.anchorNode = Node
-            this.focusNode = Node
-
-            this.isCollapsed = true
-        }
-        else{
-            throw new Error(`Node must have type of TEXT NODE to assign new selection, but current node type is ${Node.nodeType}`)
         }
     }
 }

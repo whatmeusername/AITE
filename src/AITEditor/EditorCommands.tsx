@@ -82,8 +82,7 @@ export default class EditorCommands{
 
     constructor(EditorStateManager: () => void){
         this.EditorStateFunction = EditorStateManager
-        this.CommandStorage = {
-        }
+        this.CommandStorage = {}
         this.dispatchIsBusy = false
         this.preventUpdate = false
         this.commandQueue = []
