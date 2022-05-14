@@ -28,7 +28,7 @@ export function getElementBlockStyle(Tag: string): HTMLBlockStyle {
 }
 
 interface DropEvent extends DragEvent {
-    rangeOffset?: number;
+rangeOffset?: number;
     rangeParent?: Node;
 }
 
@@ -88,7 +88,7 @@ export default function AITEditor(){
         if(EditorState.EditorCommands === undefined){
 
             EditorState.EditorActiveElementState = new activeElementState(() => setEditorState({...EditorState}), EditorState)
-            
+
             EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}))
 
             EditorState.EditorCommands.registerCommand(
