@@ -1,114 +1,112 @@
-.AITE__editor{
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    border: 0;
-    cursor: text;
-    display: block;
-    position: relative;
-    tab-size: 1;
-    outline: none;
+.AITE__editor {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	border: 0;
+	cursor: text;
+	display: block;
+	position: relative;
+	tab-size: 1;
+	outline: none;
 }
 
-
-.ATEditor__standart__BOLD{
-    font-weight: bold;
+.ATEditor__standart__BOLD {
+	font-weight: bold;
 }
 
-.ATEditor__standart__ITALIC{
-   font-style: italic;
+.ATEditor__standart__ITALIC {
+	font-style: italic;
 }
 
-.ATEditor__standart__SUPERSCRIPT{
-    position: relative;
-    margin-bottom: -8px;
-    font-size: 8px;
+.ATEditor__standart__SUPERSCRIPT {
+	position: relative;
+	margin-bottom: -8px;
+	font-size: 8px;
 }
 
-.ATEditor__standart__UNDERLINE{
-    text-decoration: underline;
+.ATEditor__standart__UNDERLINE {
+	text-decoration: underline;
 }
 
-.ATEditor__standart__STRIKETHROUGH{
-    text-decoration: line-through;
+.ATEditor__standart__STRIKETHROUGH {
+	text-decoration: line-through;
 }
 
-.image-wrapper{
-    position: relative;
-    display: inline-block;
-    border: 3px solid transparent;
-    &.AITE__image__active{
-        border: 3px solid rgb(150, 170, 245);
-        user-select: none;
-    }
+.image-wrapper {
+	position: relative;
+	display: inline-block;
+	border: 3px solid transparent;
+	&.AITE__image__active {
+		border: 3px solid rgb(150, 170, 245);
+		user-select: none;
+		.AITE_image_caption_wrapper{
+			user-select: text;
+		}
+	}
 }
 
-
-.ATE_editor_horizontal-rule{
-    width: 95%;
-    height: 2.5px;
-    border: 0px;
-    border-radius: 4px;
-    margin: 20px 0px;
-    background-color: rgb(220, 220, 220);
-    margin-left: 2.5%;
+.ATE_editor_horizontal-rule {
+	width: 95%;
+	height: 2.5px;
+	border: 0px;
+	border-radius: 4px;
+	margin: 20px 0px;
+	background-color: rgb(220, 220, 220);
+	margin-left: 2.5%;
 }
 
-
-.AITE__editor__blockquote{
-    border-left: 4px solid rgb(220, 220, 220);
-    padding-left: 25px;
-    font-style: italic;
-    color: rgb(140, 140, 140)
-
+.AITE__editor__blockquote {
+	border-left: 4px solid rgb(220, 220, 220);
+	padding-left: 25px;
+	font-style: italic;
+	color: rgb(140, 140, 140);
 }
 
-
-.image-resize{
-    position: absolute;
-    width: 13px;
-    height: 13px;
-    background-color: rgb(150, 170, 245);
-    border: 2px solid rgb(255, 255, 255);
-    border-radius: 50%;
-    user-select: none;
-    &.image-resize-n{
-        top: -10px;
-        left: 48%;
-        cursor: n-resize;
-    }
-    &.image-resize-ne{
-        top: -10px;
-        right: -10px;
-        cursor: ne-resize;
-    }
-    &.image-resize-e{
-        top: 48%;
-        right: -10px;
-        cursor: e-resize;
-    }
-    &.image-resize-se{
-        bottom: -10px;
-        right: -10px;
-        cursor: se-resize;
-    }
-    &.image-resize-s{
-        bottom: -10px;
-        left: 48%;
-        cursor: s-resize;
-    }
-    &.image-resize-sw{
-        bottom: -10px;
-        left: -10px;
-        cursor: sw-resize;
-    }
-    &.image-resize-w{
-        top: 48%;
-        left: -10px;
-        cursor: w-resize;
-    }
-    &.image-resize-nw{
-        top: -10px;
-        left: -10px;
-        cursor: nw-resize;
-    }
+.image-resize {
+	position: absolute;
+	width: 13px;
+	height: 13px;
+	background-color: rgb(150, 170, 245);
+	border: 2px solid rgb(255, 255, 255);
+	border-radius: 50%;
+	user-select: none;
+	&.image-resize-n {
+		top: -10px;
+		left: 48%;
+		cursor: n-resize;
+	}
+	&.image-resize-ne {
+		top: -10px;
+		right: -10px;
+		cursor: ne-resize;
+	}
+	&.image-resize-e {
+		top: 48%;
+		right: -10px;
+		cursor: e-resize;
+	}
+	&.image-resize-se {
+		bottom: -10px;
+		right: -10px;
+		cursor: se-resize;
+	}
+	&.image-resize-s {
+		bottom: -10px;
+		left: 48%;
+		cursor: s-resize;
+	}
+	&.image-resize-sw {
+		bottom: -10px;
+		left: -10px;
+		cursor: sw-resize;
+	}
+	&.image-resize-w {
+		top: 48%;
+		left: -10px;
+		cursor: w-resize;
+	}
+	&.image-resize-nw {
+		top: -10px;
+		left: -10px;
+		cursor: nw-resize;
+	}
 }

@@ -1,4 +1,1 @@
-
-
-export default class linkNode{
-}
+export default class linkNode {}

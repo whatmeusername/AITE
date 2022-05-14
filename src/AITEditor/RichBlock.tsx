@@ -1,11 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-
-import ContentNode from './ContentNode'
-
-
-
-
+import ContentNode from './ContentNode';
 
 // interface DynamicStyleSetting{
 //     CSSprefix: string;
@@ -21,9 +16,6 @@ import ContentNode from './ContentNode'
 //     CSSunit?: CSSUnit;
 // }
 
-const RichBlock = {
-  
-} 
+const RichBlock = {};
 
-
-export default RichBlock
+export default RichBlock;

@@ -1,120 +1,122 @@
-import {findEditorBlockIndex, findEditorCharIndex} from "../../EditorUtils";
-import type BlockNode from '../../BlockNode'
-import type {EditorState} from '../../EditorManagmentUtils'
+import {findEditorFullPathToCharNode, findEditorCharIndex, isTextNode} from '../../EditorUtils';
+import type {selectionData} from '../../EditorUtils';
 
-type mouseEvent = React.MouseEvent | MouseEvent
-type EditorNodeSelectedData = {node: Node | HTMLElement, index: number} | undefined
+import type {NodeTypes} from '../../BlockNode';
+import type BlockNode from '../../BlockNode';
+import type {EditorState} from '../../EditorManagmentUtils';
+import {BlockPath} from '../../SelectionUtils'
 
-export default class ActiveElementState{
+type mouseEvent = React.MouseEvent | MouseEvent;
+type EditorNodeSelectedData = {node: Node | HTMLElement; index: number} | undefined;
 
-    EditorStateFunction: () => void
-    EditorState: EditorState
-    allowedAllements: Array<string>
-    isActive: boolean
-    activeNode: HTMLElement | null
-    charNode: number | null
-    blockNode: number | null
+export default class ActiveElementState {
+	EditorStateFunction: () => void;
+	EditorState: EditorState;
+	allowedAllements: Array<string>;
+	isActive: boolean;
+	activeNode: HTMLElement | null;
+	charNode: number | null;
+	blockNode: BlockPath;
 
-    constructor(EditorStateManager: () => void, editorState: EditorState){
-        this.EditorStateFunction = EditorStateManager;
-        this.EditorState = editorState
-        this.allowedAllements = ['IMG'];
-        this.isActive = false;
-        this.activeNode = null;
-        this.charNode = null;
-        this.blockNode = null;
-    }
+	constructor(EditorStateManager: () => void, editorState: EditorState) {
+		this.EditorStateFunction = EditorStateManager;
+		this.EditorState = editorState;
+		this.allowedAllements = ['IMG'];
+		this.isActive = false;
+		this.activeNode = null;
+		this.charNode = null;
+		this.blockNode = new BlockPath();
+	}
+
+	addElementToAllowed(element: string): void {
+		if (this.allowedAllements.findIndex((o) => o === element) === -1) {
+			this.allowedAllements.push(element);
+		}
+	}
+
+	removeElementFromAllowed(element: string): void {
+		let elementIndex = this.allowedAllements.findIndex((o) => o === element);
+		if (elementIndex !== -1) {
+			this.allowedAllements.splice(elementIndex, 1);
+		}
+	}
+	resetActiveData(): void {
+		this.isActive = false;
+		this.activeNode = null;
+		this.charNode = null;
+		this.blockNode.set([]);
+	}
 
 
-    addElementToAllowed(element: string){
-        if(this.allowedAllements.findIndex(o => o === element) === -1){
-            this.allowedAllements.push(element);
-        };
-    }
+	handleElementClick(event: MouseEvent): void {
+		let nodeTag = (event.target as HTMLElement).tagName;
+		let currentBlockData: selectionData | undefined = undefined;
 
-    removeElementFromAllowed(element: string){
-        let elementIndex = this.allowedAllements.findIndex(o => o === element)
-        if(elementIndex !== -1){
-            this.allowedAllements.splice(elementIndex, 1)
-        }
-    }
+		
+		const removeClickEvent = (): void => {
+			this.resetActiveData();
+			document.removeEventListener('click', editorClickEvent);
+			document.removeEventListener('keyup', backspaceEventHandler);
+			this.EditorStateFunction();
+		}
 
-    resetActiveData(){
-        this.isActive = false
-        this.activeNode = null
-        this.charNode = null
-        this.blockNode = null
-    }
+		const editorClickEvent = (event: MouseEvent): void => {
+			if (event.target === null || event.defaultPrevented === true) return;
+			else if(isTextNode(event.target as HTMLElement)) {
+				removeClickEvent()
+			}
+			else if (this.allowedAllements.includes((event.target as HTMLElement).tagName)) {
+				let newBlockData = findEditorFullPathToCharNode(event.target as HTMLElement);
+				if (newBlockData?.blockNode !== currentBlockData?.blockNode) {
+					currentBlockData = newBlockData;
+					if (currentBlockData !== undefined){
+						this.blockNode?.set(newBlockData!.blockPath);
+						this.charNode = newBlockData!.charIndex;
+						this.EditorStateFunction();
+					}
+				}
+			} 
+			else if (!currentBlockData!.charNode.contains(event.target as HTMLElement)) {
+				removeClickEvent()
+			}
+		};
 
-    handleElementClick(event: MouseEvent | React.MouseEvent){
-        let nodeTag = (event.target as HTMLElement).tagName;
-        let currentBlockData: EditorNodeSelectedData = undefined,
-            currentCharData: EditorNodeSelectedData = undefined;
+		const backspaceEventHandler = (event: KeyboardEvent): void => {
+			if (event.key === 'Backspace' && this.blockNode !== null && this.charNode !== null) {
+				let currentBlock = this.EditorState.contentNode.getBlockByPath(this.blockNode.get());
+				if (currentBlock.getType() === 'standart') {
+					(currentBlock as BlockNode).removeCharNode(this.charNode);
+					this.resetActiveData();
+					document.removeEventListener('click', editorClickEvent);
+					document.removeEventListener('keyup', backspaceEventHandler);
+					this.EditorStateFunction();
+				}
+			}
+		};
 
-        const editorClickEvent = (event: MouseEvent) => {
+		if (this.allowedAllements.includes(nodeTag) && event.target !== null) {
+			currentBlockData = findEditorFullPathToCharNode(event.target as HTMLElement);
 
-            if(event.target === null || event.defaultPrevented === true) return ;
-            else if(
-                this.allowedAllements.includes((event.target as HTMLElement).tagName)){
-                let newCharData = findEditorCharIndex(event.target as HTMLElement);
-                if(newCharData?.node !== currentCharData?.node){
-                    currentCharData = newCharData
-                    if(currentBlockData !== undefined){
-                        currentCharData = findEditorCharIndex(event.target as HTMLElement);
-                        if(currentCharData !== undefined){
-                            this.blockNode = currentBlockData!.index;
-                            this.charNode = currentCharData!.index;
-                            this.EditorStateFunction();
-                        }
-                    }
-                }
-            }
-            else if(!currentCharData!.node.contains(event.target as HTMLElement)){
-                this.resetActiveData();
-                document.removeEventListener('click', editorClickEvent);
-                document.removeEventListener('keyup', backspaceEventHandler);
-                this.EditorStateFunction();
-            }
-        }
+			if (currentBlockData !== undefined && currentBlockData !== undefined && this.isActive === false) {
+				this.blockNode.set(currentBlockData.blockPath);
+				this.charNode = currentBlockData.charIndex;
+				this.isActive = true;
+				this.EditorStateFunction();
+				let selection = window.getSelection();
+				if (selection !== null) selection.removeAllRanges();
+				this.EditorState.selectionState.resetSelection()
+				document.addEventListener('mousedown', editorClickEvent);
+				document.addEventListener('keyup', backspaceEventHandler);
+			}
+		}
+	}
 
-        const backspaceEventHandler = (event: KeyboardEvent) => {
-            if(event.key === 'Backspace' && this.blockNode !== null && this.charNode !== null){
-                let currentBlock = this.EditorState.contentNode.findBlockByIndex(this.blockNode)
-                if(currentBlock.getType() === 'standart'){
-                    (currentBlock as BlockNode).removeCharNode(this.charNode) 
-                    this.resetActiveData()
-                    document.removeEventListener('click', editorClickEvent);
-                    document.removeEventListener('keyup', backspaceEventHandler);
-                    this.EditorStateFunction();
-                }
-            }
-        }
-
-        if(this.allowedAllements.includes(nodeTag) && event.target !== null){
-            currentBlockData = findEditorBlockIndex(event.target as HTMLElement);
-            currentCharData = findEditorCharIndex(event.target as HTMLElement);
-
-            if(currentBlockData !== undefined && currentBlockData !== undefined && this.isActive === false){
-                this.blockNode = currentBlockData!.index;
-                this.charNode = currentCharData!.index;
-                this.isActive = true;
-                this.EditorStateFunction();
-                let selection = window.getSelection();
-                if(selection !== null){
-                    selection.removeAllRanges();
-                }
-                document.addEventListener('click', editorClickEvent);
-                document.addEventListener('keyup', backspaceEventHandler);
-            }
-        }
-    }
-
-    getActiveNodes(){
-        if(this.blockNode !== null && this.charNode !== null){
-            let currentBlock = this.EditorState.contentNode.findBlockByIndex(this.blockNode) as BlockNode
-            let currentChar = currentBlock.getNodeByIndex(this.charNode)
-            return {block: currentBlock, char: currentChar}
-        }
-        return undefined
-    }
+	getActiveNodes(): {block: BlockNode, char: NodeTypes} | undefined {
+		if (this.blockNode !== null && this.charNode !== null) {
+			let currentBlock = this.EditorState.contentNode.getBlockByPath(this.blockNode.get()) as BlockNode;
+			let currentChar = currentBlock.getNodeByIndex(this.charNode);
+			return {block: currentBlock, char: currentChar};
+		}
+		return undefined;
+	}
 }

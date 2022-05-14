@@ -1,15 +1,12 @@
-
-
-import {NodeTypes} from './BlockNode'
+import {NodeTypes} from './BlockNode';
 
 const ValidationUtils = {
-    isTextNode(Node: NodeTypes | undefined){
-        if(!Node) return undefined
-        if(Node.returnType() === 'text'){
-            return true
-        }
-        else return false
-    }
-}
+	isTextNode(Node: NodeTypes | undefined) {
+		if (!Node) return undefined;
+		if (Node.returnType() === 'text') {
+			return true;
+		} else return false;
+	},
+};
 
-export default ValidationUtils
+export default ValidationUtils;

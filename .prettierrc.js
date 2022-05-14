@@ -5,6 +5,8 @@ module.exports = {
   singleQuote: true,
   useTabs: true,
   tabWidth: 4,
+  semi: true,
+  printWidth: 160,
 
   proseWrap: 'preserve',
   bracketSameLine: false,

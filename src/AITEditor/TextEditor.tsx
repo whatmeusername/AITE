@@ -1,195 +1,223 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect} from 'react';
 
-import defaultBlocks from './defaultStyles/defaultBlocks'
+import defaultBlocks from './defaultStyles/defaultBlocks';
 
-import {CreateReactEditor} from './BlockManagmentUtils'
-import {EditorState as editorState} from './EditorManagmentUtils'
+import {CreateReactEditor} from './rootElement';
+import {EditorState as editorState} from './EditorManagmentUtils';
 
-import EditorCommands from './EditorCommands'
+import {isTextNode} from './EditorUtils';
 
-import RichBlock from './packages/AITE_RichBlock/RichBlock'
-import activeElementState from './packages/AITE_ActiveState/activeElementState'
-import setImageFloatDirection from './packages/AITE_Image/imageFloatDirection'
+import EditorCommands from './EditorCommands';
 
-import './defaultinlineStyles.scss'
-import './AITE_test.scss'
+import RichBlock from './packages/AITE_RichBlock/RichBlock';
+import activeElementState from './packages/AITE_ActiveState/activeElementState';
+import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
 
-export type CharData = [string, Array<string>, Array<number>]
+import './defaultinlineStyles.scss';
+import './AITE_test.scss';
 
-export type HTMLBlockStyle = {type: string, tag: string}
-export type HTMLCharStyle = {style: string, tag: string}
+export type CharData = [string, Array<string>, Array<number>];
 
-
+export type HTMLBlockStyle = {type: string; tag: string};
+export type HTMLCharStyle = {style: string; tag: string};
 
 export function getElementBlockStyle(Tag: string): HTMLBlockStyle {
-    let TagData = {type: 'unstyled', tag: 'div'}
-    TagData = defaultBlocks.find(obj => obj.tag === Tag || obj.type === Tag) ?? TagData
-    return TagData
+	let TagData = {type: 'unstyled', tag: 'div'};
+	TagData = defaultBlocks.find((obj) => obj.tag === Tag || obj.type === Tag) ?? TagData;
+	return TagData;
 }
 
 interface DropEvent extends DragEvent {
-rangeOffset?: number;
-    rangeParent?: Node;
+	rangeOffset?: number;
+	rangeParent?: Node;
 }
 
-export function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent){
+export function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent): boolean {
+	const SYMBOLS = [
+		'Comma',
+		'Period',
+		'Minus',
+		'Equal',
+		'IntlBackslash',
+		'Slash',
+		'Quote',
+		'Semicolon',
+		'Backslash',
+		'BracketRight',
+		'BracketLeft',
+		'Backquote',
+	];
 
-    const SYMBOLS = [
-        'Comma', 
-        'Period', 
-        'Minus', 
-        'Equal', 
-        'IntlBackslash', 
-        'Slash', 
-        'Quote', 
-        'Semicolon', 
-        'Backslash', 
-        'BracketRight', 
-        'BracketLeft',
-        'Backquote'
-    ]
-
-    if(
-        event.code.startsWith('Key') ||
-        event.code === 'Space' ||
-        event.code.startsWith('Digit') ||
-        SYMBOLS.includes(event.code)
-
-        ) return true
-    return false
+	if (
+		event.code.startsWith('Key') ||
+		event.code === 'Space' ||
+		event.code.startsWith('Digit') ||
+		SYMBOLS.includes(event.code)
+	)
+		return true;
+	return false;
 }
 
-export default function AITEditor(){
+export default function AITEditor(): JSX.Element {
+	const EditorRef = React.useRef<HTMLDivElement>(null!);
 
-    const EditorRef = React.useRef<HTMLDivElement>(null!)
+	const [EditorState, setEditorState] = useState<editorState>(new editorState());
 
-    const [EditorState, setEditorState] = useState<editorState>(new editorState())
+	function HandleKeyClick(event: React.KeyboardEvent) {
+		let Key = event.key;
+		const AllowedKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+		let isArrow = AllowedKeys.includes(Key);
 
+		if (EditorState.EditorActiveElementState?.isActive === false && isArrow === false) {
+			if (Key === 'Backspace') {
+				event.preventDefault();
+				EditorState.EditorCommands?.dispatchCommand('LETTER_REMOVE_COMMAND', event);
+			} else if (Key === 'Enter') {
+				EditorState.EditorCommands?.dispatchCommand('ENTER_COMMAND', event);
+			} else {
+				event.preventDefault();
+				EditorState.EditorCommands?.dispatchCommand('LETTER_INSERT_COMMAND', event);
+			}
+		} else if (isArrow === false) event.preventDefault();
+	}
 
-    function HandleKeyClick(event: React.KeyboardEvent) {
-        let Key = event.key
-        const AllowedKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
-        let isArrow = AllowedKeys.includes(Key) === false
+	useEffect(() => {
+		if (EditorState.EditorCommands === undefined) {
+			EditorState.EditorActiveElementState = new activeElementState(
+				() => setEditorState({...EditorState}),
+				EditorState,
+			);
 
-        if(EditorState.EditorActiveElementState?.isActive === false && isArrow === false){
-            if(Key === 'Backspace'){
-                event.preventDefault()
-                EditorState.EditorCommands?.dispatchCommand('LETTER_REMOVE_COMMAND', event)
-            }
-            else if(Key === 'Enter'){
-                EditorState.EditorCommands?.dispatchCommand('ENTER_COMMAND', event)
-            }
-            else EditorState.EditorCommands?.dispatchCommand('LETTER_INSERT_COMMAND', event)
-        }
-        else if(isArrow === false) event.preventDefault()
-    }
-    
-    useEffect(() => { 
-        if(EditorState.EditorCommands === undefined){
+			EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}));
 
-            EditorState.EditorActiveElementState = new activeElementState(() => setEditorState({...EditorState}), EditorState)
+			EditorState.EditorCommands.registerCommand(
+				'KEYBOARD_COMMAND',
+				'IMMEDIATELY_EDITOR_COMMAND',
+				(event) => {
+					HandleKeyClick(event);
+					setEditorState({...EditorState});
+				},
+			);
 
-            EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}))
+			EditorState.EditorCommands.registerCommand(
+				'LETTER_INSERT_COMMAND',
+				'IMMEDIATELY_EDITOR_COMMAND',
+				(event) => {
+					EditorState.contentNode.insertLetterIntoTextNode(
+						event,
+						EditorState.selectionState,
+					);
+					setEditorState({...EditorState});
+				},
+			);
 
-            EditorState.EditorCommands.registerCommand(
-                'KEYBOARD_COMMAND',
-                'IMMEDIATELY_EDITOR_COMMAND',
-                (event) => {
-                    HandleKeyClick(event)
-                    setEditorState({...EditorState})
-                }
-            )
+			EditorState.EditorCommands.registerCommand(
+				'LETTER_REMOVE_COMMAND',
+				'IMMEDIATELY_EDITOR_COMMAND',
+				(_) => {
+					EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
+					setEditorState({...EditorState});
+				},
+			);
 
-            EditorState.EditorCommands.registerCommand(
-                'LETTER_INSERT_COMMAND',
-                'IMMEDIATELY_EDITOR_COMMAND',
-                (event) => {
-                    EditorState.contentNode.insertLetterIntoTextNode(event, EditorState.selectionState)
-                    setEditorState({...EditorState})
-                }
-            )
+			EditorState.EditorCommands.registerCommand(
+				'ENTER_COMMAND',
+				'IMMEDIATELY_EDITOR_COMMAND',
+				(_) => {
+					EditorState.contentNode.handleEnter(EditorState.selectionState);
+					setEditorState({...EditorState});
+				},
+			);
 
-            EditorState.EditorCommands.registerCommand(
-                'ENTER_COMMAND',
-                'IMMEDIATELY_EDITOR_COMMAND',
-                (_) => {
-                    EditorState.contentNode.handleEnter(EditorState.selectionState)
-                    setEditorState({...EditorState})
-                }
-            )
-        
-            EditorState.EditorCommands.registerCommand(
-                'SELECTION_COMMAND',
-                'IGNOREMANAGER_EDITOR_COMMAND',
-                (_) => EditorState.selectionState.$getCaretPosition()
-            )
+			EditorState.EditorCommands.registerCommand(
+				'SELECTION_COMMAND',
+				'IGNOREMANAGER_EDITOR_COMMAND',
+				(_) => EditorState.selectionState.$getCaretPosition(),
+			);
 
-            EditorState.EditorCommands.registerCommand(
-                'CLICK_COMMAND',
-                'IMMEDIATELY_EDITOR_COMMAND',
-                (event) => EditorState.EditorActiveElementState?.handleElementClick(event)
-            )
+			EditorState.EditorCommands.registerCommand(
+				'CLICK_COMMAND',
+				'IMMEDIATELY_EDITOR_COMMAND',
+				(event) => EditorState.EditorActiveElementState?.handleElementClick(event),
+			);
 
-            setEditorState({...EditorState})
-        }
-        if(EditorState.EditorActiveElementState?.isActive === false){
-            if(EditorState.selectionState.isDirty ){
-                EditorState.selectionState.$normailizeDirtySelection(EditorRef)
-            }
-            EditorState.selectionState.setCaretPosition()
-        }
-    }, [EditorState])
+			setEditorState({...EditorState});
+		}
+		if (EditorState.EditorActiveElementState?.isActive === false) {
+			if (EditorState.selectionState.isDirty) {
+				EditorState.selectionState.$normailizeDirtySelection(EditorRef);
+			}
+			EditorState.selectionState.setCaretPosition();
+		}
+	}, [EditorState]);
 
-    return(
-        <div className="editor__workspace">
-            <div className="editor__test__toolbar">
-                <p
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(e) => {
-                    e.preventDefault()
-                    setImageFloatDirection(EditorState, 'right')
-                    setEditorState({...EditorState})
-                }}
-                >RIGHT</p>
-                <p
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(e) => {
-                    e.preventDefault()
-                    setImageFloatDirection(EditorState, 'left')
-                    setEditorState({...EditorState})
-                }}
-                >LEFT</p>
-                <p
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(e) => {
-                    e.preventDefault()
-                    setImageFloatDirection(EditorState, 'none')
-                    setEditorState({...EditorState})
-                }}
-                >DIR NULL</p>
-            </div>
-            <div
-                ref = {EditorRef}
-                style = {{fontSize: '16px'}}
-                className = 'AITE__editor'
-
-                data-aite_editor_root = {true}
-                contentEditable = {true}
-                suppressContentEditableWarning = {true}
-
-                spellCheck = {false}
-                onClick = {(event) =>  EditorState.EditorCommands?.dispatchCommand('CLICK_COMMAND', event)}
-                onSelect = {(event) => EditorState.EditorCommands?.dispatchCommand('SELECTION_COMMAND', event)}
-                
-                onKeyDown = {(event) => EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', event)}
-
-                onDrop = {(event) => event.preventDefault()}
-
-            >
-                <React.Fragment>
-                    <CreateReactEditor EditorState = {EditorState}/>
-                </React.Fragment>
-            </div>
-        </div>
-    )
+	return (
+		<div className="editor__workspace">
+			<div className="editor__test__toolbar">
+				<p
+					onMouseDown={(e) => e.preventDefault()}
+					onClick={(e) => {
+						e.preventDefault();
+						setImageFloatDirection(EditorState, 'right');
+						setEditorState({...EditorState});
+					}}
+				>
+					RIGHT
+				</p>
+				<p
+					onMouseDown={(e) => e.preventDefault()}
+					onClick={(e) => {
+						e.preventDefault();
+						setImageFloatDirection(EditorState, 'left');
+						setEditorState({...EditorState});
+					}}
+				>
+					LEFT
+				</p>
+				<p
+					onMouseDown={(e) => e.preventDefault()}
+					onClick={(e) => {
+						e.preventDefault();
+						setImageFloatDirection(EditorState, 'none');
+						setEditorState({...EditorState});
+					}}
+				>
+					DIR NULL
+				</p>
+				<p
+					onMouseDown={(e) => e.preventDefault()}
+					onClick={(e) => {
+						e.preventDefault();
+						toggleImageCaption(EditorState);
+						setEditorState({...EditorState});
+					}}
+				>
+					TOGGLE CAP
+				</p>
+			</div>
+			<div
+				ref={EditorRef}
+				style={{fontSize: '16px'}}
+				className="AITE__editor"
+				data-aite_editor_root={true}
+				contentEditable={true}
+				suppressContentEditableWarning={true}
+				spellCheck={false}
+				onClick={(event) => {
+					EditorState.EditorCommands?.dispatchCommand('CLICK_COMMAND', event);
+				}}
+				onSelect={(event) => {
+					EditorState.EditorCommands?.dispatchCommand('SELECTION_COMMAND', event);
+				}}
+				onKeyDown={(event) => {
+					EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', event);
+				}}
+				onDrop={(event) => event.preventDefault()}
+			>
+				<React.Fragment>
+					<CreateReactEditor EditorState={EditorState} />
+				</React.Fragment>
+			</div>
+		</div>
+	);
 }
