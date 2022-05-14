@@ -176,7 +176,6 @@ export default class BlockNode{
             if(letterCount >= offset){
                 data.offsetKey = i
                 data.letterIndex = currentLetterCount - (letterCount - offset)
-                console.log(data)
                 return data
             }
         }

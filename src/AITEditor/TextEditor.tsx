@@ -32,6 +32,32 @@ interface DropEvent extends DragEvent {
     rangeParent?: Node;
 }
 
+export function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent){
+
+    const SYMBOLS = [
+        'Comma', 
+        'Period', 
+        'Minus', 
+        'Equal', 
+        'IntlBackslash', 
+        'Slash', 
+        'Quote', 
+        'Semicolon', 
+        'Backslash', 
+        'BracketRight', 
+        'BracketLeft',
+        'Backquote'
+    ]
+
+    if(
+        event.code.startsWith('Key') ||
+        event.code === 'Space' ||
+        event.code.startsWith('Digit') ||
+        SYMBOLS.includes(event.code)
+
+        ) return true
+    return false
+}
 
 export default function AITEditor(){
 
@@ -40,71 +66,56 @@ export default function AITEditor(){
     const [EditorState, setEditorState] = useState<editorState>(new editorState())
 
 
-    function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent){
-
-        const SYMBOLS = [
-            'Comma', 
-            'Period', 
-            'Minus', 
-            'Equal', 
-            'IntlBackslash', 
-            'Slash', 
-            'Quote', 
-            'Semicolon', 
-            'Backslash', 
-            'BracketRight', 
-            'BracketLeft',
-            'Backquote'
-        ]
-
-        if(
-            event.code.startsWith('Key') ||
-            event.code === 'Space' ||
-            event.code.startsWith('Digit') ||
-            SYMBOLS.includes(event.code)
-
-            ) return true
-        return false
-    }
-
     function HandleKeyClick(event: React.KeyboardEvent) {
         let Key = event.key
         const AllowedKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
+        let isArrow = AllowedKeys.includes(Key) === false
 
-
-        console.log(event)
-        if(EditorState.EditorActiveElementState?.isActive === false){
+        if(EditorState.EditorActiveElementState?.isActive === false && isArrow === false){
             if(Key === 'Backspace'){
                 event.preventDefault()
-                EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState)
-                setEditorState({...EditorState})
+                EditorState.EditorCommands?.dispatchCommand('LETTER_REMOVE_COMMAND', event)
             }
             else if(Key === 'Enter'){
-                event.preventDefault()
-                EditorState.contentNode.handleEnter(EditorState.selectionState)
-                setEditorState({...EditorState})
+                EditorState.EditorCommands?.dispatchCommand('ENTER_COMMAND', event)
             }
-            else if(keyCodeValidator(event)){
-                event.preventDefault()
-                EditorState.contentNode.insertLetterIntoTextNode(event, EditorState.selectionState)
-            }
-            else if(!AllowedKeys.includes(Key)){
-                event.preventDefault()
-            }
+            else EditorState.EditorCommands?.dispatchCommand('LETTER_INSERT_COMMAND', event)
         }
-        else event.preventDefault()
+        else if(isArrow === false) event.preventDefault()
     }
     
     useEffect(() => { 
         if(EditorState.EditorCommands === undefined){
-            EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}))
-            EditorState.EditorActiveElementState = new activeElementState(() => setEditorState({...EditorState}), EditorState)
 
+            EditorState.EditorActiveElementState = new activeElementState(() => setEditorState({...EditorState}), EditorState)
+            
+            EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}))
 
             EditorState.EditorCommands.registerCommand(
                 'KEYBOARD_COMMAND',
                 'IMMEDIATELY_EDITOR_COMMAND',
-                (event) => HandleKeyClick(event)
+                (event) => {
+                    HandleKeyClick(event)
+                    setEditorState({...EditorState})
+                }
+            )
+
+            EditorState.EditorCommands.registerCommand(
+                'LETTER_INSERT_COMMAND',
+                'IMMEDIATELY_EDITOR_COMMAND',
+                (event) => {
+                    EditorState.contentNode.insertLetterIntoTextNode(event, EditorState.selectionState)
+                    setEditorState({...EditorState})
+                }
+            )
+
+            EditorState.EditorCommands.registerCommand(
+                'ENTER_COMMAND',
+                'IMMEDIATELY_EDITOR_COMMAND',
+                (_) => {
+                    EditorState.contentNode.handleEnter(EditorState.selectionState)
+                    setEditorState({...EditorState})
+                }
             )
         
             EditorState.EditorCommands.registerCommand(
@@ -128,10 +139,6 @@ export default function AITEditor(){
             EditorState.selectionState.setCaretPosition()
         }
     }, [EditorState])
-
-
-    // let richBlock = new RichBlock(EditorState, () => setEditorState({...EditorState}))
-    // richBlock.toggleBlockWrapper('header-one')
 
     return(
         <div className="editor__workspace">
