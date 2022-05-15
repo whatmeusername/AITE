@@ -1,15 +1,8 @@
-import React from 'react';
-
 import {ATEditorBlock, ATEditor, CharData} from './Interfaces';
 import defaultInlineStyles from './defaultStyles/defaultInlineStyles';
 
 const SearchUtils = {
-	FindBlockByIndex: function (
-		EditorState: ATEditor,
-		index: number,
-		lastItem: boolean = false,
-		firstItem: boolean = false,
-	): ATEditorBlock | undefined {
+	FindBlockByIndex: function (EditorState: ATEditor, index: number, lastItem: boolean = false, firstItem: boolean = false): ATEditorBlock | undefined {
 		let SearchBlock: ATEditorBlock | undefined = undefined;
 		if (lastItem === false && firstItem === false) {
 			SearchBlock = EditorState.blocks[index];
@@ -24,11 +17,7 @@ const SearchUtils = {
 		}
 		return undefined;
 	},
-	FindBlockByKey: function (
-		EditorState: ATEditor,
-		key: string,
-		returnIndex = false,
-	): ATEditorBlock | number | undefined {
+	FindBlockByKey: function (EditorState: ATEditor, key: string, returnIndex = false): ATEditorBlock | number | undefined {
 		if (returnIndex === true) {
 			return EditorState.blocks.findIndex((obj) => obj.blockKey === key);
 		}

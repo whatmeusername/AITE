@@ -40,3 +40,5 @@ export interface blockHTML {
 	HTML: string;
 	blockInlineStyles: Array<string>;
 }
+
+export type StartsWith<T extends string, U extends string> = T extends `${U}${string}` ? T : never;

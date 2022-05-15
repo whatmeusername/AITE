@@ -1,9 +1,8 @@
 import SearchUtils from './SearchUtils';
+import {TEXT_NODE_TYPE} from './ConstVariables';
 
 export type CharStyleArr = {c: string | null};
-type TextNodeData = [ElementType, string, Array<string>, CharStyleArr];
-
-type ElementType = 'image' | 'horizontal-rule' | 'text';
+type TextNodeData = [typeof TEXT_NODE_TYPE, string, Array<string>, CharStyleArr];
 
 export default class TextNode {
 	d: TextNodeData;
@@ -15,7 +14,7 @@ export default class TextNode {
 	//`Hello world ${Math.random().toString(36).slice(4, 9)} `
 
 	constructor(PT?: string, SA?: Array<string>) {
-		this.d = ['text', PT ?? '', SA ?? [], {c: null}];
+		this.d = [TEXT_NODE_TYPE, PT ?? '', SA ?? [], {c: null}];
 	}
 
 	prepareStyles() {
@@ -37,13 +36,17 @@ export default class TextNode {
 		return this.d[0];
 	}
 	returnType(): string {
-		return 'text';
+		return TEXT_NODE_TYPE;
 	}
 	returnContent(): string {
 		return this.d[1];
 	}
 	returnContentLength(): number {
 		return this.d[1].length;
+	}
+
+	returnNodeStyle(): Array<string> {
+		return this.d[2];
 	}
 
 	getSlicedContent(startFromZero: boolean = true, start: number, end?: number): string {

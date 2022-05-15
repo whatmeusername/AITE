@@ -1,9 +1,5 @@
 import {
-	IMMEDIATELY_EDITOR_COMMAND,
-	HIGH_EDITOR_COMMAND,
-	STANDART_EDITOR_COMMAND,
 	EDITOR_PRIORITY,
-	IGNOREMANAGER_EDITOR_COMMAND,
 } from './ConstVariables';
 import {keyCodeValidator} from './TextEditor';
 
@@ -37,7 +33,7 @@ interface MOUSE_COMMAND {
 	action: (event: MouseCOMMAND, ...args: any) => void;
 }
 
-interface KEYBIND_COMMAND {
+interface KEYBIND_COMMAND { //eslint-disable-line 
 	key: string;
 	shiftKey?: boolean;
 	ctrlKey?: boolean;
@@ -61,7 +57,7 @@ interface ENTER_COMMAND {
 	action: (event: keyboardCOMMAND, ...args: any) => void;
 }
 
-const KEYBOARD_COMMAND = {};
+const KEYBOARD_COMMAND = {}; //eslint-disable-line 
 
 interface commandStorage {
 	KEYBOARD_COMMAND?: KEYBOARD_COMMAND;

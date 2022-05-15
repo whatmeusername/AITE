@@ -122,9 +122,6 @@ export class imageNode {
 						new BlockNode({
 							CharData: chardata,
 						}),
-						new BlockNode({
-							CharData: [new TextNode('')],
-						}),
 					],
 			  });
 	}

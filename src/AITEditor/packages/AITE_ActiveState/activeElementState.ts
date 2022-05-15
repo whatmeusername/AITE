@@ -76,7 +76,7 @@ export default class ActiveElementState {
 					}
 				}
 			} 
-			else if (!currentBlockData!.charNode.contains(event.target as HTMLElement)) {
+			else if (!(currentBlockData!.blockNode as HTMLElement).contains(event.target as HTMLElement)) {
 				removeClickEvent()
 			}
 		};

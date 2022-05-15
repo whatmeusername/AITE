@@ -23,15 +23,8 @@ const RichStyle = {
 	removeInlineStyle: (EditorState: ATEditor, CSSPrefix: string, CSSValue: string) => {}, // --- TO BE CREATED
 
 	addInlineStyle: (EditorState: ATEditor, CSSPrefix: string, CSSValue: string) => {
-		let CurrentBlock = SearchUtils.FindBlockByKey(
-			EditorState,
-			EditorState.selectionState.anchorKey,
-		) as ATEditorBlock;
-		let CurrentBlockIndex = SearchUtils.FindBlockByKey(
-			EditorState,
-			EditorState.selectionState.anchorKey,
-			true,
-		) as number;
+		let CurrentBlock = SearchUtils.FindBlockByKey(EditorState, EditorState.selectionState.anchorKey) as ATEditorBlock;
+		let CurrentBlockIndex = SearchUtils.FindBlockByKey(EditorState, EditorState.selectionState.anchorKey, true) as number;
 		let CurrentSelection = {...EditorState.selectionState};
 		if (CurrentBlock !== undefined) {
 			if (CurrentSelection.anchorOffset === CurrentSelection.focusOffset) {
@@ -57,16 +50,9 @@ const RichStyle = {
 		let CSSValue = settings.CSSvalue + (settings.defaultValue ?? 0) + settings.CSSunit;
 		let CSSstyle = FormatingUtils.CreateStyleName(settings.CSSprefix, CSSValue);
 
-		let CurrentBlock = SearchUtils.FindBlockByKey(
-			EditorState,
-			EditorState.selectionState.anchorKey,
-		) as ATEditorBlock;
+		let CurrentBlock = SearchUtils.FindBlockByKey(EditorState, EditorState.selectionState.anchorKey) as ATEditorBlock;
 		let CurrentSelection = {...EditorState.selectionState};
-		let CharData = SearchUtils.findCurrentCharacters(
-			CurrentBlock,
-			CurrentSelection.anchorOffset,
-			CurrentSelection.focusOffset,
-		);
+		let CharData = SearchUtils.findCurrentCharacters(CurrentBlock, CurrentSelection.anchorOffset, CurrentSelection.focusOffset);
 		let CurrentStyle = FormatingUtils.FindStyle(CharData, CSSstyle) as string;
 
 		if (CurrentSelection.anchorOffset === CurrentSelection.focusOffset) {

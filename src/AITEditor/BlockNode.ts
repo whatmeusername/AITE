@@ -1,5 +1,6 @@
 import defaultBlocks from './defaultStyles/defaultBlocks';
 
+import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from './ConstVariables';
 import TextNode from './CharNode';
 import type {imageNode} from './packages/AITE_Image/imageNode';
 import {SelectionState} from './SelectionUtils';
@@ -7,7 +8,7 @@ import {ClassVariables} from './Interfaces';
 
 export type NodeTypes = TextNode | imageNode;
 export type BlockNodeData = Array<NodeTypes>;
-export type BlockTypes = 'standart' | 'horizontal-rule';
+export type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
 export type BlockType = BlockNode | HorizontalRuleNode;
 
 type ContentNodeVariables = ClassVariables<BlockNode>;
@@ -27,7 +28,7 @@ export default class BlockNode {
 	allowedToInsert: allowedToInsert | 'all';
 
 	constructor(initData?: ContentNodeVariables) {
-		this.blockType = initData?.blockType ?? 'standart';
+		this.blockType = initData?.blockType ?? STANDART_BLOCK_TYPE;
 		this.plainText = initData?.plainText ?? '';
 		this.blockWrapper = initData?.blockWrapper ?? 'unstyled';
 		this.blockInlineStyles = initData?.blockInlineStyles ?? [];
@@ -60,7 +61,7 @@ export default class BlockNode {
 			selectionState.focusOffset === this.CharData[this.lastNodeIndex()].returnContentLength()
 		)
 			return true;
-		else return false;
+		return false;
 	}
 
 	returnBlockLength(): number {
@@ -83,14 +84,8 @@ export default class BlockNode {
 		}
 	}
 
-	splitCharNode(
-		startFromZero: boolean = true,
-		start: number,
-		end?: number,
-		node?: NodeTypes,
-	): void {
-		let StartSlice =
-			startFromZero === true ? this.CharData.slice(0, start) : this.CharData.slice(start);
+	splitCharNode(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes): void {
+		let StartSlice = startFromZero === true ? this.CharData.slice(0, start) : this.CharData.slice(start);
 		let EndSlice = end ? this.CharData.slice(end) : [];
 		if (node === undefined) this.CharData = [...StartSlice, ...EndSlice];
 		else this.CharData = [...StartSlice, node, ...EndSlice];
@@ -103,9 +98,8 @@ export default class BlockNode {
 		let CDLength1 = CharData1[2].length;
 		let CDLength2 = CharData2[2].length;
 
-		if (CDLength1 === 0 && CDLength2 === 0) {
-			return true;
-		} else {
+		if (CDLength1 === 0 && CDLength2 === 0) return true;
+		else {
 			for (let style of CharData1[2]) {
 				if (!CharData2.includes(style)) {
 					return false;
@@ -126,8 +120,8 @@ export default class BlockNode {
 				let nextNode = CharData[CharIndex + 1] as TextNode;
 				if (
 					nextNode !== undefined &&
-					currentNode.returnType() === 'text' &&
-					nextNode.returnType() === 'text' &&
+					currentNode.returnType() === TEXT_NODE_TYPE &&
+					nextNode.returnType() === TEXT_NODE_TYPE &&
 					this.CharStylesEqual(currentNode, nextNode)
 				) {
 					currentNode.d[1] += nextNode.d[1];
@@ -211,7 +205,7 @@ export class HorizontalRuleNode {
 	blockInlineStyles: Array<[Array<string>, Array<string>]>;
 
 	constructor() {
-		this.blockType = 'horizontal-rule';
+		this.blockType = HORIZONTAL_RULE_BLOCK_TYPE;
 		this.blockInlineStyles = [];
 	}
 

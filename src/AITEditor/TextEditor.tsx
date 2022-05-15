@@ -5,11 +5,8 @@ import defaultBlocks from './defaultStyles/defaultBlocks';
 import {CreateReactEditor} from './rootElement';
 import {EditorState as editorState} from './EditorManagmentUtils';
 
-import {isTextNode} from './EditorUtils';
-
 import EditorCommands from './EditorCommands';
 
-import RichBlock from './packages/AITE_RichBlock/RichBlock';
 import activeElementState from './packages/AITE_ActiveState/activeElementState';
 import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
 
@@ -25,11 +22,6 @@ export function getElementBlockStyle(Tag: string): HTMLBlockStyle {
 	let TagData = {type: 'unstyled', tag: 'div'};
 	TagData = defaultBlocks.find((obj) => obj.tag === Tag || obj.type === Tag) ?? TagData;
 	return TagData;
-}
-
-interface DropEvent extends DragEvent {
-	rangeOffset?: number;
-	rangeParent?: Node;
 }
 
 export function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent): boolean {
@@ -48,13 +40,7 @@ export function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent): bo
 		'Backquote',
 	];
 
-	if (
-		event.code.startsWith('Key') ||
-		event.code === 'Space' ||
-		event.code.startsWith('Digit') ||
-		SYMBOLS.includes(event.code)
-	)
-		return true;
+	if (event.code.startsWith('Key') || event.code === 'Space' || event.code.startsWith('Digit') || SYMBOLS.includes(event.code)) return true;
 	return false;
 }
 
@@ -73,6 +59,7 @@ export default function AITEditor(): JSX.Element {
 				event.preventDefault();
 				EditorState.EditorCommands?.dispatchCommand('LETTER_REMOVE_COMMAND', event);
 			} else if (Key === 'Enter') {
+				event.preventDefault();
 				EditorState.EditorCommands?.dispatchCommand('ENTER_COMMAND', event);
 			} else {
 				event.preventDefault();
@@ -83,62 +70,36 @@ export default function AITEditor(): JSX.Element {
 
 	useEffect(() => {
 		if (EditorState.EditorCommands === undefined) {
-			EditorState.EditorActiveElementState = new activeElementState(
-				() => setEditorState({...EditorState}),
-				EditorState,
-			);
+			EditorState.EditorActiveElementState = new activeElementState(() => setEditorState({...EditorState}), EditorState);
 
 			EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}));
 
-			EditorState.EditorCommands.registerCommand(
-				'KEYBOARD_COMMAND',
-				'IMMEDIATELY_EDITOR_COMMAND',
-				(event) => {
-					HandleKeyClick(event);
-					setEditorState({...EditorState});
-				},
+			EditorState.EditorCommands.registerCommand('KEYBOARD_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) => {
+				HandleKeyClick(event);
+				setEditorState({...EditorState});
+			});
+
+			EditorState.EditorCommands.registerCommand('LETTER_INSERT_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) => {
+				EditorState.contentNode.insertLetterIntoTextNode(event, EditorState.selectionState);
+				setEditorState({...EditorState});
+			});
+
+			EditorState.EditorCommands.registerCommand('LETTER_REMOVE_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
+				EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
+				setEditorState({...EditorState});
+			});
+
+			EditorState.EditorCommands.registerCommand('ENTER_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
+				EditorState.contentNode.handleEnter(EditorState.selectionState);
+				setEditorState({...EditorState});
+			});
+
+			EditorState.EditorCommands.registerCommand('SELECTION_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (_) =>
+				EditorState.selectionState.$getCaretPosition(),
 			);
 
-			EditorState.EditorCommands.registerCommand(
-				'LETTER_INSERT_COMMAND',
-				'IMMEDIATELY_EDITOR_COMMAND',
-				(event) => {
-					EditorState.contentNode.insertLetterIntoTextNode(
-						event,
-						EditorState.selectionState,
-					);
-					setEditorState({...EditorState});
-				},
-			);
-
-			EditorState.EditorCommands.registerCommand(
-				'LETTER_REMOVE_COMMAND',
-				'IMMEDIATELY_EDITOR_COMMAND',
-				(_) => {
-					EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
-					setEditorState({...EditorState});
-				},
-			);
-
-			EditorState.EditorCommands.registerCommand(
-				'ENTER_COMMAND',
-				'IMMEDIATELY_EDITOR_COMMAND',
-				(_) => {
-					EditorState.contentNode.handleEnter(EditorState.selectionState);
-					setEditorState({...EditorState});
-				},
-			);
-
-			EditorState.EditorCommands.registerCommand(
-				'SELECTION_COMMAND',
-				'IGNOREMANAGER_EDITOR_COMMAND',
-				(_) => EditorState.selectionState.$getCaretPosition(),
-			);
-
-			EditorState.EditorCommands.registerCommand(
-				'CLICK_COMMAND',
-				'IMMEDIATELY_EDITOR_COMMAND',
-				(event) => EditorState.EditorActiveElementState?.handleElementClick(event),
+			EditorState.EditorCommands.registerCommand('CLICK_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) =>
+				EditorState.EditorActiveElementState?.handleElementClick(event),
 			);
 
 			setEditorState({...EditorState});
@@ -149,7 +110,7 @@ export default function AITEditor(): JSX.Element {
 			}
 			EditorState.selectionState.setCaretPosition();
 		}
-	}, [EditorState]);
+	}, [EditorState]); //eslint-disable-line
 
 	return (
 		<div className="editor__workspace">

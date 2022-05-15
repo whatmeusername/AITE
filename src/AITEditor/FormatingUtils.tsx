@@ -44,11 +44,7 @@ const FormatingUtils = {
 	},
 	ApplyStyleToCharData: function (CurrentBlock: ATEditorBlock, selectionState: EditorSelection, Style: string) {
 		let NewCharData: Array<CharData> = [];
-		let CharDataArr: Array<CharData> = SearchUtils.findCurrentCharacters(
-			CurrentBlock,
-			selectionState.anchorOffset,
-			selectionState.focusOffset,
-		);
+		let CharDataArr: Array<CharData> = SearchUtils.findCurrentCharacters(CurrentBlock, selectionState.anchorOffset, selectionState.focusOffset);
 		if (CharDataArr !== undefined) {
 			CharDataArr.forEach((CharData: CharData) => {
 				NewCharData = this.InsertStyleToChar(CharData, selectionState, Style);
@@ -93,11 +89,7 @@ const FormatingUtils = {
 
 		return CharData;
 	},
-	FindSimilarStyle: (
-		CharStyles: Array<string>,
-		Style: string,
-		returnIndex: boolean = false,
-	): string | number | undefined => {
+	FindSimilarStyle: (CharStyles: Array<string>, Style: string, returnIndex: boolean = false): string | number | undefined => {
 		let StylePrefix = Style.split('__')[0];
 		let StyleSearch;
 		if (returnIndex === true) StyleSearch = CharStyles.findIndex((s) => s.startsWith(StylePrefix));
@@ -113,11 +105,7 @@ const FormatingUtils = {
 		}
 		return undefined;
 	},
-	ReplaceSimilarOrAddInlineStyle: function (
-		CharStyles: Array<string>,
-		Style: string,
-		ToRemove: boolean = false,
-	): Array<string> {
+	ReplaceSimilarOrAddInlineStyle: function (CharStyles: Array<string>, Style: string, ToRemove: boolean = false): Array<string> {
 		let StyleIndex = this.FindSimilarStyle(CharStyles, Style, true) as number;
 		if (StyleIndex !== -1) {
 			if (CharStyles[StyleIndex] === Style) {
@@ -155,11 +143,7 @@ const FormatingUtils = {
 		let FirstFragment: CharData = [CharData[0].slice(0, offsetStart), [...CharData[1]], [...CharData[2]]];
 		if (FirstFragment[0] !== '') CharDataArr.push(FirstFragment);
 
-		let CentralFragment: CharData = [
-			CharData[0].slice(offsetStart, offsetEnd),
-			this.ReplaceSimilarOrAddInlineStyle(CharData[1], Style),
-			[...CharData[2]],
-		];
+		let CentralFragment: CharData = [CharData[0].slice(offsetStart, offsetEnd), this.ReplaceSimilarOrAddInlineStyle(CharData[1], Style), [...CharData[2]]];
 		if (CentralFragment[0] !== '') CharDataArr.push(CentralFragment);
 
 		let LastFragment: CharData = [CharData[0].slice(offsetEnd), [...CharData[1]], [...CharData[2]]];
@@ -174,11 +158,7 @@ const FormatingUtils = {
 		let offsetStart = this.FindCharFragmentByOffset(CharData, NewCharData[0][2][0]);
 		let offsetEnd = this.FindCharFragmentByOffset(CharData, NewCharData[CharDataLength - 1][2][1], true);
 
-		let NewData = this.UpdateLetterRanges([
-			...CharData.slice(0, offsetStart),
-			...NewCharData,
-			...CharData.slice(offsetEnd + 1),
-		]);
+		let NewData = this.UpdateLetterRanges([...CharData.slice(0, offsetStart), ...NewCharData, ...CharData.slice(offsetEnd + 1)]);
 		NewData = this.OptimizeCharData(NewData);
 		Block.CharData = NewData;
 	},

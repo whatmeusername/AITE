@@ -1,15 +1,15 @@
-import React, {useRef} from 'react';
-import {ATEditorBlock, CharData} from './Interfaces';
+import React from 'react';
 
 import type {EditorState as editorState} from './EditorManagmentUtils';
 import TextNode from './CharNode';
 import type {imageNode} from './packages/AITE_Image/imageNode';
+import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, IMAGE_NODE_TYPE} from './ConstVariables';
 import BlockNode, {NodeTypes, BlockType} from './BlockNode';
 
 import BlockResizeElemets from './imageNodeActiveElements';
 
+// eslint-disable-next-line
 function createReactStyle(style: string) {
-	// eslint-disable-line
 	let spiletedStyle = style.split(':');
 	if (spiletedStyle.length > 2 || spiletedStyle.length < 2) return;
 	let spiletedPrefix = spiletedStyle[0].split('-');
@@ -20,8 +20,6 @@ function createReactStyle(style: string) {
 	});
 	return {[spiletedPrefix.join('')]: spiletedStyle[1].trim()};
 }
-
-type StartsWith<T extends string, U extends string> = T extends `${U}${string}` ? T : never;
 
 export function CreateReactEditor({EditorState}: {EditorState: editorState}): JSX.Element {
 	let blockIndex = 0;
@@ -38,8 +36,7 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}): JS
 
 	function isActive(charIndex: number, blockIndex: number): boolean {
 		let EditorActiveElement = EditorState.EditorActiveElementState;
-		if (EditorActiveElement?.charNode === charIndex && EditorActiveElement?.blockNode.getLastIndex() === blockIndex)
-			return true;
+		if (EditorActiveElement?.charNode === charIndex && EditorActiveElement?.blockNode.getLastIndex() === blockIndex) return true;
 		return false;
 	}
 
@@ -47,19 +44,19 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}): JS
 		let BlockElements: Array<JSX.Element> = [];
 		blocks.forEach((block: BlockType) => {
 			let currentBlockType = block.getType();
-			if (currentBlockType === 'standart') {
+			if (currentBlockType === STANDART_BLOCK_TYPE) {
 				let CurrentBlockChildrens: any = [];
 				if (
 					(block as BlockNode).CharData.length === 1 &&
 					(block as BlockNode).CharData[0].returnContent() === '' &&
-					(block as BlockNode).CharData[0].returnType() === 'text'
+					(block as BlockNode).CharData[0].returnType() === TEXT_NODE_TYPE
 				) {
 					BlockElements.push(createBlockNode(block as BlockNode, [createBreakLine()]));
 				} else {
 					(block as BlockNode).CharData.forEach((CharData: NodeTypes, index: number) => {
-						if (CharData.returnActualType() === 'text') {
+						if (CharData.returnActualType() === TEXT_NODE_TYPE) {
 							CurrentBlockChildrens.push(createTextNode(CharData as TextNode));
-						} else if (CharData.returnActualType() === 'image') {
+						} else if (CharData.returnActualType() === IMAGE_NODE_TYPE) {
 							CurrentBlockChildrens.push(createImageNode(CharData as imageNode));
 						}
 						charIndex += 1;
@@ -67,7 +64,7 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}): JS
 					BlockElements.push(createBlockNode(block as BlockNode, CurrentBlockChildrens));
 					charIndex = 0;
 				}
-			} else if (currentBlockType === 'horizontal-rule') {
+			} else if (currentBlockType === HORIZONTAL_RULE_BLOCK_TYPE) {
 				BlockElements.push(createHorizontalRule());
 			}
 			blockIndex += 1;
@@ -83,19 +80,18 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}): JS
 		if (TextNode.d[3] !== null) {
 			if (TextNode.d[3]?.c !== '') s['className'] = TextNode.d[3]?.c as string;
 		}
-
-		return React.createElement('span', s, [TextNode.d[1]]);
+		return React.createElement('span', s, [TextNode.returnContent()]);
 	}
 
 	function createImageNode(node: imageNode): JSX.Element | string {
-		interface ImageWrapperAttr {
+		interface ImageWrapperAttrType {
 			key: string;
 			className: string;
 			contentEditable: false;
 			style?: {[K: string]: string};
 		}
 
-		interface imageAttributes {
+		interface imageAttributesType {
 			key: string;
 			alt: string;
 			className: string | null | undefined;
@@ -103,7 +99,7 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}): JS
 			style?: {[K: string]: string};
 		}
 
-		let imageAttributes: imageAttributes = {
+		let imageAttributes: imageAttributesType = {
 			key: `Editor-block-${blockIndex}-${charIndex}${keyPrefix}`,
 			alt: node.imageConf.alt,
 			className: node.imageConf.className,
@@ -114,7 +110,7 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}): JS
 		let imageActive: boolean = isActive(charIndex, blockIndex);
 		let imageElements: Array<JSX.Element> = [];
 
-		const ImageWrapperAttr: ImageWrapperAttr = {
+		const ImageWrapperAttr: ImageWrapperAttrType = {
 			key: `Editor-block-${blockIndex}-${charIndex}-wrapper${keyPrefix}`,
 			className: 'image-wrapper',
 			contentEditable: false,
@@ -171,11 +167,6 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}): JS
 		return React.createElement('br', a);
 	}
 
-	function createEmptyNode() {
-		const a = {key: `Editor-block-${blockIndex}-${charIndex}`};
-		return React.createElement('span', a);
-	}
-
 	type BlockParameters = {
 		key: string;
 		'data-aite_block_node': boolean;
@@ -196,8 +187,6 @@ export function CreateReactEditor({EditorState}: {EditorState: editorState}): JS
 
 		return React.createElement(BlockWrapper.n, s, childrens);
 	}
-
 	let BlockElements = createBlockElements(EditorState.contentNode.BlockNodes);
-
 	return React.createElement(React.Fragment, null, BlockElements);
 }

@@ -4,6 +4,15 @@ export const ELEMENT_NODE = 1;
 
 export const BREAK_LINE = 'BR';
 
+export const BREAK_LINE_TYPE = 'breakline'
+export const ELEMENT_NODE_TYPE = 'element'
+
+export const TEXT_NODE_TYPE = 'text'
+export const IMAGE_NODE_TYPE = 'image'
+
+export const STANDART_BLOCK_TYPE = 'standart'
+export const HORIZONTAL_RULE_BLOCK_TYPE = 'horizontalrule'
+
 export const IMMEDIATELY_EDITOR_COMMAND = 3;
 export const HIGH_EDITOR_COMMAND = 2;
 export const STANDART_EDITOR_COMMAND = 1;
