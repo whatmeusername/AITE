@@ -1,36 +1,15 @@
 import React from 'react';
 import BlockNode from '../../BlockNode';
-import TextNode from '../../CharNode';
+import {TextNode, LinkNode} from '../../AITE_nodes/index'
 import ContentNode from '../../ContentNode';
 
-type ElementType = 'image' | 'horizontal-rule' | 'text';
-export type floatType = 'right' | 'left' | 'none';
+import {BaseNode} from '../../AITE_nodes/index';
+import {DOMattr} from '../../AITE_nodes/index'
 
-type ImageElement = {
-	type: ElementType;
-	imageConf: {
-		src: string;
-		alt: string;
-		canResize: boolean;
-		canFloat: boolean;
-		className?: string | null;
-	};
-	imageStyle: {
-		c: null;
-		s: {
-			height: string;
-			width: string;
-			minWidth: string;
-			minHeight: string;
-			[K: string]: string;
-		};
-		float: {
-			dir: floatType;
-			hasChanged: boolean;
-		};
-	};
-	CharData: Array<BlockNode>;
-};
+import BlockResizeElemets from './imageResizeElements'
+import {createBlockElements} from '../../rootElement'
+
+export type floatType = 'right' | 'left' | 'none';
 
 interface imageConf {
 	src: string;
@@ -51,8 +30,22 @@ interface imageConf {
 	maxHeight?: number;
 }
 
-export class imageNode {
-	type: ElementType;
+interface ImageWrapperAttrType {
+	key: string;
+	className: string;
+	contentEditable: false;
+	style?: {[K: string]: string};
+}
+
+interface imageAttributesType {
+	key: string;
+	alt: string;
+	className: string | null | undefined;
+	src: string;
+	style?: {[K: string]: string};
+}
+
+export class imageNode extends BaseNode{
 	imageConf: {
 		src: string;
 		alt: string;
@@ -78,7 +71,7 @@ export class imageNode {
 	ContentNode: ContentNode | undefined;
 
 	constructor(imageNodeConf: imageConf) {
-		this.type = 'image';
+		super('image', 'inline')
 		this.imageConf = {
 			src: imageNodeConf.src,
 			alt: imageNodeConf.src ?? '',
@@ -103,24 +96,40 @@ export class imageNode {
 			},
 		};
 
-		let chardata: Array<any> = [new TextNode('Hello world from caption')];
-
-		// let randomTest =
-		// 	Math.random() < 0.99
-		// 		? new imageNode({
-		// 				src: 'https://mykaleidoscope.ru/uploads/posts/2020-03/1583265032_3-p-yarkie-kapkeiki-10.jpg',
-		// 		  })
-		// 		: undefined;
-		// if (randomTest !== undefined) {
-		// 	chardata.push(randomTest);
-		// }
+		let chardata: Array<any> = [new TextNode({plainText: 'Hello world from caption'})];
 
 		this.ContentNode = false
 			? undefined
 			: new ContentNode({
 					BlockNodes: [
 						new BlockNode({
-							CharData: chardata,
+							blockInlineStyles: ['text_aligment_center'],
+							NodeData: chardata,
+						}),
+						new BlockNode({
+							blockWrapper: 'list-ordered-item',
+							NodeData: [
+								new TextNode(
+									{plainText: `предмет листа 1`},
+								),
+							],
+						}),
+						new BlockNode({
+							blockWrapper: 'list-ordered-item',
+							NodeData: [
+								new TextNode(
+									{plainText: `предмет листа 2`},
+								),
+								new LinkNode({
+									plainText: 'интеренсная',
+									url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
+								}),
+								new LinkNode({
+									plainText: ' жирная ссылка',
+									stylesArr: ['BOLD'],
+									url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
+								}),
+							],
 						}),
 					],
 			  });
@@ -137,7 +146,7 @@ export class imageNode {
 				BlockNodes: [
 					new BlockNode({
 						allowedToInsert: 'text',
-						CharData: [new TextNode('')],
+						NodeData: [new TextNode()],
 					}),
 				],
 			});
@@ -163,18 +172,74 @@ export class imageNode {
 		};
 	}
 
-	returnActualType(): string {
-		return this.type;
-	}
-	returnType(): string {
-		return 'element';
-	}
 	returnContent(): string {
 		return this.imageConf.src;
 	}
 	returnContentLength(): number {
 		return 1;
 	}
+
+	createSelfNode(data: imageConf){
+		return createImageNode(data)
+	}
+
+	createDOM(attr?: DOMattr){
+
+		let imageAttributes: imageAttributesType = {
+			key: attr?.html?.key ? attr.html?.key : 'aite-image-node',
+			alt: this.imageConf.alt,
+			className: this.imageConf.className,
+			src: this.imageConf.src,
+			style: this.imageStyle.s,
+		};
+
+		let imageElements: Array<JSX.Element> = [];
+
+		const ImageWrapperAttr: ImageWrapperAttrType = {
+			key: attr?.html?.key ? attr.html?.key : 'aite-image-node-wrapper',
+			className: 'image-wrapper',
+			contentEditable: false,
+			style: {
+				width: this.imageStyle.s.width,
+				minHeight: this.imageStyle.s.height,
+				minWidth: this.imageStyle.s.minWidth,
+			},
+		};
+
+		if (attr?.other?.isActive === true) {
+			ImageWrapperAttr.className += ' AITE__image__active';
+			imageElements = [...imageElements, ...BlockResizeElemets(this, attr?.html?.key ? attr.html?.key : 'image-resize-elements-active')];
+		}
+
+		if (this.imageStyle.float.dir !== 'none') {
+			ImageWrapperAttr.style = {
+				...ImageWrapperAttr.style,
+				float: this.imageStyle.float.dir,
+			};
+		}
+
+		if (this.ContentNode !== undefined && this.ContentNode.BlockNodes.length > 0 && this.imageConf.captionEnabled) {
+			let captionBlockNodes = createBlockElements(this.ContentNode.BlockNodes, attr?.other?.isActiveFunction!, '-imageCaption');
+			let captionWrapper = React.createElement(
+				'div',
+				{
+					key: attr?.html?.key ? attr.html?.key : 'image-caption-wrapper',
+					className: 'AITE_image_caption_wrapper',
+					contentEditable: true,
+					suppressContentEditableWarning: true,
+					'data-aite_block_content_node': true,
+
+					onKeyDown: (e) => e.preventDefault(),
+				},
+				captionBlockNodes,
+			);
+			imageElements = [...imageElements, captionWrapper];
+		}
+
+		const ImageElement = React.createElement('img', imageAttributes, null);
+		return React.createElement('span', ImageWrapperAttr, [ImageElement, imageElements]);
+	}
+
 }
 
 export default function createImageNode(imageConf: imageConf): imageNode {

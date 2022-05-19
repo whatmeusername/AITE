@@ -4,7 +4,7 @@ import {TEXT_NODE_TYPE} from './ConstVariables';
 export type CharStyleArr = {c: string | null};
 type TextNodeData = [typeof TEXT_NODE_TYPE, string, Array<string>, CharStyleArr];
 
-export default class TextNode {
+class TextNode {
 	d: TextNodeData;
 
 	// PT - plain text

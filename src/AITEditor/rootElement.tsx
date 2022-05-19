@@ -1,12 +1,32 @@
 import React from 'react';
 
 import type {EditorState as editorState} from './EditorManagmentUtils';
-import TextNode from './CharNode';
+import {TextNode} from './AITE_nodes/index';
+import type {LinkNode} from './AITE_nodes/index';
 import type {imageNode} from './packages/AITE_Image/imageNode';
-import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, IMAGE_NODE_TYPE} from './ConstVariables';
-import BlockNode, {NodeTypes, BlockType} from './BlockNode';
+import {
+	TEXT_NODE_TYPE,
+	LINK_NODE_TYPE,
+	STANDART_BLOCK_TYPE,
+	HORIZONTAL_RULE_BLOCK_TYPE,
+	IMAGE_NODE_TYPE,
+	ORDERED_LIST_ITEM,
+	UNORDERED_LIST_ITEM,
+} from './ConstVariables';
+import BlockNode, {BlockType, NodeTypes} from './BlockNode';
+import type {HorizontalRuleNode} from './BlockNode';
+import SearchUtils from './SearchUtils';
+import defaultBlocks from './defaultStyles/defaultBlocks';
+import type ContentNode from './ContentNode';
 
-import BlockResizeElemets from './imageNodeActiveElements';
+type BlockParameters = {
+	key: string;
+	'data-aite_block_node': boolean;
+	className?: string;
+};
+
+let BlockIndex = 0;
+let NodeIndex = 0;
 
 // eslint-disable-next-line
 function createReactStyle(style: string) {
@@ -21,172 +41,184 @@ function createReactStyle(style: string) {
 	return {[spiletedPrefix.join('')]: spiletedStyle[1].trim()};
 }
 
-export function CreateReactEditor({EditorState}: {EditorState: editorState}): JSX.Element {
-	let blockIndex = 0;
-	let charIndex = 0;
-	let keyPrefix = '';
-
-	type ElementAttributes = {
-		key: string;
-		className?: string;
-		style?: {[K: string]: string};
-		src?: string;
-		alt?: string;
-	};
-
-	function isActive(charIndex: number, blockIndex: number): boolean {
-		let EditorActiveElement = EditorState.EditorActiveElementState;
+function isActive(EditorState: editorState): (charIndex: number, blockIndex: number) => boolean {
+	let EditorActiveElement = EditorState.EditorActiveElementState;
+	return function (charIndex: number, blockIndex: number) {
 		if (EditorActiveElement?.charNode === charIndex && EditorActiveElement?.blockNode.getLastIndex() === blockIndex) return true;
 		return false;
-	}
+	};
+}
 
-	function createBlockElements(blocks: Array<BlockType>) {
-		let BlockElements: Array<JSX.Element> = [];
-		blocks.forEach((block: BlockType) => {
-			let currentBlockType = block.getType();
-			if (currentBlockType === STANDART_BLOCK_TYPE) {
-				let CurrentBlockChildrens: any = [];
-				if (
-					(block as BlockNode).CharData.length === 1 &&
-					(block as BlockNode).CharData[0].returnContent() === '' &&
-					(block as BlockNode).CharData[0].returnType() === TEXT_NODE_TYPE
-				) {
-					BlockElements.push(createBlockNode(block as BlockNode, [createBreakLine()]));
-				} else {
-					(block as BlockNode).CharData.forEach((CharData: NodeTypes, index: number) => {
-						if (CharData.returnActualType() === TEXT_NODE_TYPE) {
-							CurrentBlockChildrens.push(createTextNode(CharData as TextNode));
-						} else if (CharData.returnActualType() === IMAGE_NODE_TYPE) {
-							CurrentBlockChildrens.push(createImageNode(CharData as imageNode));
-						}
-						charIndex += 1;
-					});
-					BlockElements.push(createBlockNode(block as BlockNode, CurrentBlockChildrens));
-					charIndex = 0;
-				}
-			} else if (currentBlockType === HORIZONTAL_RULE_BLOCK_TYPE) {
-				BlockElements.push(createHorizontalRule());
-			}
-			blockIndex += 1;
-		});
-		return BlockElements;
-	}
+function createBreakLine() {
+	const a = {key: `Editor-block-${BlockIndex}-${NodeIndex}`};
+	return React.createElement('br', a);
+}
 
-	function createTextNode(TextNode: TextNode): JSX.Element | string {
-		TextNode.prepareStyles();
-		let s: ElementAttributes = {
-			key: `Editor-block-${blockIndex}-${charIndex}${keyPrefix}`,
-		};
-		if (TextNode.d[3] !== null) {
-			if (TextNode.d[3]?.c !== '') s['className'] = TextNode.d[3]?.c as string;
-		}
-		return React.createElement('span', s, [TextNode.returnContent()]);
-	}
-
-	function createImageNode(node: imageNode): JSX.Element | string {
-		interface ImageWrapperAttrType {
-			key: string;
-			className: string;
-			contentEditable: false;
-			style?: {[K: string]: string};
-		}
-
-		interface imageAttributesType {
-			key: string;
-			alt: string;
-			className: string | null | undefined;
-			src: string;
-			style?: {[K: string]: string};
-		}
-
-		let imageAttributes: imageAttributesType = {
-			key: `Editor-block-${blockIndex}-${charIndex}${keyPrefix}`,
-			alt: node.imageConf.alt,
-			className: node.imageConf.className,
-			src: node.imageConf.src,
-			style: node.imageStyle.s,
-		};
-
-		let imageActive: boolean = isActive(charIndex, blockIndex);
-		let imageElements: Array<JSX.Element> = [];
-
-		const ImageWrapperAttr: ImageWrapperAttrType = {
-			key: `Editor-block-${blockIndex}-${charIndex}-wrapper${keyPrefix}`,
-			className: 'image-wrapper',
-			contentEditable: false,
-		};
-
-		if (imageActive === true) {
-			ImageWrapperAttr.className += ' AITE__image__active';
-			imageElements = [...imageElements, ...BlockResizeElemets(node, `image-resize-elements-${charIndex}`)];
-		}
-
-		if (node.imageStyle.float.dir !== 'none') {
-			ImageWrapperAttr['style'] = {
-				...ImageWrapperAttr.style,
-				float: node.imageStyle.float.dir,
-			};
-		}
-
-		if (node.ContentNode !== undefined && node.ContentNode.BlockNodes.length > 0 && node.imageConf.captionEnabled) {
-			keyPrefix = `-imageCaption-${charIndex}`;
-			let captionBlockNodes = createBlockElements(node.ContentNode.BlockNodes);
-			keyPrefix = '';
-			let captionWrapper = React.createElement(
-				'div',
-				{
-					key: `Editor-block-${blockIndex}-${charIndex}-captition${keyPrefix}`,
-					className: 'AITE_image_caption_wrapper',
-					contentEditable: true,
-					suppressContentEditableWarning: true,
-					'data-aite_block_content_node': true,
-
-					onKeyDown: (e) => e.preventDefault(),
-				},
-				captionBlockNodes,
-			);
-			imageElements = [...imageElements, captionWrapper];
-		}
-
-		const ImageElement = React.createElement('img', imageAttributes, null);
-		return React.createElement('span', ImageWrapperAttr, [ImageElement, imageElements]);
-	}
-
-	function createHorizontalRule(): JSX.Element {
-		let className = 'ATE_editor_horizontal-rule';
-		let HorizontalRuleElement = React.createElement('hr', {className: className}, null);
-		const a = {
-			key: `Editor-block-${blockIndex}-${charIndex}${keyPrefix}`,
-			contentEditable: false,
-		};
-		return React.createElement('div', a, HorizontalRuleElement);
-	}
-
-	function createBreakLine() {
-		const a = {key: `Editor-block-${blockIndex}-${charIndex}`};
-		return React.createElement('br', a);
-	}
-
-	type BlockParameters = {
-		key: string;
-		'data-aite_block_node': boolean;
-		className?: string;
+function createBlockNode(node: BlockNode, childrens: Array<JSX.Element>): JSX.Element {
+	let BlockWrapper = node.prepareBlockStyle();
+	let s: BlockParameters = {
+		key: `Editor-block-${BlockIndex}`,
+		'data-aite_block_node': true,
 	};
 
-	function createBlockNode(node: BlockNode, childrens: Array<JSX.Element>): JSX.Element {
-		let BlockWrapper = node.prepareBlockStyle();
-		let s: BlockParameters = {
-			key: `Editor-block-${blockIndex}-${charIndex}${keyPrefix}`,
-			'data-aite_block_node': true,
-		};
+	if (BlockWrapper.c !== undefined && BlockWrapper.c !== null) {
+		s['className'] = '';
+		s.className += BlockWrapper.c;
+	}
 
-		if (BlockWrapper.c !== null) {
-			s['className'] = '';
-			s.className += BlockWrapper.c;
+	return React.createElement(BlockWrapper.n, s, childrens);
+}
+
+function createSingleLinkNode(block: BlockNode, offset: number) {
+	let data = {tag: 'a', url: undefined, node: undefined, length: 1};
+	let currentNode = block.NodeData[offset];
+	if (currentNode.returnActualType() === LINK_NODE_TYPE) {
+		let childrens = [];
+		let parentURL = (currentNode as LinkNode).getURL();
+		let i = 1;
+		let nextNode = block.NodeData[offset + i] as LinkNode;
+		if (nextNode !== undefined && nextNode.returnActualType() === LINK_NODE_TYPE && nextNode.getURL() === parentURL) {
+			childrens.push((currentNode as LinkNode).createSelfTextNode({html: {key: `Editor-block-${BlockIndex}-${NodeIndex}-link`}}));
+			childrens.push((nextNode as LinkNode).createSelfTextNode({html: {key: `Editor-block-${BlockIndex}-${NodeIndex + 1}-link`}}));
+			i += 1;
+			while (true) {
+				nextNode = block.NodeData[offset + i] as LinkNode;
+				if (nextNode === undefined) break;
+				else if (nextNode.returnActualType() !== LINK_NODE_TYPE) break;
+				else if (nextNode.getURL() === parentURL) {
+					const key = `Editor-block-${BlockIndex}-${NodeIndex + i}-link`;
+					childrens.push((nextNode as LinkNode).createSelfTextNode({html: {key: key}}));
+				} else break;
+				i += 1;
+			}
+			let node = React.createElement(
+				'a',
+				{href: parentURL, key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-pack': true},
+				childrens,
+			);
+			return {tag: 'a', url: parentURL, node: node, length: childrens.length};
+		}
+	}
+	return data;
+}
+
+function isListNode(BlockNode: BlockNode): boolean {
+	if (BlockNode.blockWrapper === ORDERED_LIST_ITEM || BlockNode.blockWrapper === UNORDERED_LIST_ITEM) return true;
+	else return false;
+}
+
+function getListTag(list: string): string {
+	if (list === ORDERED_LIST_ITEM) return 'ol';
+	else if (list === UNORDERED_LIST_ITEM) return 'ul';
+	return list;
+}
+
+function createBlockNodes(BlockNode: BlockNode, isActiveFunction: (charIndex: number, blockIndex: number) => boolean) {
+	NodeIndex = 0;
+	let Nodes = [];
+	for (let i = 0; i < BlockNode.NodeData.length; i++) {
+		let NodeData = BlockNode.NodeData[i];
+		const key = `Editor-block-${BlockIndex}-${NodeIndex}`;
+
+		if (NodeData.returnActualType() === TEXT_NODE_TYPE) {
+			Nodes.push((NodeData as TextNode).createDOM({html: {key: key}}));
+		} else if (NodeData.returnActualType() === LINK_NODE_TYPE) {
+			let singleLink = createSingleLinkNode(BlockNode, i);
+			if (singleLink.node === undefined) {
+				Nodes.push((NodeData as TextNode).createDOM({html: {key: key}}));
+			} else {
+				Nodes.push(singleLink.node);
+				if (Nodes.length > 2) i += Nodes.length - 2;
+				else i += 1;
+			}
+		} else if (NodeData.returnActualType() === IMAGE_NODE_TYPE) {
+			let imageActive: boolean = isActiveFunction(NodeIndex, BlockIndex);
+			Nodes.push(
+				(NodeData as imageNode).createDOM({
+					html: {key: key},
+					other: {isActive: imageActive, isActiveFunction: isActiveFunction},
+				}),
+			);
 		}
 
-		return React.createElement(BlockWrapper.n, s, childrens);
+		NodeIndex += 1;
 	}
-	let BlockElements = createBlockElements(EditorState.contentNode.BlockNodes);
+	return Nodes;
+}
+
+function createSingleListNode(BlockNodes: Array<BlockType>, offset: number, isActiveFunction: (charIndex: number, blockIndex: number) => boolean) {
+	let data = {tag: 'ul', node: undefined, length: 0};
+	let currentBlock = BlockNodes[offset] as BlockNode;
+	let listStyle = defaultBlocks.find((obj) => obj.type === currentBlock.getWrapper() ?? '');
+	let listTag = getListTag(listStyle?.type ?? 'li');
+	if (currentBlock.getType() !== STANDART_BLOCK_TYPE) return data;
+	else if (currentBlock.getWrapper() === ORDERED_LIST_ITEM || currentBlock.getWrapper() === UNORDERED_LIST_ITEM) {
+		let childrens = [];
+		let i = 1;
+		let nextBlock = BlockNodes[offset + i] as BlockNode;
+		if (nextBlock !== undefined && nextBlock.getType() === STANDART_BLOCK_TYPE && nextBlock.getWrapper() === listStyle?.type) {
+			childrens.push(createBlockNode(currentBlock, createBlockNodes(currentBlock, isActiveFunction)));
+			BlockIndex += 1;
+			childrens.push(createBlockNode(nextBlock, createBlockNodes(nextBlock, isActiveFunction)));
+			i += 1;
+			while (true) {
+				nextBlock = BlockNodes[offset + i] as BlockNode;
+				if (nextBlock === undefined || nextBlock.getType() !== STANDART_BLOCK_TYPE) break;
+				else if (isListNode(nextBlock) === false) break;
+				else if (nextBlock.getWrapper() === listStyle?.type) {
+					BlockIndex += 1;
+					childrens.push(createBlockNode(nextBlock, createBlockNodes(nextBlock, isActiveFunction)));
+				} else break;
+				i += 1;
+			}
+			let node = React.createElement(listTag, {key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-pack': true}, childrens);
+			return {tag: listTag, node: node, length: childrens.length};
+		} else {
+			BlockIndex += 1;
+			let children = createBlockNode(currentBlock, createBlockNodes(currentBlock, isActiveFunction));
+			let node = React.createElement(listTag, {key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-pack': true}, children);
+			return {tag: listTag, node: node, length: 1};
+		}
+	}
+	return data;
+}
+
+export function createBlockElements(blocks: Array<BlockType>, isActiveFunction: (charIndex: number, blockIndex: number) => boolean, keyPrefix?: string) {
+	let BlockElements: Array<JSX.Element> = [];
+	NodeIndex = 0;
+	for (let i = 0; i < blocks.length; i++) {
+		let block = blocks[i];
+		let blockType = block.getType();
+		if (blockType === STANDART_BLOCK_TYPE) {
+			block = block as BlockNode;
+			if (block.getWrapper() === ORDERED_LIST_ITEM || block.getWrapper() === UNORDERED_LIST_ITEM) {
+				let collectedList = createSingleListNode(blocks, i, isActiveFunction);
+				if (collectedList.length === 1 && collectedList.node !== undefined) {
+					BlockElements.push(collectedList.node);
+				} else if (collectedList.length > 1 && collectedList.node !== undefined) {
+					BlockElements.push(collectedList.node);
+					i += collectedList.length - 1;
+				}
+			} else if (block.isBreakLine()) {
+				BlockElements.push(createBlockNode(block as BlockNode, [createBreakLine()]));
+			} else {
+				let BlockChildrens = createBlockNodes(block, isActiveFunction);
+				BlockElements.push(createBlockNode(block as BlockNode, BlockChildrens));
+			}
+		} else if (blockType === HORIZONTAL_RULE_BLOCK_TYPE) {
+			const key = `Editor-block-${BlockIndex}-horizontal-rule`;
+			BlockElements.push((block as HorizontalRuleNode).createDOM({html: {key: key}}));
+		}
+		NodeIndex = 0;
+		BlockIndex += 1;
+	}
+	return BlockElements;
+}
+
+export function CreateReactEditor({EditorState}: {EditorState: editorState}): JSX.Element {
+	BlockIndex = 0;
+	NodeIndex = 0;
+	let isActiveFunction = isActive(EditorState);
+	let BlockElements = createBlockElements(EditorState.contentNode.BlockNodes, isActiveFunction);
 	return React.createElement(React.Fragment, null, BlockElements);
 }

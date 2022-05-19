@@ -1,6 +1,6 @@
 import {ClassVariables} from './Interfaces';
-import {TEXT_NODE, BREAK_LINE, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE, STANDART_BLOCK_TYPE} from './ConstVariables';
-import {findEditorFullPathToCharNode} from './EditorUtils';
+import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE, STANDART_BLOCK_TYPE} from './ConstVariables';
+import {getChildrenNodes,} from './EditorUtils';
 
 import ContentNode from './ContentNode';
 import type {BlockType} from './BlockNode';
@@ -13,6 +13,13 @@ interface blockNodeData {
 }
 interface blockNodeDataExtended extends blockNodeData {
 	charKey: number;
+}
+
+export interface selectionData {
+	charNode: HTMLElement;
+	charIndex: null | number;
+	blockNode: HTMLElement | null;
+	blockPath: Array<number>;
 }
 
 export type SelectionStateData = ClassVariables<SelectionState>;
@@ -77,11 +84,11 @@ export class SelectionState {
 	anchorOffset: number;
 	focusOffset: number;
 
-	anchorKey: BlockPath;
-	focusKey: BlockPath;
+	anchorPath: BlockPath;
+	focusPath: BlockPath;
 
-	anchorCharKey: number;
-	focusCharKey: number;
+	anchorNodeKey: number;
+	focusNodeKey: number;
 
 	_anchorNode: Node | number | null;
 	_focusNode: Node | number | null;
@@ -96,11 +103,11 @@ export class SelectionState {
 		this.anchorOffset = 0;
 		this.focusOffset = 0;
 
-		this.anchorKey = new BlockPath();
-		this.focusKey = new BlockPath();
+		this.anchorPath = new BlockPath();
+		this.focusPath = new BlockPath();
 
-		this.anchorCharKey = 0;
-		this.focusCharKey = 0;
+		this.anchorNodeKey = 0;
+		this.focusNodeKey = 0;
 
 		this._anchorNode = null;
 		this._focusNode = null;
@@ -140,15 +147,27 @@ export class SelectionState {
 		return this._focusNode;
 	}
 
+	isNodesSame(): boolean {
+		return this.focusNodeKey === this.anchorNodeKey
+	}
+
+	enableDirty(){
+		this.isDirty = true;
+	}
+
+	isOffsetOnStart(): boolean {
+		return this.anchorNodeKey === 0 && this.anchorOffset === 0
+	}
+
 	resetSelection(): void {
 		this.anchorOffset = 0;
 		this.focusOffset = 0;
 
-		this.anchorKey = new BlockPath();
-		this.focusKey = new BlockPath();
+		this.anchorPath = new BlockPath();
+		this.focusPath = new BlockPath();
 
-		this.anchorCharKey = 0;
-		this.focusCharKey = 0;
+		this.anchorNodeKey = 0;
+		this.focusNodeKey = 0;
 
 		this._anchorNode = null;
 		this._focusNode = null;
@@ -160,20 +179,81 @@ export class SelectionState {
 		this.isDirty = false;
 	}
 
-	moveSelectionToNextSibling(ContentNode: ContentNode, step?: number): void {
-		let blockIndex = this.focusKey;
-		let focusChar = this.focusCharKey + 1;
+	isNodeAfterRoot(node: HTMLElement): boolean {
+		let parentElement = node?.parentElement
+		if(node?.parentElement?.dataset.aiteNodePack !== undefined) {
+			parentElement = parentElement?.parentNode as HTMLElement
+		}
+		if(parentElement!.dataset.aite_editor_root !== undefined) return true
+		return false
+	}
 
-		let FocusBlock = ContentNode.getBlockByPath(this.focusKey.get()) as BlockType;
-		let nextNode = (FocusBlock as BlockNode).CharData[focusChar] ?? undefined;
+	getPathToNodeByNode(node: HTMLElement): selectionData {
+
+		let path: Array<number> = [];
+	
+		node = node.firstChild ? (node.firstChild as HTMLElement) : node;
+	
+		let data: selectionData = {
+			charNode: node,
+			charIndex: null,
+			blockNode: null,
+			blockPath: path,
+		};
+	
+	
+		while (true) {
+			let parentNode = node.parentNode as HTMLElement
+	
+			let nodeDataSet = parentNode?.dataset;
+			if (nodeDataSet.aite_block_node !== undefined || nodeDataSet.aite_block_content_node !== undefined || nodeDataSet.aiteNodePack !== undefined) {
+				let children 
+				if(nodeDataSet.aiteNodePack !== undefined){
+					children = getChildrenNodes(parentNode.parentNode as HTMLElement)
+				} else children = getChildrenNodes(parentNode)
+				
+				let index = children.indexOf(node);
+				if (data.charIndex === null) {
+					data.charIndex = index;
+					data.blockNode = parentNode as HTMLElement;
+				}
+				else{
+					if(nodeDataSet.aiteNodePack !== undefined){
+						children = getChildrenNodes(parentNode.parentNode as HTMLElement)
+						index = children.indexOf(node);
+						if(this.isNodeAfterRoot(node) === false) path.unshift(index)
+					}
+					else if(this.isNodeAfterRoot(parentNode.parentNode as HTMLElement) === false) path.unshift(index);
+				}
+				if(nodeDataSet.aiteNodePack !== undefined){
+					parentNode = node.parentNode?.parentNode as HTMLElement
+					nodeDataSet = parentNode?.dataset;
+				}
+			}
+			if (nodeDataSet.aite_editor_root !== undefined) {
+				let children = getChildrenNodes(parentNode)
+				path.unshift(children.indexOf(node));
+				return data;
+			} else if (node.tagName === 'BODY' || node === undefined) break;
+			node = parentNode;
+		}
+		return data;
+	}
+
+	moveSelectionToNextSibling(ContentNode: ContentNode, step?: number): void {
+		let blockIndex = this.focusPath;
+		let focusChar = this.focusNodeKey + 1;
+
+		let FocusBlock = ContentNode.getBlockByPath(this.focusPath.get()) as BlockType;
+		let nextNode = (FocusBlock as BlockNode).NodeData[focusChar] ?? undefined;
 
 		if (nextNode === undefined) {
 			while (nextNode === undefined) {
 				blockIndex.incrementLastPathIndex(1);
-				ContentNode.getBlockByPath(this.focusKey.get());
+				ContentNode.getBlockByPath(this.focusPath.get());
 				if (FocusBlock === undefined) break;
 				else if (FocusBlock.getType() === STANDART_BLOCK_TYPE) {
-					nextNode = (FocusBlock as BlockNode).CharData[0];
+					nextNode = (FocusBlock as BlockNode).NodeData[0];
 					focusChar = 0;
 					break;
 				}
@@ -182,8 +262,8 @@ export class SelectionState {
 		if (nextNode !== undefined) {
 			let anchorOffset = step !== undefined ? (nextNode.returnContentLength() < step ? nextNode.returnContentLength() : step) : 0;
 
-			this.anchorKey = blockIndex;
-			this.focusKey = blockIndex;
+			this.anchorPath = blockIndex;
+			this.focusPath = blockIndex;
 
 			this._anchorNode = focusChar;
 			this._focusNode = focusChar;
@@ -191,8 +271,8 @@ export class SelectionState {
 			this.anchorOffset = anchorOffset;
 			this.focusOffset = anchorOffset;
 
-			this.anchorCharKey = focusChar;
-			this.focusCharKey = focusChar;
+			this.anchorNodeKey = focusChar;
+			this.focusNodeKey = focusChar;
 
 			this.anchorType = nextNode.returnType();
 			this.focusType = nextNode.returnType();
@@ -202,27 +282,27 @@ export class SelectionState {
 	}
 
 	moveSelectionToPreviousSibling(ContentNode: ContentNode): void {
-		let blockIndex = this.anchorKey;
-		let acnhorChar = this.anchorCharKey - 1;
+		let blockIndex = this.anchorPath;
+		let acnhorChar = this.anchorNodeKey - 1;
 
 		let anchorBlock = ContentNode.getBlockByPath(blockIndex.get());
-		let nextNode = acnhorChar > -1 ? (anchorBlock as BlockNode).CharData[acnhorChar] : undefined;
+		let nextNode = acnhorChar > -1 ? (anchorBlock as BlockNode).NodeData[acnhorChar] : undefined;
 
 		if (nextNode === undefined) {
 			while (nextNode === undefined) {
 				blockIndex.decrementLastPathIndex(1);
-				ContentNode.getBlockByPath(this.anchorKey.get());
+				ContentNode.getBlockByPath(this.anchorPath.get());
 				if (anchorBlock === undefined) break;
 				if (anchorBlock.getType() === STANDART_BLOCK_TYPE) {
-					nextNode = (anchorBlock as BlockNode).CharData[(anchorBlock as BlockNode).lastNodeIndex()];
+					nextNode = (anchorBlock as BlockNode).NodeData[(anchorBlock as BlockNode).lastNodeIndex()];
 					acnhorChar = (anchorBlock as BlockNode).lastNodeIndex();
 					break;
 				}
 			}
 		}
 		if (nextNode !== undefined) {
-			this.anchorKey = blockIndex;
-			this.focusKey = blockIndex;
+			this.anchorPath = blockIndex;
+			this.focusPath = blockIndex;
 
 			this._anchorNode = acnhorChar;
 			this._focusNode = acnhorChar;
@@ -230,8 +310,8 @@ export class SelectionState {
 			this.anchorOffset = nextNode.returnContentLength();
 			this.focusOffset = nextNode.returnContentLength();
 
-			this.anchorCharKey = acnhorChar;
-			this.focusCharKey = acnhorChar;
+			this.anchorNodeKey = acnhorChar;
+			this.focusNodeKey = acnhorChar;
 
 			this.anchorType = nextNode.returnType() !== 'text' ? 'element' : 'text';
 			this.focusType = this.anchorType;
@@ -240,11 +320,11 @@ export class SelectionState {
 		}
 	}
 
-	pathIsEqual(): boolean {
-		let focusKeyArr = this.focusKey.get();
-		let anchorKeyArr = this.anchorKey.get();
-		for (let i = 0; i < this.anchorKey.length(); i++) {
-			if (anchorKeyArr[i] !== focusKeyArr[i]) return false;
+	blockPathIsEqual(): boolean {
+		let focusPathArr = this.focusPath.get();
+		let anchorPathArr = this.anchorPath.get();
+		for (let i = 0; i < this.anchorPath.length(); i++) {
+			if (anchorPathArr[i] !== focusPathArr[i]) return false;
 		}
 		return true;
 	}
@@ -261,8 +341,8 @@ export class SelectionState {
 
 	convertBreakLineToText(): void {
 		this.isDirty = true;
-		this.anchorNode = this.anchorCharKey;
-		this.focusNode = this.anchorCharKey;
+		this.anchorNode = this.anchorNodeKey;
+		this.focusNode = this.anchorNodeKey;
 
 		this.anchorType = TEXT_NODE_TYPE;
 		this.focusType = TEXT_NODE_TYPE;
@@ -270,14 +350,29 @@ export class SelectionState {
 
 	isFullBlockSelected(): boolean {
 		if (
-			(this.anchorCharKey === 0 || this.anchorCharKey === -1) &&
+			(this.anchorNodeKey === 0 || this.anchorNodeKey === -1) &&
 			this.anchorOffset === 0 &&
-			this.anchorKey !== this.focusKey &&
-			(this.focusCharKey === 0 || this.focusCharKey === -1) &&
+			this.anchorPath !== this.focusPath &&
+			(this.focusNodeKey === 0 || this.focusNodeKey === -1) &&
 			this.focusOffset === 0
 		)
 			return true;
 		else return false;
+	}
+
+	getTextNode(node: HTMLElement): {isTextNode: boolean, TextNode: undefined | HTMLElement} {
+		let childrenNode: HTMLElement | undefined = node;
+		let data: {isTextNode: boolean, TextNode: undefined | HTMLElement} = {isTextNode: false, TextNode: undefined}
+		while(childrenNode !== undefined) {
+			if(childrenNode.nodeType === HTML_TEXT_NODE){
+				data.isTextNode = true
+				data.TextNode = childrenNode
+				break;
+			}
+			else childrenNode = childrenNode?.firstChild as HTMLElement
+			if(childrenNode === undefined) break
+		}
+		return data
 	}
 
 	toggleCollapse(focus: boolean = false): void {
@@ -285,15 +380,15 @@ export class SelectionState {
 		if (focus === true) {
 			this.anchorOffset = this.focusOffset;
 			this.anchorNode = this.focusNode;
-			this.anchorCharKey = this.focusCharKey;
+			this.anchorNodeKey = this.focusNodeKey;
 			this.anchorType = this.focusType;
-			this.anchorKey = this.focusKey;
+			this.anchorPath = this.focusPath;
 		} else {
 			this.focusType = this.anchorType;
-			this.focusKey = this.anchorKey;
+			this.focusPath = this.anchorPath;
 			this.focusOffset = this.anchorOffset;
 			this.focusNode = this.anchorNode;
-			this.focusCharKey = this.anchorCharKey;
+			this.focusNodeKey = this.anchorNodeKey;
 		}
 	}
 
@@ -303,7 +398,7 @@ export class SelectionState {
 		while (node.firstChild !== null) {
 			node = node.firstChild;
 		}
-		if (node.nodeType === TEXT_NODE || node.nodeName === BREAK_LINE_TYPE) {
+		if (node.nodeType === HTML_TEXT_NODE || node.nodeName === BREAK_LINE_TYPE) {
 			type = TEXT_NODE_TYPE;
 		} else if (node.nodeType === 1) {
 			type = ELEMENT_NODE_TYPE;
@@ -326,11 +421,11 @@ export class SelectionState {
 		this.focusNode = selectionCopy.anchorOffset;
 		this.anchorNode = selectionCopy.focusOffset;
 
-		this.focusCharKey = selectionCopy.anchorCharKey;
-		this.anchorCharKey = selectionCopy.focusCharKey;
+		this.focusNodeKey = selectionCopy.anchorNodeKey;
+		this.anchorNodeKey = selectionCopy.focusNodeKey;
 
-		this.focusKey = selectionCopy.anchorKey;
-		this.anchorKey = selectionCopy.focusKey;
+		this.focusPath = selectionCopy.anchorPath;
+		this.anchorPath = selectionCopy.focusPath;
 
 		this.focusType = selectionCopy.anchorType;
 		this.anchorType = selectionCopy.focusType;
@@ -338,12 +433,12 @@ export class SelectionState {
 
 	__getBlockNode<S>(node: Node, returnCharKey?: S extends boolean ? boolean : undefined): S extends boolean ? blockNodeDataExtended : blockNodeData;
 	__getBlockNode(node: Node, returnCharKey?: boolean | undefined): blockNodeDataExtended | blockNodeData {
-		let currentBlockData = findEditorFullPathToCharNode(node as HTMLElement);
+		let currentBlockData = this.getPathToNodeByNode(node as HTMLElement);
 		if (returnCharKey === true && currentBlockData !== undefined) {
 			let ElementType = null;
 			let charIndex = currentBlockData.charIndex ?? -1;
 
-			if (node?.firstChild?.nodeName === BREAK_LINE) {
+			if (node?.firstChild?.nodeName === BREAK_LINE_TAGNAME) {
 				ElementType = BREAK_LINE_TYPE;
 				charIndex = 0;
 			} else {
@@ -369,13 +464,15 @@ export class SelectionState {
 
 	$normailizeDirtySelection(EditorRef: React.MutableRefObject<HTMLDivElement>): void {
 		let EditorNode: HTMLDivElement = EditorRef.current;
-		let EditorNodes = Array.from(EditorNode.children);
+		let EditorNodes = getChildrenNodes(EditorNode);
+
 
 		function __getCharNode(path: BlockPath, currentNode: HTMLElement): HTMLElement | undefined {
 			let currentBlock: HTMLElement | undefined;
 			let pathArray = path.get();
+
 			for (let i = 1; i < path.length(); i++) {
-				let childrens = Array.from(currentNode.children);
+				let childrens = getChildrenNodes(currentNode);
 				let nextNode = childrens[pathArray[i]] as HTMLElement;
 				let nextChildrenDataset = nextNode?.dataset;
 				if (
@@ -388,7 +485,7 @@ export class SelectionState {
 						return false;
 					}) as HTMLElement;
 					if (currentBlock !== undefined) {
-						return (currentBlock = Array.from(currentBlock.children)[pathArray[i]] as HTMLElement);
+						return (currentBlock = getChildrenNodes(currentBlock)[pathArray[i]] as HTMLElement);
 					}
 				} else if (nextChildrenDataset?.aite_block_node !== undefined || nextChildrenDataset?.aite_block_content_node !== undefined) {
 					currentNode = childrens[pathArray[i]] as HTMLElement;
@@ -402,7 +499,7 @@ export class SelectionState {
 								return true;
 							return false;
 						}) as HTMLElement;
-						currentNode = Array.from(currentNode.children)[pathArray[i]] as HTMLElement;
+						currentNode = getChildrenNodes(currentNode)[pathArray[i]] as HTMLElement;
 					} else currentNode = childrens[pathArray[i]] as HTMLElement;
 				}
 			}
@@ -412,23 +509,27 @@ export class SelectionState {
 		let anchorNodeBlock = undefined,
 			focusNodeBlock = undefined;
 
-		if (this.anchorKey.length() === 1) anchorNodeBlock = EditorNodes[this.anchorKey.get()[0]];
-		else anchorNodeBlock = __getCharNode(this.anchorKey, EditorNodes[this.anchorKey.get()[0]] as HTMLElement);
+		if (this.anchorPath.length() === 1) anchorNodeBlock = EditorNodes[this.anchorPath.get()[0]];
+		else anchorNodeBlock = __getCharNode(this.anchorPath, EditorNodes[this.anchorPath.get()[0]] as HTMLElement);
 
-		if (this.anchorKey.length() === 1) focusNodeBlock = EditorNodes[this.focusKey.get()[0]];
-		else focusNodeBlock = __getCharNode(this.focusKey, EditorNodes[this.focusKey.get()[0]] as HTMLElement);
-
+		if (this.anchorPath.length() === 1) focusNodeBlock = EditorNodes[this.focusPath.get()[0]];
+		else focusNodeBlock = __getCharNode(this.focusPath, EditorNodes[this.focusPath.get()[0]] as HTMLElement);
+		
 		let anchorNode = undefined;
 		let focusNode = undefined;
 
-		if (anchorNodeBlock !== undefined) anchorNode = Array.from(anchorNodeBlock.children)[this.anchorCharKey] as HTMLElement;
-		if (focusNodeBlock !== undefined) focusNode = Array.from(focusNodeBlock.children)[this.focusCharKey] as HTMLElement;
+		if (anchorNodeBlock !== undefined) anchorNode = getChildrenNodes(anchorNodeBlock)[this.anchorNodeKey] as HTMLElement;
+		if (focusNodeBlock !== undefined) focusNode = getChildrenNodes(focusNodeBlock)[this.focusNodeKey] as HTMLElement;
+		
+
+		console.log(Array.from(anchorNodeBlock!.children))
 
 		if (anchorNode !== undefined && focusNode !== undefined) {
-			if (anchorNode?.firstChild?.nodeType !== TEXT_NODE) this.anchorNode = anchorNode;
+			let textNode = this.getTextNode(anchorNode)
+			if (textNode.isTextNode) this.anchorNode = textNode.TextNode as HTMLElement;
 			else this.anchorNode = anchorNode.firstChild;
 
-			if (focusNode?.firstChild?.nodeType !== TEXT_NODE) this.focusNode = anchorNode;
+			if (textNode.isTextNode) this.focusNode = textNode.TextNode as HTMLElement;
 			else this.focusNode = anchorNode.firstChild;
 			this.isDirty = false;
 		}
@@ -461,8 +562,8 @@ export class SelectionState {
 			if (anchorBlockNode.blockNode !== null) {
 				this.anchorNode = anchorTextNode;
 				this.anchorType = anchorBlockNode.elementType;
-				this.anchorCharKey = anchorBlockNode.charKey;
-				this.anchorKey.set(anchorBlockNode.index);
+				this.anchorNodeKey = anchorBlockNode.charKey;
+				this.anchorPath.set(anchorBlockNode.index);
 
 				this.anchorOffset = isBackward ? selection.focusOffset : selection.anchorOffset;
 
@@ -474,8 +575,8 @@ export class SelectionState {
 
 				this._focusNode = focusTextNode;
 				this.focusType = focusBlockNode.elementType;
-				this.focusCharKey = focusBlockNode.charKey;
-				this.focusKey.set(focusBlockNode.index);
+				this.focusNodeKey = focusBlockNode.charKey;
+				this.focusPath.set(focusBlockNode.index);
 
 				this.focusOffset = isBackward ? selection.anchorOffset : selection.focusOffset;
 

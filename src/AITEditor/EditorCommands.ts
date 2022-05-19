@@ -117,15 +117,11 @@ export default class EditorCommands {
 	EditorStateFunction: () => void;
 	CommandStorage: commandStorage;
 	dispatchIsBusy: boolean;
-	preventUpdate: boolean;
-	commandQueue: Array<string>;
 
 	constructor(EditorStateManager: () => void) {
 		this.EditorStateFunction = EditorStateManager;
 		this.CommandStorage = {};
 		this.dispatchIsBusy = false;
-		this.preventUpdate = false;
-		this.commandQueue = [];
 	}
 
 	registerCommand(
@@ -163,13 +159,10 @@ export default class EditorCommands {
 	dispatchCommand(commandType: commandTypes, event: EventCommands, ...rest: any): void {
 		const Command = this.CommandStorage[commandType];
 
-		this.commandQueue.unshift(commandType);
-
 		if (Command !== undefined && this.dispatchIsBusy === false) {
 			if (Command.commandPriority === 'IMMEDIATELY_EDITOR_COMMAND') {
 				Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
 				this.EditorStateFunction();
-				this.commandQueue = [];
 			} else {
 				new Promise((res) => {
 					this.dispatchIsBusy = true;
@@ -177,18 +170,7 @@ export default class EditorCommands {
 					res('');
 				}).then((res) => {
 					this.dispatchIsBusy = false;
-					if (
-						this.commandQueue[this.commandQueue.length - 1] === Command.commandPriority
-					) {
-						this.commandQueue.pop();
-						if (
-							Command.commandPriority !== 'IGNOREMANAGER_EDITOR_COMMAND' &&
-							this.preventUpdate === false
-						)
-							this.EditorStateFunction();
-					} else {
-						this.commandQueue.pop();
-					}
+					if (Command.commandPriority === 'IGNOREMANAGER_EDITOR_COMMAND') this.EditorStateFunction();
 				});
 			}
 		}

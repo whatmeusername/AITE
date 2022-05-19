@@ -1,10 +1,11 @@
-import {findEditorFullPathToCharNode, findEditorCharIndex, isTextNode} from '../../EditorUtils';
-import type {selectionData} from '../../EditorUtils';
+import {findEditorCharIndex, isTextNode} from '../../EditorUtils';
 
 import type {NodeTypes} from '../../BlockNode';
 import type BlockNode from '../../BlockNode';
 import type {EditorState} from '../../EditorManagmentUtils';
 import {BlockPath} from '../../SelectionUtils'
+
+import type {selectionData} from '../../SelectionUtils'
 
 type mouseEvent = React.MouseEvent | MouseEvent;
 type EditorNodeSelectedData = {node: Node | HTMLElement; index: number} | undefined;
@@ -66,7 +67,7 @@ export default class ActiveElementState {
 				removeClickEvent()
 			}
 			else if (this.allowedAllements.includes((event.target as HTMLElement).tagName)) {
-				let newBlockData = findEditorFullPathToCharNode(event.target as HTMLElement);
+				let newBlockData = this.EditorState.selectionState.getPathToNodeByNode(event.target as HTMLElement);
 				if (newBlockData?.blockNode !== currentBlockData?.blockNode) {
 					currentBlockData = newBlockData;
 					if (currentBlockData !== undefined){
@@ -95,16 +96,19 @@ export default class ActiveElementState {
 		};
 
 		if (this.allowedAllements.includes(nodeTag) && event.target !== null) {
-			currentBlockData = findEditorFullPathToCharNode(event.target as HTMLElement);
+			currentBlockData = this.EditorState.selectionState.getPathToNodeByNode(event.target as HTMLElement);
 
 			if (currentBlockData !== undefined && currentBlockData !== undefined && this.isActive === false) {
+
 				this.blockNode.set(currentBlockData.blockPath);
 				this.charNode = currentBlockData.charIndex;
 				this.isActive = true;
 				this.EditorStateFunction();
+
 				let selection = window.getSelection();
 				if (selection !== null) selection.removeAllRanges();
 				this.EditorState.selectionState.resetSelection()
+				
 				document.addEventListener('mousedown', editorClickEvent);
 				document.addEventListener('keyup', backspaceEventHandler);
 			}

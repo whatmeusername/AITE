@@ -7,6 +7,12 @@
 	position: relative;
 	tab-size: 1;
 	outline: none;
+	a{
+		text-decoration: none;
+		&:hover{
+			text-decoration: underline;
+		}
+	}
 }
 
 .ATEditor__standart__BOLD {
@@ -36,7 +42,7 @@
 	display: inline-block;
 	border: 3px solid transparent;
 	&.AITE__image__active {
-		border: 3px solid rgb(150, 170, 245);
+		border: 3px solid rgb(90, 125, 255);
 		user-select: none;
 		.AITE_image_caption_wrapper{
 			user-select: text;
@@ -44,7 +50,7 @@
 	}
 }
 
-.ATE_editor_horizontal-rule {
+.AITE_editor_horizontal-rule {
 	width: 95%;
 	height: 2.5px;
 	border: 0px;
@@ -61,11 +67,27 @@
 	color: rgb(140, 140, 140);
 }
 
+.text_aligment_center{
+	text-align: center;
+}
+
+.text_aligment_left{
+	text-align: left;
+}
+
+.text_aligment_right{
+	text-align: right;
+}
+
+.text_aligment_justify{
+	text-align: justify;
+}
+
 .image-resize {
 	position: absolute;
 	width: 13px;
 	height: 13px;
-	background-color: rgb(150, 170, 245);
+	background-color: rgb(90, 125, 255);
 	border: 2px solid rgb(255, 255, 255);
 	border-radius: 50%;
 	user-select: none;

@@ -32,6 +32,10 @@ const defaultBlocks = [
 		tag: 'li',
 	},
 	{
+		type: 'list-ordered-item',
+		tag: 'li',
+	},
+	{
 		type: 'blockquote',
 		tag: 'blockquote',
 		class: 'AITE__editor__blockquote',

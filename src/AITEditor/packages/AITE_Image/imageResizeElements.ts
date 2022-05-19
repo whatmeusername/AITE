@@ -1,5 +1,5 @@
 import React from 'react';
-import type {imageNode} from './packages/AITE_Image/imageNode';
+import type {imageNode} from './imageNode';
 
 export default function CreateBlockResizeElements(node: imageNode, key: string) {
 	let StartX = 0;
@@ -11,6 +11,7 @@ export default function CreateBlockResizeElements(node: imageNode, key: string) 
 	let Resizing = false;
 	let CurrentDragButtonClass: null | DOMTokenList = null;
 	let CurrentImageNode: null | HTMLImageElement = null;
+	let imageWrapperNode: null | HTMLSpanElement = null;
 	const events = {
 		onMouseDown: DragStart,
 	};
@@ -22,6 +23,7 @@ export default function CreateBlockResizeElements(node: imageNode, key: string) 
 		document.removeEventListener('mousemove', SizeDrag);
 		document.removeEventListener('onselect', (e) => e.preventDefault());
 		if (CurrentImageNode !== null) {
+			setWrapperSize()
 			let Rect = CurrentImageNode.getBoundingClientRect();
 			node.setHeight(Rect.height);
 			node.setWidth(Rect.width);
@@ -36,6 +38,7 @@ export default function CreateBlockResizeElements(node: imageNode, key: string) 
 
 			CurrentDragButtonClass = event.currentTarget.classList;
 			CurrentImageNode = event.currentTarget.parentNode?.firstChild as HTMLImageElement;
+			imageWrapperNode = event.currentTarget.parentNode as HTMLSpanElement;
 
 			let Rect = CurrentImageNode.getBoundingClientRect();
 			start_width = Rect.width;
@@ -44,6 +47,13 @@ export default function CreateBlockResizeElements(node: imageNode, key: string) 
 			document.addEventListener('mouseup', stopResizing);
 			document.addEventListener('mousemove', SizeDrag);
 			document.addEventListener('onselect', (e) => e.preventDefault());
+		}
+	}
+
+	const setWrapperSize = () => {
+		if(imageWrapperNode !== null && CurrentImageNode !== null ){
+			imageWrapperNode.style.width = CurrentImageNode.style.width;
+			imageWrapperNode.style.minHeight = CurrentImageNode.style.height;
 		}
 	}
 
@@ -96,6 +106,7 @@ export default function CreateBlockResizeElements(node: imageNode, key: string) 
 							start_height - (event.clientY - StartY)
 						}px`;
 					}
+					setWrapperSize()
 				}
 
 				// StartX = event.clientX

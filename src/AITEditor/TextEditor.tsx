@@ -76,22 +76,18 @@ export default function AITEditor(): JSX.Element {
 
 			EditorState.EditorCommands.registerCommand('KEYBOARD_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) => {
 				HandleKeyClick(event);
-				setEditorState({...EditorState});
 			});
 
 			EditorState.EditorCommands.registerCommand('LETTER_INSERT_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) => {
 				EditorState.contentNode.insertLetterIntoTextNode(event, EditorState.selectionState);
-				setEditorState({...EditorState});
 			});
 
 			EditorState.EditorCommands.registerCommand('LETTER_REMOVE_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
 				EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
-				setEditorState({...EditorState});
 			});
 
 			EditorState.EditorCommands.registerCommand('ENTER_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
 				EditorState.contentNode.handleEnter(EditorState.selectionState);
-				setEditorState({...EditorState});
 			});
 
 			EditorState.EditorCommands.registerCommand('SELECTION_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (_) =>
@@ -164,12 +160,13 @@ export default function AITEditor(): JSX.Element {
 				contentEditable={true}
 				suppressContentEditableWarning={true}
 				spellCheck={false}
-				onClick={(event) => {
-					EditorState.EditorCommands?.dispatchCommand('CLICK_COMMAND', event);
-				}}
+				onPaste={(e) => console.log(e.clipboardData.getData('text/html'))}
 				onSelect={(event) => {
 					EditorState.EditorCommands?.dispatchCommand('SELECTION_COMMAND', event);
 				}}
+				// onClick={(event) => {
+				// 	EditorState.EditorCommands?.dispatchCommand('CLICK_COMMAND', event);
+				// }}
 				onKeyDown={(event) => {
 					EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', event);
 				}}

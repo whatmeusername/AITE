@@ -1,3 +1,6 @@
+import {LINK_NODE_TAGNAME} from './ConstVariables'
+
+
 export interface selectionData {
 	charNode: HTMLElement;
 	charIndex: null | number;
@@ -5,34 +8,22 @@ export interface selectionData {
 	blockPath: Array<number>;
 }
 
-export function findEditorFullPathToCharNode(node: HTMLElement): selectionData {
-	let path: Array<number> = [];
 
-	node = node.firstChild ? (node.firstChild as HTMLElement) : node;
+function unpackNode(node: HTMLElement): Array<HTMLElement> {
+	return Array.from(node.children) as Array<HTMLElement>;
+}
 
-	let data: selectionData = {
-		charNode: node,
-		charIndex: null,
-		blockNode: null,
-		blockPath: path,
-	};
-
-	while (true) {
-		let nodeDataSet = (node.parentNode as HTMLElement)?.dataset;
-		if (nodeDataSet.aite_block_node !== undefined || nodeDataSet.aite_block_content_node !== undefined) {
-			let index = Array.from(node.parentNode!.children).indexOf(node);
-			if (data.charIndex === null) {
-				data.charIndex = index;
-				data.blockNode = node.parentNode as HTMLElement;
-			} else path.unshift(index);
+export function getChildrenNodes(blockNode: HTMLElement): Array<HTMLElement> {
+	let childrens = unpackNode(blockNode)
+	for(let i = 0; i < childrens.length; i++) {
+		let node = childrens[i]
+		let dataset = node.dataset
+		if(dataset.aiteNodePack !== undefined){
+			let children = Array.from(node.children) as Array<HTMLElement>
+			childrens = [...childrens.slice(0, i), ...children, ...childrens.slice(i + 1)]
 		}
-		if (nodeDataSet.aite_editor_root !== undefined) {
-			path.unshift(Array.from(node.parentNode!.children).indexOf(node));
-			return data;
-		} else if (node.tagName === 'BODY') break;
-		node = node.parentNode as HTMLElement;
 	}
-	return data;
+	return childrens
 }
 
 export function findEditorBlockIndex(node: HTMLElement): {node: HTMLElement, index: number} | undefined {

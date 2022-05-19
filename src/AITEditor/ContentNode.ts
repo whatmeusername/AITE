@@ -1,7 +1,7 @@
 import BlockNode, {HorizontalRuleNode} from './BlockNode';
 import {SelectionState, BlockPath} from './SelectionUtils';
-import {BREAK_LINE, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE, STANDART_BLOCK_TYPE} from './ConstVariables';
-import TextNode from './CharNode';
+import {BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE, STANDART_BLOCK_TYPE} from './ConstVariables';
+import {TextNode, LinkNode} from './AITE_nodes/index'
 import createImageNode from './packages/AITE_Image/imageNode';
 
 import ValidationUtils from './ValidationUtils';
@@ -21,46 +21,110 @@ export default class ContentNode {
 		};
 		this.BlockNodes = contentNodeConf?.BlockNodes ?? [
 			new BlockNode({
-				CharData: [new TextNode('Тестовый текст для редактора')],
+				NodeData: [new TextNode({plainText: 'Тестовый текст для редактора'})],
 				blockWrapper: 'header-two',
 			}),
 			new HorizontalRuleNode(),
 			new BlockNode({
 				blockWrapper: 'blockquote',
-				CharData: [
+				NodeData: [
 					new TextNode(
-						`Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.`,
+						{plainText: `Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.`}
 					),
 				],
 			}),
 			new BlockNode({
 				blockWrapper: 'header-one',
-				CharData: [new TextNode(`Языки программирования`)],
+				NodeData: [new TextNode({plainText: `Языки программирования`})],
 			}),
 			new BlockNode({
-				CharData: [
+				NodeData: [
 					createImageNode({
 						src: 'https://i.gifer.com/2GU.gif',
 						float: 'right',
 					}),
 					new TextNode(
-						`Большая часть работы программистов связана с написанием исходного кода, тестированием и отладкой программ на одном из языков программирования. Исходные тексты и исполняемые файлы программ являются объектами авторского права и являются интеллектуальной собственностью их авторов и правообладателей.
+						{plainText: `Большая часть работы программистов связана с написанием исходного кода, тестированием и отладкой программ на одном из языков программирования. Исходные тексты и исполняемые файлы программ являются объектами авторского права и являются интеллектуальной собственностью их авторов и правообладателей.
 Различные языки программирования поддерживают различные стили программирования (парадигмы программирования). Выбор нужного языка программирования для некоторых частей алгоритма позволяет сократить время написания программы и решить задачу описания алгоритма наиболее эффективно. Разные языки требуют от программиста различного уровня внимания к деталям при реализации алгоритма, результатом чего часто бывает компромисс между простотой и производительностью (или между «временем программиста» и «временем пользователя»).
 Единственный язык, напрямую выполняемый ЭВМ — это машинный язык (также называемый машинным кодом и языком машинных команд). Изначально все программы писались в машинном коде, но сейчас этого практически уже не делается. Вместо этого программисты пишут исходный код на том или ином языке программирования, затем, используя компилятор, транслируют его в один или несколько этапов в машинный код, готовый к исполнению на целевом процессоре, или в промежуточное представление, которое может быть исполнено специальным интерпретатором — виртуальной машиной. Но это справедливо только для языков высокого уровня. Если требуется полный низкоуровневый контроль над системой на уровне машинных команд и отдельных ячеек памяти, программы пишут на языке ассемблера, мнемонические инструкции которого преобразуются один к одному в соответствующие инструкции машинного языка целевого процессора ЭВМ (по этой причине трансляторы с языков ассемблера получаются алгоритмически простейшими трансляторами).
 `,
-						['ITALIC'],
+						stylesArr: ['ITALIC']},
 					),
+					new LinkNode({
+						plainText: 'wikipedia2',
+						url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
+					}),
+					new LinkNode({
+						plainText: ' wikipedia',
+						stylesArr: ['BOLD'],
+						url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
+					}),
+					new TextNode({
+						plainText: 'wikipedia2',
+					}),
+					new LinkNode({
+						plainText: ' wikipedia',
+						url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
+					}),
 				],
 			}),
 			new BlockNode({
 				blockWrapper: 'blockquote',
-				CharData: [
+				NodeData: [
 					new TextNode(
-						`В некоторых языках вместо машинного кода генерируется интерпретируемый двоичный код «виртуальной машины», также называемый байт-кодом (byte-code). Такой подход применяется в Forth, некоторых реализациях Lisp, Java, Perl, Python, языках для .NET Framework.`,
+						{plainText: `В некоторых языках вместо машинного кода генерируется интерпретируемый двоичный код «виртуальной машины», также называемый байт-кодом (byte-code). Такой подход применяется в Forth, некоторых реализациях Lisp, Java, Perl, Python, языках для .NET Framework.`},
 					),
 				],
 			}),
 			new HorizontalRuleNode(),
+			new BlockNode({
+				blockWrapper: 'list-ordered-item',
+				NodeData: [
+					new TextNode(
+						{plainText: `предмет листа 1`},
+					),
+				],
+			}),
+			new BlockNode({
+				blockWrapper: 'list-ordered-item',
+				NodeData: [
+					new TextNode(
+						{plainText: `предмет листа 2`},
+					),
+				],
+			}),
+			new BlockNode({
+				blockWrapper: 'list-ordered-item',
+				NodeData: [
+					new TextNode(
+						{plainText: `предмет листа 3`},
+					),
+				],
+			}),
+			new BlockNode({
+				blockWrapper: 'header-five',
+				NodeData: [
+					new TextNode(
+						{plainText: `предмет листа 4`},
+					),
+				],
+			}),
+			new BlockNode({
+				blockWrapper: 'list-unordered-item',
+				NodeData: [
+					new TextNode(
+						{plainText: `предмет листа 5`},
+					),
+				],
+			}),
+			new BlockNode({
+				blockWrapper: 'list-ordered-item',
+				NodeData: [
+					new TextNode(
+						{plainText: `предмет листа 5`},
+					),
+				],
+			}),
 		];
 	}
 
@@ -80,10 +144,10 @@ export default class ContentNode {
 	getBlockByPath(path: Array<number>) {
 		let currentBlock: any = this.BlockNodes[path[0]];
 		for (let i = 1; i < path.length; i++) {
-			if (currentBlock instanceof BlockNode || currentBlock?.CharData !== undefined) {
-				currentBlock = currentBlock.CharData[path[i]];
+			if (currentBlock instanceof BlockNode || currentBlock?.NodeData !== undefined) {
+				currentBlock = currentBlock.NodeData[path[i]];
 			} else if (!(currentBlock instanceof BlockNode)) {
-				currentBlock = currentBlock.ContentNode !== undefined ? currentBlock.ContentNode.BlockNodes[path[i]] : currentBlock?.CharData[path[i]];
+				currentBlock = currentBlock.ContentNode !== undefined ? currentBlock.ContentNode.BlockNodes[path[i]] : currentBlock?.NodeData[path[i]];
 			}
 		}
 		return currentBlock;
@@ -97,9 +161,9 @@ export default class ContentNode {
 			for (let i = 1; i < path.length; i++) {
 				if (i !== path.length - 1) {
 					if (currentBlock instanceof BlockNode || currentBlock[0] instanceof BlockNode) {
-						currentBlock = currentBlock.CharData[path[i]];
+						currentBlock = currentBlock.NodeData[path[i]];
 					} else if (!(currentBlock instanceof BlockNode)) {
-						currentBlock = currentBlock?.CharData[path[i]];
+						currentBlock = currentBlock?.NodeData[path[i]];
 					}
 				} else currentBlock.splice(path[i], 1);
 			}
@@ -108,13 +172,13 @@ export default class ContentNode {
 
 	TextNodeSlice(char: TextNode, CharToInsert: string = '', start: number, end?: number): void {
 		if (start === -1) {
-			char.d[1] = char.d[1] + CharToInsert;
+			char.__content = char.__content + CharToInsert;
 		} else if (end !== undefined && end !== -1) {
-			char.d[1] = char.d[1].slice(0, start) + CharToInsert + char.d[1].slice(end);
+			char.__content = char.__content.slice(0, start) + CharToInsert + char.__content.slice(end);
 		} else if (end === -1) {
-			char.d[1] = char.d[1].slice(start) + CharToInsert;
+			char.__content = char.__content.slice(start) + CharToInsert;
 		} else {
-			char.d[1] = char.d[1].slice(0, start) + CharToInsert;
+			char.__content = char.__content.slice(0, start) + CharToInsert;
 		}
 	}
 
@@ -124,72 +188,79 @@ export default class ContentNode {
 		joiningBlockDirection: 'up' | 'down',
 		joiningSideDirection: 'left' | 'right',
 	): void {
-		let AnchorIndex = new BlockPath([...selectionState.anchorKey.get()]);
-		let lastInConnectingChar = undefined;
-		let anchorCharKey = 0;
+		let AnchorIndex = new BlockPath([...selectionState.anchorPath.get()]);
+		let lastConnectingNode = undefined;
+		let anchorNodeKey = 0;
 		let newAnchorOffset = 0;
 		let connectingBlockLength = 0;
 
 		if (joiningSideDirection === 'left') {
 			joiningBlockDirection === 'down' ? AnchorIndex.decrementLastPathIndex(1) : AnchorIndex.incrementLastPathIndex(1);
 
-			let connectingBlock = this.getBlockByPath(selectionState.anchorKey.get()) as BlockNode;
+			let connectingBlock = this.getBlockByPath(selectionState.anchorPath.get()) as BlockNode;
 
 			connectingBlockLength = connectingBlock.lastNodeIndex() + 1;
-			lastInConnectingChar = connectingBlock.CharData[connectingBlockLength - 1];
+			lastConnectingNode = connectingBlock.NodeData[connectingBlockLength - 1];
+			let lastConnectingNodeLength = connectingBlock.NodeData[connectingBlockLength - 1].returnContentLength();
+
 			let connectingMaxSize = connectingBlock.countToIndex(connectingBlockLength - 1);
 
 			let joiningBlock = this.getBlockByPath(AnchorIndex.get()) as BlockNode;
 
-			connectingBlock.CharData = [...connectingBlock.CharData, ...joiningBlock.CharData];
+			connectingBlock.NodeData = [...connectingBlock.NodeData, ...joiningBlock.NodeData];
 			connectingBlock.blockUpdate();
 
 			if (BlockNodes instanceof ContentNode) BlockNodes.BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
 			else BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
 
-			if (connectingBlock.CharData.length < connectingBlockLength) {
+			if (connectingBlock.NodeData.length <= connectingBlockLength) {
 				let updateAnchorChar = connectingBlock.findNodeByOffset(connectingMaxSize);
-				anchorCharKey = updateAnchorChar.offsetKey;
+				anchorNodeKey = updateAnchorChar.offsetKey;
 				newAnchorOffset = updateAnchorChar.letterIndex;
 			} else {
-				anchorCharKey = selectionState.anchorCharKey + connectingBlockLength - 1;
-				newAnchorOffset = selectionState.anchorOffset;
+				anchorNodeKey = connectingBlockLength - 1;
+				newAnchorOffset = lastConnectingNodeLength;
 			}
+
+
+
+
+
 		} else {
 			joiningBlockDirection === 'down' ? AnchorIndex.decrementLastPathIndex(1) : AnchorIndex.incrementLastPathIndex(1);
 
-			let connectingBlock = this.getBlockByPath(selectionState.anchorKey.get()) as BlockNode;
+			let connectingBlock = this.getBlockByPath(selectionState.anchorPath.get()) as BlockNode;
 			let joiningBlock = this.getBlockByPath(AnchorIndex.get()) as BlockNode;
 
 			connectingBlockLength = connectingBlock.lastNodeIndex() + 1;
 
-			lastInConnectingChar = connectingBlock.CharData[connectingBlockLength - 1];
+			lastConnectingNode = connectingBlock.NodeData[connectingBlockLength - 1];
 
-			connectingBlock.CharData = [...connectingBlock.CharData, ...joiningBlock.CharData];
+			connectingBlock.NodeData = [...connectingBlock.NodeData, ...joiningBlock.NodeData];
 
 			connectingBlock.blockUpdate();
 			if (BlockNodes instanceof ContentNode) BlockNodes.BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
 			else BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
 
 			newAnchorOffset = selectionState.anchorOffset;
-			anchorCharKey = selectionState.anchorCharKey;
+			anchorNodeKey = selectionState.anchorNodeKey;
 			AnchorIndex.decrementLastPathIndex(1);
 		}
 
-		selectionState.focusKey = joiningSideDirection !== 'left' ? AnchorIndex : selectionState.anchorKey;
-		selectionState.anchorKey = joiningSideDirection !== 'left' ? AnchorIndex : selectionState.anchorKey;
+		selectionState.focusPath = joiningSideDirection !== 'left' ? AnchorIndex : selectionState.anchorPath;
+		selectionState.anchorPath = joiningSideDirection !== 'left' ? AnchorIndex : selectionState.anchorPath;
 
-		selectionState.anchorCharKey = anchorCharKey;
-		selectionState.focusCharKey = selectionState.anchorCharKey;
+		selectionState.anchorNodeKey = anchorNodeKey;
+		selectionState.focusNodeKey = selectionState.anchorNodeKey;
 
-		selectionState._anchorNode = selectionState.anchorCharKey;
-		selectionState._focusNode = selectionState.anchorCharKey;
+		selectionState._anchorNode = selectionState.anchorNodeKey;
+		selectionState._focusNode = selectionState.anchorNodeKey;
 
 		selectionState.anchorOffset = newAnchorOffset;
 		selectionState.focusOffset = newAnchorOffset;
 
-		selectionState.anchorType = lastInConnectingChar.returnType() !== 'text' ? 'element' : 'text';
-		selectionState.focusType = lastInConnectingChar.returnType() !== 'text' ? 'element' : 'text';
+		selectionState.anchorType = lastConnectingNode.returnType();
+		selectionState.focusType = lastConnectingNode.returnType();
 
 		selectionState.isDirty = true;
 		selectionState.isCollapsed = true;
@@ -220,23 +291,23 @@ export default class ContentNode {
 	insertLetterIntoTextNode(KeyBoardEvent: React.KeyboardEvent, selectionState: SelectionState): void {
 		let Key = KeyBoardEvent.key;
 
-		let anchorBlockNode = this.getBlockByPath(selectionState.anchorKey.get()) as BlockNode;
-		let focusBlockNode = this.getBlockByPath(selectionState.focusKey.get()) as BlockNode;
+		let anchorBlockNode = this.getBlockByPath(selectionState.anchorPath.get()) as BlockNode;
+		let focusBlockNode = this.getBlockByPath(selectionState.focusPath.get()) as BlockNode;
 
-		let CurrentAnchorCharData = anchorBlockNode.CharData !== undefined ? anchorBlockNode.CharData[selectionState.anchorCharKey] : undefined;
-		let CurrentFocusCharData = focusBlockNode.CharData !== undefined ? focusBlockNode.CharData[selectionState.focusCharKey] : undefined;
+		let anchorNodeData = anchorBlockNode.NodeData !== undefined ? anchorBlockNode.getNodeByIndex(selectionState.anchorNodeKey) : undefined;
+		let focusNodeData = focusBlockNode.NodeData !== undefined ? focusBlockNode.getNodeByIndex(selectionState.focusNodeKey) : undefined;
 
 		if (selectionState.isCollapsed) {
 			let SliceFrom = selectionState.anchorOffset;
 			let SliceTo = selectionState.focusOffset;
 
-			if (ValidationUtils.isTextNode(CurrentAnchorCharData) === true) {
+			if (ValidationUtils.isTextNode(anchorNodeData)) {
 				if (Key === ' ' && KeyBoardEvent.which === 229) {
 					Key = '. ';
 					SliceFrom -= 1;
 				}
 
-				this.TextNodeSlice(CurrentAnchorCharData as TextNode, Key, SliceFrom, SliceTo);
+				this.TextNodeSlice(anchorNodeData as TextNode, Key, SliceFrom, SliceTo);
 				if (selectionState.anchorType === BREAK_LINE_TYPE) {
 					selectionState.convertBreakLineToText();
 					selectionState.moveSelectionForward();
@@ -244,37 +315,37 @@ export default class ContentNode {
 					selectionState.moveSelectionForward();
 				}
 			} else {
-				let nextNode = anchorBlockNode.nextSibling(selectionState.anchorCharKey) as TextNode;
+				let nextNode = anchorBlockNode.nextSibling(selectionState.anchorNodeKey) as TextNode;
 				if (nextNode === undefined || ValidationUtils.isTextNode(nextNode) === false) {
 					let nextNode = new TextNode();
-					anchorBlockNode.splitCharNode(true, selectionState.anchorCharKey + 1, selectionState.focusCharKey + 1, nextNode);
+					anchorBlockNode.splitCharNode(true, selectionState.anchorNodeKey + 1, selectionState.focusNodeKey + 1, nextNode);
 					this.TextNodeSlice(nextNode, Key, 0, 0);
 					selectionState.toggleCollapse(true);
 					selectionState.moveSelectionForward();
-					selectionState.isDirty = true;
+					selectionState.enableDirty();
 				} else if (ValidationUtils.isTextNode(nextNode) === true) {
 					this.TextNodeSlice(nextNode, Key, 0, 0);
 					selectionState.toggleCollapse(true);
-					selectionState.isDirty = true;
+					selectionState.enableDirty();
 				}
 			}
-		} else if (selectionState.pathIsEqual() === true) {
-			if (selectionState.anchorCharKey !== selectionState.focusCharKey) {
-				let CharSplitStart = selectionState.anchorCharKey + 1;
-				let CharSplitEnd = selectionState.focusCharKey;
+		} else if (selectionState.blockPathIsEqual() === true) {
+			if (selectionState.isNodesSame() === false) {
+				let CharSplitStart = selectionState.anchorNodeKey + 1;
+				let CharSplitEnd = selectionState.focusNodeKey;
 
-				if (ValidationUtils.isTextNode(CurrentAnchorCharData)) {
-					this.TextNodeSlice(CurrentAnchorCharData as TextNode, Key, selectionState.anchorOffset);
+				if (ValidationUtils.isTextNode(anchorNodeData)) {
+					this.TextNodeSlice(anchorNodeData as TextNode, Key, selectionState.anchorOffset);
 				} else {
-					let previousSibling = anchorBlockNode.previousSibling(selectionState.anchorCharKey);
+					let previousSibling = anchorBlockNode.previousSibling(selectionState.anchorNodeKey);
 					if (previousSibling !== undefined && ValidationUtils.isTextNode(previousSibling) === true) {
 						this.TextNodeSlice(previousSibling as TextNode, Key, -1);
 					} else anchorBlockNode.splitCharNode(true, CharSplitStart, CharSplitStart + 1, new TextNode());
 					CharSplitStart -= 1;
 				}
 
-				if (ValidationUtils.isTextNode(CurrentFocusCharData)) {
-					this.TextNodeSlice(CurrentFocusCharData as TextNode, '', selectionState.focusOffset, -1);
+				if (ValidationUtils.isTextNode(focusNodeData)) {
+					this.TextNodeSlice(focusNodeData as TextNode, '', selectionState.focusOffset, -1);
 				} else CharSplitEnd += 1;
 
 				anchorBlockNode.splitCharNode(true, CharSplitStart, CharSplitEnd);
@@ -282,30 +353,30 @@ export default class ContentNode {
 				selectionState.moveSelectionForward();
 				selectionState.toggleCollapse();
 			} else {
-				if (ValidationUtils.isTextNode(CurrentAnchorCharData)) {
-					CurrentAnchorCharData = CurrentAnchorCharData as TextNode;
-					this.TextNodeSlice(CurrentAnchorCharData, Key, selectionState.anchorOffset, selectionState.focusOffset);
+				if (ValidationUtils.isTextNode(anchorNodeData)) {
+					anchorNodeData = anchorNodeData as TextNode;
+					this.TextNodeSlice(anchorNodeData, Key, selectionState.anchorOffset, selectionState.focusOffset);
 
-					if (CurrentAnchorCharData.returnContent() === '') {
-						anchorBlockNode.splitCharNode(true, selectionState.anchorCharKey);
+					if (anchorNodeData.returnContent() === '') {
+						anchorBlockNode.splitCharNode(true, selectionState.anchorNodeKey);
 						selectionState.moveSelectionToPreviousSibling(this);
 					} else {
 						selectionState.toggleCollapse();
 						selectionState.moveSelectionForward();
 					}
 				} else {
-					anchorBlockNode.splitCharNode(false, selectionState.anchorCharKey, selectionState.anchorCharKey + 1);
+					anchorBlockNode.splitCharNode(false, selectionState.anchorNodeKey, selectionState.anchorNodeKey + 1);
 				}
 			}
-		} else if (selectionState.pathIsEqual() === false) {
-			let CharSplitStart = selectionState.anchorCharKey + 1;
-			let CharSplitEnd = selectionState.focusCharKey;
+		} else if (selectionState.blockPathIsEqual() === false) {
+			let CharSplitStart = selectionState.anchorNodeKey + 1;
+			let CharSplitEnd = selectionState.focusNodeKey;
 
-			if (CurrentAnchorCharData !== undefined) {
-				if (ValidationUtils.isTextNode(CurrentAnchorCharData)) {
-					this.TextNodeSlice(CurrentAnchorCharData as TextNode, Key, selectionState.anchorOffset);
+			if (anchorNodeData !== undefined) {
+				if (ValidationUtils.isTextNode(anchorNodeData)) {
+					this.TextNodeSlice(anchorNodeData as TextNode, Key, selectionState.anchorOffset);
 				} else {
-					let previousSibling = anchorBlockNode.previousSibling(selectionState.anchorCharKey);
+					let previousSibling = anchorBlockNode.previousSibling(selectionState.anchorNodeKey);
 					if (previousSibling !== undefined && ValidationUtils.isTextNode(previousSibling)) {
 						this.TextNodeSlice(previousSibling as TextNode, Key, -1);
 					} else {
@@ -317,9 +388,9 @@ export default class ContentNode {
 				anchorBlockNode.bulkRemoveCharNode(true, CharSplitStart);
 			}
 
-			if (CurrentFocusCharData !== undefined) {
-				if (ValidationUtils.isTextNode(CurrentFocusCharData)) {
-					this.TextNodeSlice(CurrentFocusCharData as TextNode, CurrentAnchorCharData === undefined ? Key : '', selectionState.focusOffset, -1);
+			if (focusNodeData !== undefined) {
+				if (ValidationUtils.isTextNode(focusNodeData)) {
+					this.TextNodeSlice(focusNodeData as TextNode, anchorNodeData === undefined ? Key : '', selectionState.focusOffset, -1);
 				} else {
 					CharSplitEnd += 1;
 				}
@@ -327,68 +398,68 @@ export default class ContentNode {
 				focusBlockNode.bulkRemoveCharNode(false, CharSplitEnd, undefined);
 			}
 
-			if (selectionState.anchorKey.length() === 1) {
-				this.sliceBlockFromContent(selectionState.anchorKey.getPathIndexByIndex(0) + 1, selectionState.focusKey.getPathIndexByIndex(0));
+			if (selectionState.anchorPath.length() === 1) {
+				this.sliceBlockFromContent(selectionState.anchorPath.getPathIndexByIndex(0) + 1, selectionState.focusPath.getPathIndexByIndex(0));
 			} else {
-				let blockWrapper = this.getBlockByPath(selectionState.anchorKey.getPathBeforeLast());
+				let blockWrapper = this.getBlockByPath(selectionState.anchorPath.getPathBeforeLast());
 				blockWrapper.ContentNode
 					? blockWrapper.ContentNode.sliceBlockFromContent(
-							selectionState.anchorKey.getPathIndexByIndex(0) + 1,
-							selectionState.focusKey.getPathIndexByIndex(0),
+							selectionState.anchorPath.getPathIndexByIndex(0) + 1,
+							selectionState.focusPath.getPathIndexByIndex(0),
 					  )
-					: (blockWrapper.CharData = [
-							...blockWrapper.CharData.slice(0, selectionState.anchorKey.getPathIndexByIndex(0) + 1),
-							...blockWrapper.CharData.slice(selectionState.focusKey.getPathIndexByIndex(0)),
+					: (blockWrapper.NodeData = [
+							...blockWrapper.NodeData.slice(0, selectionState.anchorPath.getPathIndexByIndex(0) + 1),
+							...blockWrapper.NodeData.slice(selectionState.focusPath.getPathIndexByIndex(0)),
 					  ]);
 			}
 
-			if (CurrentFocusCharData !== undefined && CurrentAnchorCharData !== undefined) {
+			if (focusNodeData !== undefined && anchorNodeData !== undefined) {
 				let blocksArray = [];
-				if (selectionState.anchorKey.length() === 1) {
+				if (selectionState.anchorPath.length() === 1) {
 					blocksArray = this.BlockNodes;
 				} else {
-					blocksArray = this.getBlockByPath(selectionState.anchorKey.getPathBeforeLast());
+					blocksArray = this.getBlockByPath(selectionState.anchorPath.getPathBeforeLast());
 				}
 				this.MergeWithUpdate(blocksArray.ContentNode ? blocksArray.ContentNode : blocksArray, selectionState, 'up', 'right');
 				selectionState.moveSelectionForward();
-			} else if (CurrentAnchorCharData !== undefined) selectionState.moveSelectionForward();
-			else if (CurrentFocusCharData !== undefined) {
+			} else if (anchorNodeData !== undefined) selectionState.moveSelectionForward();
+			else if (focusNodeData !== undefined) {
 				selectionState.focusOffset = 0;
 				selectionState.toggleCollapse(true);
 			}
 		}
 	}
 	removeLetterFromBlock(selectionState: SelectionState): void {
-		let anchorBlockNode = this.getBlockByPath(selectionState.anchorKey.get()) as BlockNode;
-		let focusBlockNode = this.getBlockByPath(selectionState.focusKey.get()) as BlockNode;
+		let anchorBlockNode = this.getBlockByPath(selectionState.anchorPath.get()) as BlockNode;
+		let focusBlockNode = this.getBlockByPath(selectionState.focusPath.get()) as BlockNode;
 
 		if (selectionState.isFullBlockSelected() === true) {
-			let SliceAnchor = selectionState.anchorKey;
-			this.sliceBlockFromContent(SliceAnchor.getLastIndex(), SliceAnchor.getLastIndex() + 1);
+			let textSliceAnchor = selectionState.anchorPath;
+			this.sliceBlockFromContent(textSliceAnchor.getLastIndex(), textSliceAnchor.getLastIndex() + 1);
 
 			selectionState.moveSelectionToPreviousSibling(this);
 		}
 
-		let anchorCharNode = anchorBlockNode.CharData ? anchorBlockNode.CharData[selectionState.anchorCharKey] : undefined;
-		let focusCharNode = focusBlockNode.CharData ? focusBlockNode.CharData[selectionState.focusCharKey] : undefined;
+		let anchorNodeData = anchorBlockNode.NodeData ? anchorBlockNode.NodeData[selectionState.anchorNodeKey] : undefined;
+		let focusNodeData = focusBlockNode.NodeData ? focusBlockNode.NodeData[selectionState.focusNodeKey] : undefined;
 
-		if (anchorCharNode === undefined && focusCharNode === undefined) return;
+		if (anchorNodeData === undefined && focusNodeData === undefined) return;
 		else if (selectionState.isCollapsed) {
-			if (selectionState.anchorCharKey === 0 && selectionState.anchorOffset === 0) {
+			if (selectionState.isOffsetOnStart()) {
 				let currentContentNode = undefined;
-				if (selectionState.anchorKey.length() === 1) currentContentNode = this;
-				else currentContentNode = this.getBlockByPath(selectionState.anchorKey.getPathBeforeLast());
+				if (selectionState.anchorPath.length() === 1) currentContentNode = this;
+				else currentContentNode = this.getBlockByPath(selectionState.anchorPath.getPathBeforeLast());
 
 				currentContentNode = currentContentNode.ContentNode ?? currentContentNode;
 
-				if (selectionState.anchorKey.getLastIndex() !== 0 && currentContentNode instanceof ContentNode) {
-					let previousBlockPath = new BlockPath(selectionState.anchorKey.get());
+				if (selectionState.anchorPath.getLastIndex() !== 0 && currentContentNode instanceof ContentNode) {
+					let previousBlockPath = new BlockPath(selectionState.anchorPath.get());
 					previousBlockPath.decrementLastPathIndex(1);
 
 					let previousBlock = currentContentNode.BlockNodes[previousBlockPath.getLastIndex()] as BlockNode;
 
 					if (previousBlock.getType() !== STANDART_BLOCK_TYPE) {
-						currentContentNode.sliceBlockFromContent(selectionState.anchorKey.getLastIndex(), selectionState.anchorKey.getLastIndex() + 1);
+						currentContentNode.sliceBlockFromContent(selectionState.anchorPath.getLastIndex(), selectionState.anchorPath.getLastIndex() + 1);
 						selectionState.toggleCollapse();
 						selectionState.convertBreakLineToText();
 					} else {
@@ -396,221 +467,222 @@ export default class ContentNode {
 					}
 				}
 			} else {
-				if (anchorCharNode === undefined || anchorBlockNode === undefined) return;
-				let SliceAnchor = selectionState.anchorOffset - 1;
+				if (anchorNodeData === undefined || anchorBlockNode === undefined) return;
+				let textSliceAnchor = selectionState.anchorOffset - 1;
 				let SliceFocus = selectionState.focusOffset;
-				let anchorCharType = anchorCharNode.returnType();
+				let anchorNodeType = anchorNodeData.returnType();
 
 				if (selectionState.anchorOffset === 0) {
-					if (anchorBlockNode.previousSibling(selectionState.anchorCharKey)?.returnType() === ELEMENT_NODE_TYPE) {
-						anchorBlockNode.removeCharNode(selectionState.anchorCharKey - 1);
-						selectionState.anchorCharKey -= 1;
+					if (anchorBlockNode.previousSibling(selectionState.anchorNodeKey)?.returnType() === ELEMENT_NODE_TYPE) {
+						anchorBlockNode.removeCharNode(selectionState.anchorNodeKey - 1);
+						selectionState.anchorNodeKey -= 1;
 						selectionState.toggleCollapse();
 						selectionState.isDirty = true;
 					}
-				} else if (anchorCharType === TEXT_NODE_TYPE) {
-					anchorCharNode = anchorCharNode as TextNode;
-					this.TextNodeSlice(anchorCharNode, '', SliceAnchor, SliceFocus);
+				} else if (anchorNodeType === TEXT_NODE_TYPE) {
+					anchorNodeData = anchorNodeData as TextNode;
+					this.TextNodeSlice(anchorNodeData, '', textSliceAnchor, SliceFocus);
 
-					if (anchorBlockNode.lastNodeIndex() > 0 && anchorCharNode.returnContent() === '') {
-						anchorBlockNode.CharData.splice(selectionState.anchorCharKey, 1);
+					if (anchorBlockNode.lastNodeIndex() > 0 && anchorNodeData.returnContent() === '') {
+						anchorBlockNode.removeCharNode(selectionState.anchorNodeKey)
 						selectionState.moveSelectionToPreviousSibling(this);
 					} else {
 						selectionState.moveSelectionBack();
-						if (anchorBlockNode.lastNodeIndex() === 0 && anchorCharNode.returnContentLength() === 0) {
-							selectionState.isDirty = true;
+						if (anchorBlockNode.lastNodeIndex() === 0 && anchorNodeData.returnContentLength() === 0) {
+							selectionState.enableDirty()
 						}
 					}
 				}
 			}
 		} else {
-			if (selectionState.pathIsEqual() === true) {
-				if (selectionState.anchorCharKey === selectionState.focusCharKey) {
-					if (ValidationUtils.isTextNode(anchorCharNode)) {
-						anchorCharNode = anchorCharNode as TextNode;
+			if (selectionState.blockPathIsEqual() === true) {
+				if (selectionState.isNodesSame()) {
+					if (ValidationUtils.isTextNode(anchorNodeData)) {
+						anchorNodeData = anchorNodeData as TextNode;
 
-						let SliceAnchor = selectionState.anchorOffset;
-						let SliceFocus = selectionState.focusOffset;
+						let textSliceAnchor = selectionState.anchorOffset;
+						let textSliceFocus = selectionState.focusOffset;
 
-						this.TextNodeSlice(anchorCharNode, '', SliceAnchor, SliceFocus);
+						this.TextNodeSlice(anchorNodeData, '', textSliceAnchor, textSliceFocus);
 
-						if (anchorCharNode.returnContent() === '') {
-							anchorBlockNode.CharData.splice(selectionState.anchorCharKey, 1);
+						if (anchorNodeData.returnContent() === '') {
+							anchorBlockNode.removeCharNode(selectionState.anchorNodeKey);
 							selectionState.moveSelectionToPreviousSibling(this);
 						} else selectionState.toggleCollapse();
 					} else {
-						anchorBlockNode.CharData.splice(selectionState.anchorCharKey, 1);
+						anchorBlockNode.removeCharNode(selectionState.anchorNodeKey);
 						selectionState.moveSelectionToPreviousSibling(this);
 					}
-				} else if (selectionState.anchorCharKey !== selectionState.focusCharKey) {
-					let SliceAnchor = selectionState.anchorOffset;
-					let SliceFocus = selectionState.focusOffset;
+				} else if (selectionState.anchorNodeKey !== selectionState.focusNodeKey) {
+					let textSliceAnchor = selectionState.anchorOffset;
+					let textSliceFocus = selectionState.focusOffset;
 
-					let CharSliceAnchor = selectionState.anchorCharKey + 1;
-					let CharSliceFocus = selectionState.focusCharKey;
+					let nodeSliceAnchor = selectionState.anchorNodeKey + 1;
+					let nodeSliceFocus = selectionState.focusNodeKey;
 
-					if (ValidationUtils.isTextNode(anchorCharNode)) {
-						anchorCharNode = anchorCharNode as TextNode;
-						this.TextNodeSlice(anchorCharNode, '', SliceAnchor);
-						if (anchorCharNode.returnContent() === '') {
-							CharSliceAnchor -= 1;
+					if (ValidationUtils.isTextNode(anchorNodeData)) {
+						anchorNodeData = anchorNodeData as TextNode;
+						this.TextNodeSlice(anchorNodeData, '', textSliceAnchor);
+						if (anchorNodeData.returnContent() === '') {
+							nodeSliceAnchor -= 1;
 							selectionState.moveSelectionToPreviousSibling(this);
 						} else {
 							selectionState.toggleCollapse();
 							selectionState.isDirty = true;
 						}
 					} else {
-						CharSliceFocus -= 1;
+						nodeSliceFocus -= 1;
 						selectionState.moveSelectionToPreviousSibling(this);
 					}
 
-					if (ValidationUtils.isTextNode(focusCharNode)) {
-						focusCharNode = focusCharNode as TextNode;
-						this.TextNodeSlice(focusCharNode, '', SliceFocus, -1);
-						if (focusCharNode.returnContent() === '') CharSliceFocus += 1;
-					} else CharSliceFocus += 1;
+					if (ValidationUtils.isTextNode(focusNodeData)) {
+						focusNodeData = focusNodeData as TextNode;
+						this.TextNodeSlice(focusNodeData, '', textSliceFocus, -1);
+						if (focusNodeData.returnContent() === '') nodeSliceFocus += 1;
+					} else nodeSliceFocus += 1;
 
-					anchorBlockNode.splitCharNode(true, CharSliceAnchor, CharSliceFocus);
+					anchorBlockNode.splitCharNode(true, nodeSliceAnchor, nodeSliceFocus);
 				}
-			} else if (selectionState.pathIsEqual() === false) {
-				let SliceAnchor = selectionState.anchorOffset;
-				let SliceFocus = selectionState.focusOffset;
+			} else if (selectionState.blockPathIsEqual() === false) {
+				let textSliceAnchor = selectionState.anchorOffset;
+				let textSliceFocus = selectionState.focusOffset;
 
-				let BlockSliceAnchor = selectionState.anchorKey.getLastIndex() + 1;
-				let BlockSliceFocus = selectionState.focusKey.getLastIndex();
+				let BlockSliceAnchor = selectionState.anchorPath.getLastIndex() + 1;
+				let BlockSliceFocus = selectionState.focusPath.getLastIndex();
 
-				let CharSliceAnchor = selectionState.anchorCharKey + 1;
-				let CharSliceFocus = selectionState.focusCharKey;
+				let nodeSliceAnchor = selectionState.anchorNodeKey + 1;
+				let nodeSliceFocus = selectionState.focusNodeKey;
 
-				anchorCharNode = anchorCharNode as TextNode;
-				focusCharNode = focusCharNode as TextNode;
+				anchorNodeData = anchorNodeData as TextNode;
+				focusNodeData = focusNodeData as TextNode;
 
-				if (anchorCharNode === undefined) BlockSliceAnchor -= 1;
+				if (anchorNodeData === undefined) BlockSliceAnchor -= 1;
 				else {
-					if (ValidationUtils.isTextNode(anchorCharNode)) {
-						anchorCharNode = anchorCharNode as TextNode;
-						this.TextNodeSlice(anchorCharNode, '', SliceAnchor);
-						if (anchorCharNode.returnContent() === '') {
-							CharSliceAnchor -= 1;
+					if (ValidationUtils.isTextNode(anchorNodeData)) {
+						anchorNodeData = anchorNodeData as TextNode;
+						this.TextNodeSlice(anchorNodeData, '', textSliceAnchor);
+						if (anchorNodeData.returnContent() === '') {
+							nodeSliceAnchor -= 1;
 							selectionState.moveSelectionToPreviousSibling(this);
 						} else {
 							selectionState.toggleCollapse();
 							selectionState.isDirty = true;
 						}
 					} else {
-						CharSliceAnchor -= 1;
+						nodeSliceAnchor -= 1;
 						selectionState.moveSelectionToPreviousSibling(this);
 					}
-					anchorBlockNode.bulkRemoveCharNode(true, CharSliceAnchor);
+					anchorBlockNode.bulkRemoveCharNode(true, nodeSliceAnchor);
 				}
 
-				if (focusCharNode !== undefined) {
-					if (ValidationUtils.isTextNode(focusCharNode)) {
-						focusCharNode = focusCharNode as TextNode;
-						this.TextNodeSlice(focusCharNode, '', SliceFocus, -1);
-						if (focusCharNode.returnContent() === '') CharSliceFocus += 1;
-					} else CharSliceFocus += 1;
-					focusBlockNode.bulkRemoveCharNode(false, CharSliceFocus);
+				if (focusNodeData !== undefined) {
+					if (ValidationUtils.isTextNode(focusNodeData)) {
+						focusNodeData = focusNodeData as TextNode;
+						this.TextNodeSlice(focusNodeData, '', textSliceFocus, -1);
+						if (focusNodeData.returnContent() === '') nodeSliceFocus += 1;
+					} else nodeSliceFocus += 1;
+					focusBlockNode.bulkRemoveCharNode(false, nodeSliceFocus);
 				}
 
-				if (selectionState.anchorKey.length() > 1) {
-					let ParentNode = this.getBlockByPath(selectionState.anchorKey.getPathBeforeLast());
+				if (selectionState.anchorPath.length() > 1) {
+					let ParentNode = this.getBlockByPath(selectionState.anchorPath.getPathBeforeLast());
 
 					if (ParentNode.ContentNode instanceof ContentNode) {
 						ParentNode.ContentNode.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus);
 						this.MergeWithUpdate(ParentNode.ContentNode, selectionState, 'up', 'left');
 					}
 				} else {
-					this.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus);
+					this.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus)
 					this.MergeWithUpdate(this.BlockNodes, selectionState, 'up', 'left');
 				}
 			}
 		}
 	}
 	handleEnter(selectionState: SelectionState): void {
-		let anchorPath = selectionState.anchorKey;
+		let anchorBlockPath = selectionState.anchorPath;
 
 		if (
-			selectionState.anchorCharKey === 0 &&
+			selectionState.anchorNodeKey === 0 &&
 			selectionState.anchorOffset === 0 &&
 			selectionState.focusOffset === 0 &&
-			(selectionState.anchorNode as HTMLElement)?.tagName !== BREAK_LINE
+			(selectionState.anchorNode as HTMLElement)?.tagName !== BREAK_LINE_TAGNAME
 		) {
-			this.getCurrentContentNode(anchorPath).insertBlockNodeBetween(
-				new BlockNode({CharData: [new TextNode()]}),
-				anchorPath.getLastIndex(),
-				anchorPath.getLastIndex(),
+			this.getCurrentContentNode(anchorBlockPath).insertBlockNodeBetween(
+				new BlockNode({NodeData: [new TextNode()]}),
+				anchorBlockPath.getLastIndex(),
+				anchorBlockPath.getLastIndex(),
 			);
 			selectionState.moveSelectionToNextSibling(this);
 		} else if (selectionState.isCollapsed) {
-			let CurrentBlock = this.getBlockByPath(anchorPath.get());
-			let anchorOffsetChar = CurrentBlock.findCharByIndex(selectionState.anchorCharKey) as TextNode;
+			let CurrentBlock = this.getBlockByPath(anchorBlockPath.get());
+			let anchorOffsetChar = CurrentBlock.findCharByIndex(selectionState.anchorNodeKey) as TextNode;
 
-			let CharNodeSlice = selectionState.anchorCharKey;
+			let CharNodeSlice = selectionState.anchorNodeKey;
 			let SlicedCharNode = undefined;
-			let currentContentNode: ContentNode = this.getCurrentContentNode(anchorPath);
+			let currentContentNode: ContentNode = this.getCurrentContentNode(anchorBlockPath);
 
 			if (selectionState.anchorOffset !== 0) {
 				if (ValidationUtils.isTextNode(anchorOffsetChar)) {
 					let SliceContent = anchorOffsetChar.getSlicedContent(false, selectionState.anchorOffset);
 					this.TextNodeSlice(anchorOffsetChar, '', selectionState.anchorOffset);
 					CharNodeSlice += 1;
-					SlicedCharNode = new TextNode(SliceContent, anchorOffsetChar.returnNodeStyle());
+					SlicedCharNode = anchorOffsetChar.createSelfNode({plainText: SliceContent, stylesArr: anchorOffsetChar.returnNodeStyle()});
 				} else {
 					CharNodeSlice += 1;
 					SlicedCharNode = new TextNode();
 				}
 			}
-			let SliceCharNodes = CurrentBlock.CharData.slice(CharNodeSlice);
+			let SliceCharNodes = CurrentBlock.NodeData.slice(CharNodeSlice);
 			CurrentBlock.splitCharNode(true, CharNodeSlice);
+
 
 			if (SlicedCharNode !== undefined) {
 				SliceCharNodes = [SlicedCharNode, ...SliceCharNodes];
 			}
 
 			let newBlockNode = new BlockNode({
-				CharData: SliceCharNodes,
+				NodeData: SliceCharNodes,
 				blockWrapper: CurrentBlock.blockWrapper,
 			});
 
-			currentContentNode.insertBlockNodeBetween(newBlockNode, anchorPath.getLastIndex() + 1, anchorPath.getLastIndex() + 1);
+			currentContentNode.insertBlockNodeBetween(newBlockNode, anchorBlockPath.getLastIndex() + 1, anchorBlockPath.getLastIndex() + 1);
 
 			selectionState.moveSelectionToNextSibling(this);
 		} else {
-			if (selectionState.pathIsEqual()) {
-				let AnchorBlock = this.getBlockByPath(anchorPath.get()) as BlockNode;
-				let currentContentNode: ContentNode = this.getCurrentContentNode(anchorPath);
+			if (selectionState.blockPathIsEqual()) {
+				let AnchorBlock = this.getBlockByPath(anchorBlockPath.get()) as BlockNode;
+				let currentContentNode: ContentNode = this.getCurrentContentNode(anchorBlockPath);
 
-				let anchorCharNode = AnchorBlock.getNodeByIndex(selectionState.anchorCharKey);
-				let focusCharNode = AnchorBlock.getNodeByIndex(selectionState.focusCharKey);
+				let anchorNodeData = AnchorBlock.getNodeByIndex(selectionState.anchorNodeKey);
+				let focusNodeData = AnchorBlock.getNodeByIndex(selectionState.focusNodeKey);
 
-				let anchorNodeSlice = selectionState.anchorCharKey + 1;
-				let focusNodeSlice = selectionState.focusCharKey + 1;
+				let anchorNodeSlice = selectionState.anchorNodeKey + 1;
+				let focusNodeSlice = selectionState.focusNodeKey + 1;
 				let SlicedTextNode: undefined | TextNode = undefined;
 
 				if (anchorNodeSlice !== focusNodeSlice) {
-					if (ValidationUtils.isTextNode(anchorCharNode)) {
-						this.TextNodeSlice(anchorCharNode as TextNode, '', selectionState.anchorOffset);
+					if (ValidationUtils.isTextNode(anchorNodeData)) {
+						this.TextNodeSlice(anchorNodeData as TextNode, '', selectionState.anchorOffset);
 					} else focusNodeSlice += 1;
 
-					if (ValidationUtils.isTextNode(focusCharNode)) {
-						SlicedTextNode = new TextNode(
-							(focusCharNode as TextNode).getSlicedContent(false, selectionState.focusOffset),
-							(focusCharNode as TextNode).returnNodeStyle(),
-						);
-						this.TextNodeSlice(focusCharNode as TextNode, '', selectionState.focusOffset, -1);
+					if (ValidationUtils.isTextNode(focusNodeData)) {
+						SlicedTextNode = (focusNodeData as TextNode).createSelfNode({
+							plainText: (focusNodeData as TextNode).getSlicedContent(false, selectionState.focusOffset),
+							stylesArr: (focusNodeData as TextNode).returnNodeStyle(),
+						});
+						this.TextNodeSlice(focusNodeData as TextNode, '', selectionState.focusOffset, -1);
 					} else focusNodeSlice += 1;
 				} else {
-					if (ValidationUtils.isTextNode(anchorCharNode)) {
-						SlicedTextNode = new TextNode(
-							(focusCharNode as TextNode).getSlicedContent(false, selectionState.focusOffset),
-							(focusCharNode as TextNode).returnNodeStyle(),
-						);
-						this.TextNodeSlice(anchorCharNode as TextNode, '', selectionState.anchorOffset);
+					if (ValidationUtils.isTextNode(anchorNodeData)) {
+						SlicedTextNode = (focusNodeData as TextNode).createSelfNode({
+							plainText: (focusNodeData as TextNode).getSlicedContent(false, selectionState.focusOffset),
+							stylesArr: (focusNodeData as TextNode).returnNodeStyle(),
+						});
+						this.TextNodeSlice(anchorNodeData as TextNode, '', selectionState.anchorOffset);
 					} else focusNodeSlice += 1;
 				}
 
-				let SliceCharNodes = AnchorBlock.CharData.slice(focusNodeSlice);
+				let SliceCharNodes = AnchorBlock.NodeData.slice(focusNodeSlice);
 				if (SlicedTextNode !== undefined) {
 					SliceCharNodes = [SlicedTextNode, ...SliceCharNodes];
 				}
@@ -619,14 +691,14 @@ export default class ContentNode {
 				SliceCharNodes = SliceCharNodes.length > 0 ? SliceCharNodes : [new TextNode()];
 
 				let NewBlock = new BlockNode({
-					CharData: SliceCharNodes,
+					NodeData: SliceCharNodes,
 					blockType: AnchorBlock.blockType,
 				});
 
-				currentContentNode.insertBlockNodeBetween(NewBlock, anchorPath.getLastIndex() + 1, anchorPath.getLastIndex() + 1);
+				currentContentNode.insertBlockNodeBetween(NewBlock, anchorBlockPath.getLastIndex() + 1, anchorBlockPath.getLastIndex() + 1);
 
 				selectionState.moveSelectionToNextSibling(this);
-			} else if (selectionState.pathIsEqual() === false) {
+			} else if (selectionState.blockPathIsEqual() === false) {
 				this.removeLetterFromBlock(selectionState);
 			}
 		}
