@@ -1,34 +1,38 @@
 import {ClassVariables} from './Interfaces';
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE, STANDART_BLOCK_TYPE} from './ConstVariables';
-import {getChildrenNodes,} from './EditorUtils';
+import {getChildrenNodes, isDefined} from './EditorUtils';
 
 import ContentNode from './ContentNode';
 import type {BlockType} from './BlockNode';
-import type BlockNode from './BlockNode';
+import BlockNode from './BlockNode';
 
-interface blockNodeData {
-	blockNode: HTMLElement | Node;
-	index: Array<number>;
+import {getEditorState} from './EditorState'
+
+import {AiteHTMLNode} from './AITEreconciliation'
+
+interface blockNodeDataExtended {
+	node: HTMLElement | Node;
+	nodePath: Array<number>;
 	elementType: string | null;
-}
-interface blockNodeDataExtended extends blockNodeData {
-	charKey: number;
 }
 
 export interface selectionData {
 	charNode: HTMLElement;
-	charIndex: null | number;
-	blockNode: HTMLElement | null;
-	blockPath: Array<number>;
+	nodePath: Array<number>;
 }
 
-export type SelectionStateData = ClassVariables<SelectionState>;
+
+interface insertSelection extends Omit<ClassVariables<SelectionState>, 'anchorPath' | 'focusPath'>{
+	anchorPath: Array<number>;
+	focusPath: Array<number>;
+}
+
 
 export class BlockPath {
 	path: Array<number>;
 
 	constructor(path?: Array<number>) {
-		this.path = path ?? [0];
+		this.path = path ?? [];
 	}
 
 	set(path: Array<number> | undefined): void {
@@ -68,6 +72,9 @@ export class BlockPath {
 		if (this.length() > 1) {
 			return this.path.slice(0, this.length() - 1);
 		}
+		else if(this.length() === 1) {
+			return []
+		}
 		return this.path;
 	}
 
@@ -106,17 +113,17 @@ export class SelectionState {
 		this.anchorPath = new BlockPath();
 		this.focusPath = new BlockPath();
 
-		this.anchorNodeKey = 0;
-		this.focusNodeKey = 0;
+		this.anchorNodeKey = 0; // TODO: MEGRGE WITH PATH
+		this.focusNodeKey = 0; // TODO: MEGRGE WITH PATH
 
-		this._anchorNode = null;
-		this._focusNode = null;
+		this._anchorNode = null; // DEPRECATED / MAYBE CAN BE USED TO SPEEDUP PERFMONCE
+		this._focusNode = null; // DEPRECATED / MAYBE CAN BE USED TO SPEEDUP PERFMONCE
 
 		this.anchorType = null;
 		this.focusType = null;
 
 		this.isCollapsed = false;
-		this.isDirty = false;
+		this.isDirty = false; // DEPRECATED / RANGE USING HTML FRAGMENT TO FIND NODES
 	}
 
 	set anchorNode(Node: Node | number | null) {
@@ -147,19 +154,76 @@ export class SelectionState {
 		return this._focusNode;
 	}
 
+
+	// DEPRECATED / TODO
 	isNodesSame(): boolean {
 		return this.focusNodeKey === this.anchorNodeKey
 	}
 
-	enableDirty(){
-		this.isDirty = true;
+	/**
+	 * Проверяет навраления каретки на backward
+	 * @returns boolean - возращает ответ от условия
+	 */
+	isSelectionBackward(sel: Selection) {
+		let pos = sel?.anchorNode?.compareDocumentPosition(sel.focusNode as HTMLElement);
+		if ((!pos && sel.anchorOffset > sel.focusOffset) || pos === Node.DOCUMENT_POSITION_PRECEDING) return true;
+		return false;
 	}
 
-	isOffsetOnStart(): boolean {
+	/**
+	 * Проверяет якорь ли фокус каретки в начале
+	 * @returns boolean - возращает ответ от условия
+	 */
+	isAnchorOnStart(): boolean {
 		return this.anchorNodeKey === 0 && this.anchorOffset === 0
 	}
 
-	resetSelection(): void {
+	/**
+	 * Проверяет стоит ли фокус каретки в начале
+	 * @returns boolean - возращает ответ от условия
+	 */
+	isFocusOnStart(): boolean {
+		return this.focusNodeKey === 0 && this.focusOffset === 0
+	}
+
+	
+	/**
+	 * Проверяет стоит ли якори и фокус  каретки в начале
+	 * @returns boolean - возращает ответ от условия
+	 */
+	isOffsetOnStart(): boolean {
+		return (
+			this.anchorNodeKey === 0 && 
+			this.anchorOffset === 0 &&
+			this.focusNodeKey === 0 && 
+			this.focusOffset === 0
+		)
+	}
+
+	// DEPRECATED / DONT USED
+	isFullBlockSelected(): boolean {
+		if (
+			(this.anchorNodeKey === 0 || this.anchorNodeKey === -1) &&
+			this.anchorOffset === 0 &&
+			this.focusPath.getLastIndex() === this.anchorPath.getLastIndex() + 1 &&
+			(this.focusNodeKey === 0 || this.focusNodeKey === -1) &&
+			this.focusOffset === 0
+		)
+			return true;
+		else return false;
+	}
+
+	// DEPRECATED / TODO: REMOVE
+	enableDirty(): SelectionState{
+		this.isDirty = true;
+		return this
+	}
+
+	/**
+	 * Обнуляет полностью весь SelectionState
+	 * @returns SelectionState - собственный возрат
+	 */
+	resetSelection(): SelectionState {
 		this.anchorOffset = 0;
 		this.focusOffset = 0;
 
@@ -177,70 +241,69 @@ export class SelectionState {
 
 		this.isCollapsed = false;
 		this.isDirty = false;
+		return this;
+	}
+	/**
+	 * Обнуляет позицию каретки в блоке до начала
+	 * @returns SelectionState - собственный возрат
+	 */
+	offsetToZero(): SelectionState{
+		this.anchorOffset = 0;
+		this.focusOffset = 0;
+		this.anchorNodeKey = 0;
+		this.focusNodeKey = 0;
+		return this
 	}
 
-	isNodeAfterRoot(node: HTMLElement): boolean {
-		let parentElement = node?.parentElement
-		if(node?.parentElement?.dataset.aiteNodePack !== undefined) {
-			parentElement = parentElement?.parentNode as HTMLElement
-		}
-		if(parentElement!.dataset.aite_editor_root !== undefined) return true
-		return false
-	}
+	/**
+	 * Выстраивает путь до узла соблюдая объектную структуру редактора 
+	 * @param  {AiteHTMLNode} node  - узел для нахождения пути
+	 * @returns selectionData - собственный возрат
+	 */
+	getPathToNodeByNode(node: AiteHTMLNode): selectionData | undefined{
 
-	getPathToNodeByNode(node: HTMLElement): selectionData {
+		if(node.$$isAiteNode === true){
+			node = node.firstChild ? (node.firstChild as AiteHTMLNode) : node;
 
-		let path: Array<number> = [];
-	
-		node = node.firstChild ? (node.firstChild as HTMLElement) : node;
-	
-		let data: selectionData = {
-			charNode: node,
-			charIndex: null,
-			blockNode: null,
-			blockPath: path,
-		};
-	
-	
-		while (true) {
-			let parentNode = node.parentNode as HTMLElement
-	
-			let nodeDataSet = parentNode?.dataset;
-			if (nodeDataSet.aite_block_node !== undefined || nodeDataSet.aite_block_content_node !== undefined || nodeDataSet.aiteNodePack !== undefined) {
-				let children 
-				if(nodeDataSet.aiteNodePack !== undefined){
-					children = getChildrenNodes(parentNode.parentNode as HTMLElement)
-				} else children = getChildrenNodes(parentNode)
-				
-				let index = children.indexOf(node);
-				if (data.charIndex === null) {
-					data.charIndex = index;
-					data.blockNode = parentNode as HTMLElement;
-				}
-				else{
-					if(nodeDataSet.aiteNodePack !== undefined){
-						children = getChildrenNodes(parentNode.parentNode as HTMLElement)
-						index = children.indexOf(node);
-						if(this.isNodeAfterRoot(node) === false) path.unshift(index)
-					}
-					else if(this.isNodeAfterRoot(parentNode.parentNode as HTMLElement) === false) path.unshift(index);
-				}
-				if(nodeDataSet.aiteNodePack !== undefined){
-					parentNode = node.parentNode?.parentNode as HTMLElement
-					nodeDataSet = parentNode?.dataset;
-				}
+			if(node instanceof Text){
+				node = node.parentNode as AiteHTMLNode;
 			}
-			if (nodeDataSet.aite_editor_root !== undefined) {
-				let children = getChildrenNodes(parentNode)
-				path.unshift(children.indexOf(node));
-				return data;
-			} else if (node.tagName === 'BODY' || node === undefined) break;
-			node = parentNode;
+		
+			let data: selectionData = {
+				charNode: node,
+				nodePath: [],
+			};
+
+
+			while(node !== undefined) {
+				let parentNode = node.parentNode as AiteHTMLNode
+				if(parentNode?.dataset?.aite_editor_root !== undefined){
+					let nodeIndex = Array.from(parentNode.children).indexOf(node);
+					data.nodePath.unshift(nodeIndex)
+					return data
+				}
+				if(parentNode.$$isAiteWrapper === false){
+					if(node.dataset.aite_content_node === undefined){
+						let nodeIndex = Array.from(parentNode.children).indexOf(node);
+						data.nodePath.unshift(nodeIndex)
+					}
+					if(parentNode?.dataset?.aite_editor_root !== undefined){
+						return data
+					}
+				}
+				node = parentNode
+			}	
 		}
-		return data;
+		return undefined
 	}
 
-	moveSelectionToNextSibling(ContentNode: ContentNode, step?: number): void {
+	/**
+	 * Сдвигает позицию каретки на следущией узел или блок
+	 * @param  {ContentNode} ContentNode - ContentNode в котором будет искаться узла
+	 * @param  {number} step - оступ для от начала узла
+	 * @returns SelectionState - собственный возрат
+	 */
+	moveSelectionToNextSibling(ContentNode: ContentNode, step?: number): SelectionState {
 		let blockIndex = this.focusPath;
 		let focusChar = this.focusNodeKey + 1;
 
@@ -250,7 +313,7 @@ export class SelectionState {
 		if (nextNode === undefined) {
 			while (nextNode === undefined) {
 				blockIndex.incrementLastPathIndex(1);
-				ContentNode.getBlockByPath(this.focusPath.get());
+				FocusBlock = ContentNode.getBlockByPath(this.focusPath.get());
 				if (FocusBlock === undefined) break;
 				else if (FocusBlock.getType() === STANDART_BLOCK_TYPE) {
 					nextNode = (FocusBlock as BlockNode).NodeData[0];
@@ -279,9 +342,98 @@ export class SelectionState {
 
 			this.isDirty = true;
 		}
+		return this
 	}
 
-	moveSelectionToPreviousSibling(ContentNode: ContentNode): void {
+
+	/**
+	 * Сдвигает позицию каретки на предыдущий блок
+	 * @param  {ContentNode} ContentNode - ContentNode в котором будет искаться узла
+	 * @returns SelectionState - собственный возрат
+	 */
+	moveSelectionToPreviousBlock(ContentNode: ContentNode): SelectionState{
+		this.anchorPath.decrementLastPathIndex(1)
+		let anchorBlock = ContentNode.getBlockByPath(this.anchorPath.get());
+
+		let lastNode;
+		let lastNodeIndex: number | undefined
+
+		if(anchorBlock instanceof BlockNode){
+			lastNode = anchorBlock.getNodeByIndex(anchorBlock.lastNodeIndex())
+			lastNodeIndex = anchorBlock.lastNodeIndex();
+		}
+		else{
+			while(anchorBlock !== undefined){
+				this.anchorPath.decrementLastPathIndex(1)
+				anchorBlock = ContentNode.getBlockByPath(this.anchorPath.get());
+				if(anchorBlock instanceof BlockNode){
+					lastNode = anchorBlock.getNodeByIndex(anchorBlock.lastNodeIndex())
+					lastNodeIndex = anchorBlock.lastNodeIndex();
+				}
+			}
+		}
+		if(lastNode && isDefined(lastNodeIndex)){
+
+			this.anchorOffset = lastNode.returnContentLength();
+			this.focusOffset = lastNode.returnContentLength();
+
+			this.anchorNodeKey = lastNodeIndex ?? 0;
+			this.focusNodeKey = lastNodeIndex ?? 0;
+
+			this.anchorType = lastNode.returnType() !== 'text' ? 'element' : 'text';
+			this.focusType = this.anchorType;
+
+			this.isDirty = true;
+		}
+		return this
+	}
+
+	/**
+	 * Сдвигает позицию каретки на следущией блок
+	 * @param  {ContentNode} ContentNode - ContentNode в котором будет искаться узла
+	 * @returns SelectionState - собственный возрат
+	 */
+	moveSelectionToNextBlock(ContentNode: ContentNode): SelectionState{
+		this.anchorPath.decrementLastPathIndex(1)
+		let anchorBlock = ContentNode.getBlockByPath(this.anchorPath.get());
+
+		let firstNode;
+
+		if(anchorBlock instanceof BlockNode){
+			firstNode = anchorBlock.getNodeByIndex(0)
+		}
+		else{
+			while(anchorBlock !== undefined){
+				this.anchorPath.decrementLastPathIndex(1)
+				anchorBlock = ContentNode.getBlockByPath(this.anchorPath.get());
+				if(anchorBlock instanceof BlockNode){
+					firstNode = anchorBlock.getNodeByIndex(0)
+				}
+			}
+		}
+		if(firstNode){
+
+			this.anchorOffset = 0
+			this.focusOffset = 0
+
+			this.anchorNodeKey = 0;
+			this.focusNodeKey = 0;
+
+			this.anchorType = firstNode.returnType() !== 'text' ? 'element' : 'text';
+			this.focusType = this.anchorType;
+
+			this.isDirty = true;
+		}
+		return this
+	}
+
+	
+	/**
+	 * Сдвигает позицию каретки на предыдущий узел или блок
+	 * @param  {ContentNode} ContentNode - ContentNode в котором будет искаться узла
+	 * @returns SelectionState - собственный возрат
+	 */
+	moveSelectionToPreviousSibling(ContentNode: ContentNode): SelectionState {
 		let blockIndex = this.anchorPath;
 		let acnhorChar = this.anchorNodeKey - 1;
 
@@ -300,6 +452,7 @@ export class SelectionState {
 				}
 			}
 		}
+
 		if (nextNode !== undefined) {
 			this.anchorPath = blockIndex;
 			this.focusPath = blockIndex;
@@ -318,9 +471,34 @@ export class SelectionState {
 
 			this.isDirty = true;
 		}
+		return this
 	}
 
-	blockPathIsEqual(): boolean {
+	/**
+	 * Двигает offset каретки на один
+	 * @returns SelectionState - собственный возрат
+	 */
+	moveSelectionForward(): SelectionState {
+		this.anchorOffset += 1;
+		this.focusOffset += 1;
+		return this
+	}
+
+	/**
+	 * Сдвигает offset каретки на один
+	 * @returns SelectionState - собственный возрат
+	 */
+	moveSelectionBackward(): SelectionState {
+		this.anchorOffset -= 1;
+		this.focusOffset -= 1;
+		return this
+	}
+
+	/**
+	 * Проверяет ли одинаковые пути фокуса и якоря
+	 * @returns SelectionState - собственный возрат
+	 */
+	isBlockPathEqual(): boolean {
 		let focusPathArr = this.focusPath.get();
 		let anchorPathArr = this.anchorPath.get();
 		for (let i = 0; i < this.anchorPath.length(); i++) {
@@ -329,45 +507,14 @@ export class SelectionState {
 		return true;
 	}
 
-	moveSelectionForward(): void {
-		this.anchorOffset += 1;
-		this.focusOffset += 1;
-	}
-
-	moveSelectionBack(): void {
-		this.anchorOffset -= 1;
-		this.focusOffset -= 1;
-	}
-
-	convertBreakLineToText(): void {
-		this.isDirty = true;
-		this.anchorNode = this.anchorNodeKey;
-		this.focusNode = this.anchorNodeKey;
-
-		this.anchorType = TEXT_NODE_TYPE;
-		this.focusType = TEXT_NODE_TYPE;
-	}
-
-	isFullBlockSelected(): boolean {
-		if (
-			(this.anchorNodeKey === 0 || this.anchorNodeKey === -1) &&
-			this.anchorOffset === 0 &&
-			this.anchorPath !== this.focusPath &&
-			(this.focusNodeKey === 0 || this.focusNodeKey === -1) &&
-			this.focusOffset === 0
-		)
-			return true;
-		else return false;
-	}
-
 	getTextNode(node: HTMLElement): {isTextNode: boolean, TextNode: undefined | HTMLElement} {
 		let childrenNode: HTMLElement | undefined = node;
 		let data: {isTextNode: boolean, TextNode: undefined | HTMLElement} = {isTextNode: false, TextNode: undefined}
 		while(childrenNode !== undefined) {
-			if(childrenNode.nodeType === HTML_TEXT_NODE){
+			if(childrenNode?.nodeType === HTML_TEXT_NODE || childrenNode?.tagName === BREAK_LINE_TAGNAME){
 				data.isTextNode = true
 				data.TextNode = childrenNode
-				break;
+				return data
 			}
 			else childrenNode = childrenNode?.firstChild as HTMLElement
 			if(childrenNode === undefined) break
@@ -375,7 +522,12 @@ export class SelectionState {
 		return data
 	}
 
-	toggleCollapse(focus: boolean = false): void {
+	/**
+	 * Установавливает collapse каретки
+	 * @param  {boolean=false} focus - установить collapse каретки по фокусу
+	 * @returns SelectionState - собственный возрат
+	 */
+	toggleCollapse(focus: boolean = false): SelectionState {
 		this.isCollapsed = true;
 		if (focus === true) {
 			this.anchorOffset = this.focusOffset;
@@ -390,32 +542,39 @@ export class SelectionState {
 			this.focusNode = this.anchorNode;
 			this.focusNodeKey = this.anchorNodeKey;
 		}
+		return this
 	}
 
-	$getNodeType(node: Node | HTMLElement): string | null {
-		let type = null;
+	/**
+	 * Определяет тип узла
+	 * @param  {Node|HTMLElement|AiteHTMLNode} node - узел тип которого надо определить
+	 * @returns string - возращает текущей тип узла
+	 */
+	$getNodeType(node: Node | HTMLElement | AiteHTMLNode): string | null {
 
-		while (node.firstChild !== null) {
-			node = node.firstChild;
+		if(node.nodeName === BREAK_LINE_TAGNAME) return BREAK_LINE_TYPE;
+		else if(node.nodeType === HTML_TEXT_NODE) return TEXT_NODE_TYPE
+		else{
+			while (node.firstChild !== null) {
+				node = node.firstChild;
+			}
+
+			if (node.nodeType === HTML_TEXT_NODE || node.nodeName === BREAK_LINE_TYPE) return TEXT_NODE_TYPE;
+			else if(node.nodeName === BREAK_LINE_TAGNAME) return BREAK_LINE_TYPE;
+			else if (node.nodeType === 1) return ELEMENT_NODE_TYPE;
+
+			return null
 		}
-		if (node.nodeType === HTML_TEXT_NODE || node.nodeName === BREAK_LINE_TYPE) {
-			type = TEXT_NODE_TYPE;
-		} else if (node.nodeType === 1) {
-			type = ELEMENT_NODE_TYPE;
-		}
-		return type;
 	}
 
-	selectionIsBackward(sel: Selection) {
-		let pos = sel?.anchorNode?.compareDocumentPosition(sel.focusNode as HTMLElement);
-		if ((!pos && sel.anchorOffset > sel.focusOffset) || pos === Node.DOCUMENT_POSITION_PRECEDING) return true;
-		return false;
-	}
-
-	__reverseBackwardSelection() {
+	/**
+	 * Разварачивает направление каретки с backwarf на forward
+	 * @returns void
+	 */
+	__reverseBackwardSelection(): void {
 		let selectionCopy = {...this};
 
-		this.focusNode = selectionCopy.anchorNode;
+		this.focusNode = selectionCopy.anchorNode; 
 		this.anchorNode = selectionCopy.focusNode;
 
 		this.focusNode = selectionCopy.anchorOffset;
@@ -431,37 +590,32 @@ export class SelectionState {
 		this.anchorType = selectionCopy.focusType;
 	}
 
-	__getBlockNode<S>(node: Node, returnCharKey?: S extends boolean ? boolean : undefined): S extends boolean ? blockNodeDataExtended : blockNodeData;
-	__getBlockNode(node: Node, returnCharKey?: boolean | undefined): blockNodeDataExtended | blockNodeData {
-		let currentBlockData = this.getPathToNodeByNode(node as HTMLElement);
-		if (returnCharKey === true && currentBlockData !== undefined) {
+	/**
+	 * Получает текущее данные по выбранному узлу
+	 * @param  {Node} node - узел по которому надо получить данные
+	 * @returns blockNodeDataExtended - возращает путь, тип и сам узел
+	 */
+	__getBlockNode(node: Node): blockNodeDataExtended {
+		let currentBlockData = this.getPathToNodeByNode(node as AiteHTMLNode);
+		if (currentBlockData !== undefined) {
 			let ElementType = null;
-			let charIndex = currentBlockData.charIndex ?? -1;
-
 			if (node?.firstChild?.nodeName === BREAK_LINE_TAGNAME) {
 				ElementType = BREAK_LINE_TYPE;
-				charIndex = 0;
 			} else {
 				ElementType = this.$getNodeType(node);
 			}
 
 			let Result: blockNodeDataExtended = {
-				blockNode: currentBlockData.blockNode as HTMLElement,
-				index: currentBlockData.blockPath,
+				node: currentBlockData.charNode as AiteHTMLNode,
+				nodePath: currentBlockData.nodePath,
 				elementType: ElementType,
-				charKey: charIndex,
 			};
 			return Result;
-		} else if (returnCharKey === undefined && currentBlockData !== undefined) {
-			let Result: blockNodeData = {
-				blockNode: currentBlockData.blockNode as HTMLElement,
-				elementType: this.$getNodeType(node),
-				index: currentBlockData.blockPath,
-			};
-			return Result;
+			// TODO: REPLACE WITH onError METHOD
 		} else throw new Error(`Not returned return value during condition check`);
 	}
 
+	// DEPRECATED / TODO: TO REMOVE
 	$normailizeDirtySelection(EditorRef: React.MutableRefObject<HTMLDivElement>): void {
 		let EditorNode: HTMLDivElement = EditorRef.current;
 		let EditorNodes = getChildrenNodes(EditorNode);
@@ -506,26 +660,27 @@ export class SelectionState {
 			return currentBlock;
 		}
 
-		let anchorNodeBlock = undefined,
-			focusNodeBlock = undefined;
+		let anchorNodeBlock = undefined;
+		let focusNodeBlock = undefined;
 
 		if (this.anchorPath.length() === 1) anchorNodeBlock = EditorNodes[this.anchorPath.get()[0]];
 		else anchorNodeBlock = __getCharNode(this.anchorPath, EditorNodes[this.anchorPath.get()[0]] as HTMLElement);
 
 		if (this.anchorPath.length() === 1) focusNodeBlock = EditorNodes[this.focusPath.get()[0]];
 		else focusNodeBlock = __getCharNode(this.focusPath, EditorNodes[this.focusPath.get()[0]] as HTMLElement);
+
+
 		
 		let anchorNode = undefined;
 		let focusNode = undefined;
 
 		if (anchorNodeBlock !== undefined) anchorNode = getChildrenNodes(anchorNodeBlock)[this.anchorNodeKey] as HTMLElement;
 		if (focusNodeBlock !== undefined) focusNode = getChildrenNodes(focusNodeBlock)[this.focusNodeKey] as HTMLElement;
-		
-
-		console.log(Array.from(anchorNodeBlock!.children))
 
 		if (anchorNode !== undefined && focusNode !== undefined) {
 			let textNode = this.getTextNode(anchorNode)
+
+
 			if (textNode.isTextNode) this.anchorNode = textNode.TextNode as HTMLElement;
 			else this.anchorNode = anchorNode.firstChild;
 
@@ -535,90 +690,140 @@ export class SelectionState {
 		}
 	}
 
-	$getCountToBlock(nodeIndex: number, BlockNode: Array<Node>): number {
-		let SlicedBlockNodes = BlockNode.slice(0, nodeIndex + 1);
-		let LetterCount = 0;
-		SlicedBlockNodes.forEach((node: Node) => {
-			LetterCount += node.textContent?.length ?? 0;
-		});
-		return LetterCount;
-	}
-	$getCaretPosition(forceRange?: Range | undefined): void {
+	
+	/**
+	 * Получает текущее положение каретки используя
+	 * @param  {Range|undefined} forceRange - устанавливает карертку по внесенной Range
+	 * @returns void
+	 */
+	getCaretPosition(forceRange?: Range | undefined): void {
+
 		let selection = window.getSelection();
 		if (selection !== null) {
-			if (selection.anchorNode === null) return;
+			if (selection.anchorNode === null || selection.focusNode === null) return;
 
 			let range = forceRange ?? selection.getRangeAt(0);
 
 			let isCollapsed = selection.isCollapsed;
 			this.isCollapsed = isCollapsed;
-			let isBackward = this.selectionIsBackward(selection);
+			let isBackward = this.isSelectionBackward(selection);
 
 			let anchorTextNode = range.startContainer;
 			let focusTextNode = range.endContainer;
 
-			let anchorBlockNode = this.__getBlockNode<boolean>(anchorTextNode, true);
+			let anchorNodeData = this.__getBlockNode(anchorTextNode);
 
-			if (anchorBlockNode.blockNode !== null) {
+			if (anchorNodeData) {
+
 				this.anchorNode = anchorTextNode;
-				this.anchorType = anchorBlockNode.elementType;
-				this.anchorNodeKey = anchorBlockNode.charKey;
-				this.anchorPath.set(anchorBlockNode.index);
+				this.anchorType = anchorNodeData.elementType;
+				this.anchorNodeKey = anchorNodeData.nodePath[anchorNodeData.nodePath.length - 1];
+				this.anchorPath = new BlockPath(anchorNodeData.nodePath.slice(0, anchorNodeData.nodePath.length - 1));
 
-				this.anchorOffset = isBackward ? selection.focusOffset : selection.anchorOffset;
+				this.anchorOffset = isBackward ? selection.focusOffset: selection.anchorOffset;
 
 				if (isCollapsed) this.toggleCollapse();
 			}
 
 			if (!isCollapsed) {
-				let focusBlockNode = this.__getBlockNode<boolean>(focusTextNode, true);
+				let focusNodeData = this.__getBlockNode(focusTextNode);
 
 				this._focusNode = focusTextNode;
-				this.focusType = focusBlockNode.elementType;
-				this.focusNodeKey = focusBlockNode.charKey;
-				this.focusPath.set(focusBlockNode.index);
+				this.focusType = focusNodeData.elementType;
+				this.focusNodeKey = focusNodeData.nodePath[focusNodeData.nodePath.length - 1];
+				this.focusPath = new BlockPath(focusNodeData.nodePath.slice(0, focusNodeData.nodePath.length - 1));
 
-				this.focusOffset = isBackward ? selection.anchorOffset : selection.focusOffset;
+				this.focusOffset = isBackward ? selection.anchorOffset: selection.focusOffset;
 
-				if (anchorBlockNode.index.length !== focusBlockNode.index.length) {
+				if (this.anchorPath.length() !== this.focusPath.length()) {
 					this.toggleCollapse();
 					this.focusOffset = (this.focusNode as HTMLElement).textContent?.length ?? this.focusOffset;
 				}
 			}
 		}
 	}
+	
+	/**
+	 * Устанавливает текущее положение каретки используя собственные данные
+	 * @returns void
+	 */
 	setCaretPosition(): void {
 		let selection = window.getSelection();
 
-		if (selection && this.anchorNode !== null && this.focusNode !== null && this.isDirty === false) {
+		if (selection) {
 			let range = document.createRange();
+			let EditorState = getEditorState()
 
-			if (this.anchorType === TEXT_NODE_TYPE) {
-				let anchorNodeText = (this.anchorNode as Node).textContent;
+			let anchorPath = [...this.anchorPath.get(), this.anchorNodeKey]
+			let anchorNode = EditorState?.__editorDOMState.getDOMNode(anchorPath)
+			if(anchorNode === undefined) return;
+			let anchorType = this.$getNodeType(anchorNode)
+
+			let focusNode
+			let focusType
+			
+
+			if(this.isCollapsed){
+				focusNode = anchorNode
+			}
+			else{
+				let focusPath = [...this.focusPath.get(), this.focusNodeKey]
+				focusNode = EditorState?.__editorDOMState.getDOMNode(focusPath)
+				if(focusNode === undefined) return;
+				focusType = this.$getNodeType(focusNode)
+			}
+
+
+
+			if (anchorType === TEXT_NODE_TYPE) {
+				let anchorNodeText = (anchorNode as Node).textContent;
 				if (anchorNodeText !== null) {
 					if (this.anchorOffset > anchorNodeText.length) {
 						this.anchorOffset = anchorNodeText.length;
 					}
-					range.setStart(this.anchorNode as Node, this.anchorOffset);
+					range.setStart(anchorNode?.firstChild as Node, this.anchorOffset);
 				}
-			} else if (this.anchorType === ELEMENT_NODE_TYPE || this.anchorType === BREAK_LINE_TYPE) {
-				range.setStart(this.anchorNode as HTMLElement as Node, this.anchorOffset);
+			} else if (anchorType === ELEMENT_NODE_TYPE || anchorType === BREAK_LINE_TYPE) {
+				range.setStart(anchorNode as HTMLElement as Node, this.anchorOffset);
 			}
 
-			if (this.focusType === TEXT_NODE_TYPE) {
-				let focusNodeText = (this.focusNode as Node).textContent;
+			if (focusType === TEXT_NODE_TYPE) {
+				let focusNodeText = (focusNode as Node).textContent;
 				if (focusNodeText !== null) {
 					if (this.focusOffset > focusNodeText.length) {
 						this.focusOffset = focusNodeText.length;
 					}
-					range.setEnd(this.focusNode as Node, this.focusOffset);
+					range.setEnd(focusNode?.firstChild as Node, this.focusOffset);
 				}
-			} else if (this.focusType === ELEMENT_NODE_TYPE || this.anchorType === BREAK_LINE_TYPE) {
-				range.setEnd(this.focusNode as HTMLElement as Node, this.focusOffset);
+			} else if (focusType === ELEMENT_NODE_TYPE || focusType === BREAK_LINE_TYPE) {
+				range.setEnd(focusNode as HTMLElement as Node, this.focusOffset);
 			}
 
 			selection.removeAllRanges();
 			selection.addRange(range);
 		}
+	}
+
+	/**
+	 * Ручное внесение данных для каретки
+	 * @param  {insertSelection} SelectionData - все доступные параметры каретки 
+	 * @returns void
+	 */
+	insertSelection(SelectionData: insertSelection): void{
+
+		if(SelectionData.anchorOffset && typeof SelectionData.anchorOffset === 'number') this.anchorOffset = SelectionData.anchorOffset < this.anchorOffset ? 0 : SelectionData.anchorOffset
+		if(SelectionData.focusOffset && typeof SelectionData.anchorOffset === 'number') this.focusOffset = SelectionData.focusOffset < this.anchorOffset ? 0 : SelectionData.focusOffset
+		
+		if(SelectionData.anchorPath && Array.isArray(SelectionData.anchorPath) && !SelectionData.anchorPath.some(isNaN)) this.anchorPath.set(SelectionData.anchorPath)
+		if(SelectionData.focusPath && Array.isArray(SelectionData.focusPath) && !SelectionData.focusPath.some(isNaN)) this.focusPath.set(SelectionData.focusPath)
+
+		if(SelectionData.anchorNodeKey && typeof SelectionData.anchorNodeKey === 'number') this.anchorNodeKey = SelectionData.anchorNodeKey < this.anchorNodeKey ? 0 : SelectionData.anchorNodeKey
+		if(SelectionData.focusNodeKey && typeof SelectionData.focusNodeKey === 'number') this.focusNodeKey = SelectionData.focusNodeKey < this.focusNodeKey ? 0 : SelectionData.focusNodeKey
+
+		if(SelectionData.anchorType && (SelectionData.anchorType === 'text' || SelectionData.anchorType === 'element')) this.anchorType = SelectionData.anchorType
+		if(SelectionData.focusType && (SelectionData.focusType === 'text' || SelectionData.focusType === 'element')) this.focusType = SelectionData.focusType
+
+		this.isCollapsed = SelectionData.isCollapsed ?? this.isCollapsed;
+		this.isDirty = SelectionData.isDirty ?? this.isDirty;
 	}
 }

@@ -2,16 +2,20 @@ import React, {useState, useEffect} from 'react';
 
 import defaultBlocks from './defaultStyles/defaultBlocks';
 
-import {CreateReactEditor} from './rootElement';
-import {EditorState as editorState} from './EditorManagmentUtils';
+//import {CreateReactEditor} from './rootElement';
+import {createEmptyEditorState, updateActiveEditor} from './EditorState';
+import type {EditorState as editorState} from './EditorState';
 
 import EditorCommands from './EditorCommands';
 
 import activeElementState from './packages/AITE_ActiveState/activeElementState';
 import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
+import {isArrow} from './EditorUtils';
 
 import './defaultinlineStyles.scss';
 import './AITE_test.scss';
+
+import {createAITEContentNode, AiteHTMLNode, returnSingleDOMNode} from './AITEreconciliation';
 
 export type CharData = [string, Array<string>, Array<number>];
 
@@ -47,14 +51,13 @@ export function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent): bo
 export default function AITEditor(): JSX.Element {
 	const EditorRef = React.useRef<HTMLDivElement>(null!);
 
-	const [EditorState, setEditorState] = useState<editorState>(new editorState());
+	const [EditorState, setEditorState] = useState<editorState>(createEmptyEditorState());
 
 	function HandleKeyClick(event: React.KeyboardEvent) {
 		let Key = event.key;
-		const AllowedKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-		let isArrow = AllowedKeys.includes(Key);
+		let isArrowKey = isArrow(event);
 
-		if (EditorState.EditorActiveElementState?.isActive === false && isArrow === false) {
+		if (EditorState.EditorActiveElementState?.isActive === false && isArrowKey === false) {
 			if (Key === 'Backspace') {
 				event.preventDefault();
 				EditorState.EditorCommands?.dispatchCommand('LETTER_REMOVE_COMMAND', event);
@@ -65,21 +68,26 @@ export default function AITEditor(): JSX.Element {
 				event.preventDefault();
 				EditorState.EditorCommands?.dispatchCommand('LETTER_INSERT_COMMAND', event);
 			}
-		} else if (isArrow === false) event.preventDefault();
+		} else if (isArrowKey === false) event.preventDefault();
 	}
 
 	useEffect(() => {
 		if (EditorState.EditorCommands === undefined) {
-			EditorState.EditorActiveElementState = new activeElementState(() => setEditorState({...EditorState}), EditorState);
+			let EditorNodes = returnSingleDOMNode(createAITEContentNode(EditorState.contentNode)) as AiteHTMLNode[];
+			EditorRef.current.replaceChildren(...EditorNodes);
+			EditorState.__editorDOMState.__setDOMElement(EditorRef.current as any as AiteHTMLNode);
 
-			EditorState.EditorCommands = new EditorCommands(() => setEditorState({...EditorState}));
+			EditorState.EditorActiveElementState = new activeElementState(() => setEditorState({...(EditorState as any)}), EditorState);
 
-			EditorState.EditorCommands.registerCommand('KEYBOARD_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) => {
+			EditorState.EditorCommands = new EditorCommands(() => setEditorState({...(EditorState as any)}));
+
+			EditorState.EditorCommands.registerCommand('KEYBOARD_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (event) => {
 				HandleKeyClick(event);
 			});
 
 			EditorState.EditorCommands.registerCommand('LETTER_INSERT_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) => {
 				EditorState.contentNode.insertLetterIntoTextNode(event, EditorState.selectionState);
+				updateActiveEditor(EditorState);
 			});
 
 			EditorState.EditorCommands.registerCommand('LETTER_REMOVE_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
@@ -90,20 +98,20 @@ export default function AITEditor(): JSX.Element {
 				EditorState.contentNode.handleEnter(EditorState.selectionState);
 			});
 
-			EditorState.EditorCommands.registerCommand('SELECTION_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (_) =>
-				EditorState.selectionState.$getCaretPosition(),
-			);
+			EditorState.EditorCommands.registerCommand('SELECTION_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (_) => {
+				EditorState.selectionState.getCaretPosition();
+				updateActiveEditor(EditorState);
+			});
 
 			EditorState.EditorCommands.registerCommand('CLICK_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) =>
 				EditorState.EditorActiveElementState?.handleElementClick(event),
 			);
 
-			setEditorState({...EditorState});
+			updateActiveEditor(EditorState);
+			setEditorState({...(EditorState as any)});
 		}
 		if (EditorState.EditorActiveElementState?.isActive === false) {
-			if (EditorState.selectionState.isDirty) {
-				EditorState.selectionState.$normailizeDirtySelection(EditorRef);
-			}
+			updateActiveEditor(EditorState);
 			EditorState.selectionState.setCaretPosition();
 		}
 	}, [EditorState]); //eslint-disable-line
@@ -116,7 +124,7 @@ export default function AITEditor(): JSX.Element {
 					onClick={(e) => {
 						e.preventDefault();
 						setImageFloatDirection(EditorState, 'right');
-						setEditorState({...EditorState});
+						setEditorState({...(EditorState as any)});
 					}}
 				>
 					RIGHT
@@ -126,7 +134,7 @@ export default function AITEditor(): JSX.Element {
 					onClick={(e) => {
 						e.preventDefault();
 						setImageFloatDirection(EditorState, 'left');
-						setEditorState({...EditorState});
+						setEditorState({...(EditorState as any)});
 					}}
 				>
 					LEFT
@@ -136,7 +144,7 @@ export default function AITEditor(): JSX.Element {
 					onClick={(e) => {
 						e.preventDefault();
 						setImageFloatDirection(EditorState, 'none');
-						setEditorState({...EditorState});
+						setEditorState({...(EditorState as any)});
 					}}
 				>
 					DIR NULL
@@ -146,7 +154,7 @@ export default function AITEditor(): JSX.Element {
 					onClick={(e) => {
 						e.preventDefault();
 						toggleImageCaption(EditorState);
-						setEditorState({...EditorState});
+						setEditorState({...(EditorState as any)});
 					}}
 				>
 					TOGGLE CAP
@@ -160,7 +168,7 @@ export default function AITEditor(): JSX.Element {
 				contentEditable={true}
 				suppressContentEditableWarning={true}
 				spellCheck={false}
-				onPaste={(e) => console.log(e.clipboardData.getData('text/html'))}
+				//onPaste={(e) => console.log(e.clipboardData.getData('text/html'))}
 				onSelect={(event) => {
 					EditorState.EditorCommands?.dispatchCommand('SELECTION_COMMAND', event);
 				}}
@@ -168,14 +176,13 @@ export default function AITEditor(): JSX.Element {
 				// 	EditorState.EditorCommands?.dispatchCommand('CLICK_COMMAND', event);
 				// }}
 				onKeyDown={(event) => {
+					if (!isArrow(event)) event.preventDefault();
+				}}
+				onKeyUp={(event) => {
 					EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', event);
 				}}
 				onDrop={(event) => event.preventDefault()}
-			>
-				<React.Fragment>
-					<CreateReactEditor EditorState={EditorState} />
-				</React.Fragment>
-			</div>
+			></div>
 		</div>
 	);
 }

@@ -1,17 +1,20 @@
 import defaultBlocks from './defaultStyles/defaultBlocks';
 import React from 'react';
-import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, LINK_NODE_TYPE} from './ConstVariables';
+import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE} from './ConstVariables';
 import type {imageNode} from './packages/AITE_Image/imageNode';
 import {SelectionState} from './SelectionUtils';
 import {ClassVariables} from './Interfaces';
-import {TextNode, DOMattr, LinkNode} from './AITE_nodes/index'
+import {TextNode, DOMattr, LinkNode, BreakLine} from './AITE_nodes/index'
 
-export type NodeTypes = TextNode | imageNode;
+import {createAiteNode} from './AITEreconciliation';
+import type {AiteNode, AiteNodeOptions} from './AITEreconciliation'
+
+export type NodeTypes = TextNode | imageNode | BreakLine;
 export type BlockNodeData = Array<NodeTypes>;
 export type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
 export type BlockType = BlockNode | HorizontalRuleNode;
 
-type ContentNodeVariables = ClassVariables<BlockNode>;
+type BlockNodeVariables = ClassVariables<BlockNode>
 interface findNodeOffsetData {
 	offsetKey: number;
 	letterIndex: number;
@@ -19,35 +22,91 @@ interface findNodeOffsetData {
 
 type allowedToInsert = 'all' | 'element' | 'text';
 
-export default class BlockNode {
+
+export function createBlockNode(initData?: BlockNodeVariables){
+	initData = initData ?? {}
+	if(initData === undefined || initData?.NodeData?.length === 0){
+		initData.NodeData = [new BreakLine()]
+	}
+	return new BlockNode(initData)
+}
+
+class BaseBlockNode {
 	blockType: BlockTypes;
+	blockInlineStyles: Array<string>;
+	__key: string | undefined;
+
+	constructor(blockType?: BlockTypes, blockInlineStyles?: Array<string>){
+		this.blockType = blockType ?? STANDART_BLOCK_TYPE
+		this.blockInlineStyles = blockInlineStyles ?? []
+		this.__key = undefined
+	}
+
+	$getNodeKey(){
+		return this.__key
+	}
+}
+
+export default class BlockNode extends BaseBlockNode{
 	plainText: string;
 	blockWrapper: string;
-	blockInlineStyles: Array<string>;
 	NodeData: BlockNodeData;
 	allowedToInsert: allowedToInsert | 'all';
+	__key: string | undefined;
 
-	constructor(initData?: ContentNodeVariables) {
-		this.blockType = initData?.blockType ?? STANDART_BLOCK_TYPE;
+	constructor(initData?: BlockNodeVariables) {
+		super(initData?.blockType, initData?.blockInlineStyles)
 		this.plainText = initData?.plainText ?? '';
 		this.blockWrapper = initData?.blockWrapper ?? 'unstyled';
-		this.blockInlineStyles = initData?.blockInlineStyles ?? [];
 		this.NodeData = initData?.NodeData ?? [];
 		this.allowedToInsert = initData?.allowedToInsert ?? 'all';
+		this.__key = undefined;
 	}
 
 
 	isBreakLine(){
 		if(
-			this.NodeData.length === 1 &&
-			this.NodeData[0].returnContent() === '' &&
-			this.NodeData[0].returnType() === TEXT_NODE_TYPE
+			this.NodeData.length === 0 ||
+			(
+				this.NodeData.length === 1 &&
+				(
+					this.NodeData[0].returnType() === BREAK_LINE_TYPE || 
+					(this.NodeData[0].returnType() === TEXT_NODE_TYPE && this.NodeData[0].returnContentLength() === 0)
+				)
+			)
 			) return true
 		return false
 	}
 
+	$updateNodeKey(){
+		this.__key = `AITE_BLOCK_${this.blockWrapper}_${this.blockInlineStyles.length}_${this.NodeData.length}`
+	}
+
+	$getNodeState(options?: AiteNodeOptions): AiteNode{
+		let tag = defaultBlocks.find((obj) => obj.type === this.blockWrapper)?.tag ?? 'div'
+		let className = ''
+		let props = {
+			className: className,
+			'data-aite-block-node': true
+		}
+
+		this.$updateNodeKey()
+		let children: Array<AiteNode> = []
+		this.NodeData.forEach((node, index) => {
+			let $node = node.$getNodeState({...options})
+			if($node) children.push($node)
+		}
+		)
+		return createAiteNode(
+			tag,
+			props,
+			children,
+			{...options, key: this.$getNodeKey(), isAiteWrapper: false}
+		)
+	} 
+
 	prepareBlockStyle(): {n: string; c: null | string} {
-		type data = {n: string; c: null | string};
+		type data = {n: string; c: string};
 		let BlockNodeData: data = {n: 'div', c: this.blockInlineStyles.join(' ')};
 		let blockWrapper = defaultBlocks.find((obj) => obj.type === this.blockWrapper);
 		if (blockWrapper !== undefined) {
@@ -57,35 +116,22 @@ export default class BlockNode {
 		return BlockNodeData;
 	}
 
-	swapCharPosition(FirPosition: number, SecPosition: number): void {
+	swapNodePosition(FirPosition: number, SecPosition: number): void {
 		let CharP1 = this.NodeData[FirPosition];
 		this.NodeData[FirPosition] = this.NodeData[SecPosition];
 		this.NodeData[SecPosition] = CharP1;
 	}
-
-	FullSelected(selectionState: SelectionState): boolean {
-		if (
-			selectionState.anchorNodeKey === 0 &&
-			selectionState.anchorOffset === 0 &&
-			selectionState.focusNodeKey === this.lastNodeIndex() &&
-			selectionState.focusOffset === this.NodeData[this.lastNodeIndex()].returnContentLength()
-		)
-			return true;
-		return false;
-	}
-
-	returnBlockLength(): number {
-		return this.NodeData.length;
-	}
+	
 	replaceNode(index: number, newNode: NodeTypes): void {
 		this.NodeData[index] = newNode;
 	}
 
-	removeCharNode(indexChar: number): void {
+	removeNode(indexChar: number): void {
 		this.NodeData.splice(indexChar, 1);
 	}
 
-	bulkRemoveCharNode(startFromZero: boolean = true, start: number, end?: number): void {
+	// DEPREACATED METHOD / TODO: REPLACE WITH splitNodes
+	removeNodes(startFromZero: boolean = true, start: number, end?: number): void {
 		if (end === undefined) {
 			if (startFromZero === false) this.NodeData = this.NodeData.slice(start);
 			else if (startFromZero === true) this.NodeData = this.NodeData.slice(0, start);
@@ -94,7 +140,7 @@ export default class BlockNode {
 		}
 	}
 
-	splitCharNode(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes): void {
+	splitNodes(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes): void {
 		let StartSlice = startFromZero === true ? this.NodeData.slice(0, start) : this.NodeData.slice(start);
 		let EndSlice = end ? this.NodeData.slice(end) : [];
 		if (node === undefined) this.NodeData = [...StartSlice, ...EndSlice];
@@ -172,6 +218,7 @@ export default class BlockNode {
 		let Count = 0;
 		index = index < 0 ? 1 : index
 
+		
 		for (let CharIndex = 0; CharIndex < this.NodeData.length; CharIndex++) {
 			if (CharIndex <= index) {
 				let CurrentElement = this.NodeData[CharIndex];
@@ -180,6 +227,7 @@ export default class BlockNode {
 		}
 		return Count;
 	}
+
 
 	findNodeByOffset(offset: number): findNodeOffsetData {
 		let data: findNodeOffsetData = {offsetKey: 0, letterIndex: 0};
@@ -221,19 +269,21 @@ export default class BlockNode {
 	getWrapper(): string{
 		return this.blockWrapper;
 	}
+
+	getLength(): number {
+		return this.NodeData.length;
+	}
 	
 	findCharByIndex(index: number): NodeTypes {
 		return this.NodeData[index];
 	}
+	
 }
 
-export class HorizontalRuleNode {
-	blockType: BlockTypes;
-	blockInlineStyles: Array<[Array<string>, Array<string>]>;
+export class HorizontalRuleNode extends BaseBlockNode{
 
 	constructor() {
-		this.blockType = HORIZONTAL_RULE_BLOCK_TYPE;
-		this.blockInlineStyles = [];
+		super(HORIZONTAL_RULE_BLOCK_TYPE, [])
 	}
 
 	getType() {
@@ -249,4 +299,18 @@ export class HorizontalRuleNode {
 		};
 		return React.createElement('div', a, HorizontalRuleElement);
 	}
+
+	$getNodeState(options?: AiteNodeOptions): AiteNode{
+		let className = 'AITE_editor_horizontal-rule'
+		let props = {
+			class: className,
+		}
+		this.__key = `AITE_HORIZONTAL_${this.blockInlineStyles.length}`
+		return createAiteNode(
+			'div',
+			{contenteditable: false,},
+			[createAiteNode('hr', props, [])],
+			{...options, key: this.__key, isAiteWrapper: false}
+		)
+	} 
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {EditorState as editorState} from '../../EditorManagmentUtils';
+import {EditorState as editorState} from '../../EditorState';
 import type {BlockType} from '../../BlockNode';
 import type BlockNode from '../../BlockNode';
 

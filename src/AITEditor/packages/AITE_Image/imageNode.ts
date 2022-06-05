@@ -8,6 +8,9 @@ import {DOMattr} from '../../AITE_nodes/index'
 
 import BlockResizeElemets from './imageResizeElements'
 import {createBlockElements} from '../../rootElement'
+import {validateImageURL} from './imageUtils'
+
+import {AiteNode} from '../../AITEreconciliation'
 
 export type floatType = 'right' | 'left' | 'none';
 
@@ -31,10 +34,11 @@ interface imageConf {
 }
 
 interface ImageWrapperAttrType {
-	key: string;
+	key?: string;
 	className: string;
 	contentEditable: false;
-	style?: {[K: string]: string};
+	style?: {[K: string]: string}
+	'data-aite_decorator_node'?: boolean
 }
 
 interface imageAttributesType {
@@ -45,7 +49,7 @@ interface imageAttributesType {
 	style?: {[K: string]: string};
 }
 
-export class imageNode extends BaseNode{
+class imageNode extends BaseNode{
 	imageConf: {
 		src: string;
 		alt: string;
@@ -74,7 +78,7 @@ export class imageNode extends BaseNode{
 		super('image', 'inline')
 		this.imageConf = {
 			src: imageNodeConf.src,
-			alt: imageNodeConf.src ?? '',
+			alt: imageNodeConf.alt ?? '',
 			canResize: imageNodeConf.canResize ?? true,
 			canFloat: imageNodeConf.canFloat ?? true,
 			captionEnabled: imageNodeConf.captionEnabled ?? true,
@@ -225,11 +229,10 @@ export class imageNode extends BaseNode{
 				{
 					key: attr?.html?.key ? attr.html?.key : 'image-caption-wrapper',
 					className: 'AITE_image_caption_wrapper',
+					spellCheck: false,
 					contentEditable: true,
 					suppressContentEditableWarning: true,
 					'data-aite_block_content_node': true,
-
-					onKeyDown: (e) => e.preventDefault(),
 				},
 				captionBlockNodes,
 			);
@@ -240,9 +243,88 @@ export class imageNode extends BaseNode{
 		return React.createElement('span', ImageWrapperAttr, [ImageElement, imageElements]);
 	}
 
+
+	$getNodeKey(){
+		return `
+		AITE_IMAGE_WRAPPER_
+		${this.imageConf.src.slice(10, 20)}_
+		${this.imageConf.alt.slice(0, 5)}_
+		${this.imageConf.canFloat}_
+		${this.imageConf.canResize}_
+		${this.imageConf.captionEnabled}`
+	}
+
+	$getNodeState(options?: {path?: Array<number>}): AiteNode{
+
+		let imageNode = new AiteNode(
+			'img',
+			{
+				alt: this.imageConf.alt,
+				className: this.imageConf.className,
+				src: this.imageConf.src,
+				style: this.imageStyle.s,
+			},
+			[],
+			{isAiteWrapper: true}
+		)
+
+		let imageElements = [imageNode]
+
+		if (this.ContentNode !== undefined && this.ContentNode.BlockNodes.length > 0 && this.imageConf.captionEnabled) {
+			let captionBlockNodes: Array<AiteNode> = []
+			this.ContentNode.BlockNodes.forEach((node) => {
+				captionBlockNodes.push(node.$getNodeState())
+			})
+
+			let wrapperKey = this.$getNodeKey()
+			let captionWrapper = new AiteNode(
+				'div',
+				{
+					className: 'AITE_image_caption_wrapper',
+					spellCheck: false,
+					contentEditable: true,
+					'data-aite_content_node': true,
+				},
+				captionBlockNodes,
+				{key: wrapperKey, isAiteWrapper: false}
+			);
+			imageElements = [...imageElements, captionWrapper];
+		}
+
+		const ImageWrapperAttr: ImageWrapperAttrType = {
+			className: 'image-wrapper',
+			'data-aite_decorator_node': true,
+			contentEditable: false,
+			style: {
+				width: this.imageStyle.s.width,
+				minHeight: this.imageStyle.s.height,
+				minWidth: this.imageStyle.s.minWidth,
+			},
+		};
+
+		if (this.imageStyle.float.dir !== 'none') {
+			ImageWrapperAttr.style = {
+				...ImageWrapperAttr.style,
+				float: this.imageStyle.float.dir,
+			};
+		}
+
+		let imageKey = `AITE_IMAGE_WRAPPER_${this.imageConf.src.slice(10, 20)}_${this.imageConf.alt.slice(0, 5)}`
+
+		return new AiteNode(
+			'div',
+			ImageWrapperAttr,
+			imageElements,
+			{key: imageKey, isAiteWrapper: false}
+			) 
+	} 
+
 }
 
-export default function createImageNode(imageConf: imageConf): imageNode {
+function createImageNode(imageConf: imageConf): imageNode | undefined {
+
+
+	if(validateImageURL(imageConf.src) === false) return;
 	let initWidth = 0;
 	let initHeight = 0;
 	let sizeRatio = 1,
@@ -270,3 +352,9 @@ export default function createImageNode(imageConf: imageConf): imageNode {
 
 	return ImageNode;
 }
+
+export{
+	createImageNode,
+	imageNode
+}
+

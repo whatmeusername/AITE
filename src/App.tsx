@@ -1,5 +1,3 @@
-import React, {useState} from 'react';
-import logo from './logo.svg';
 import './App.scss';
 
 import AITEditor from './AITEditor/TextEditor';

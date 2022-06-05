@@ -1,15 +1,15 @@
-import {TEXT_NODE_TYPE, LINK_NODE_TYPE} from "../ConstVariables"
+import {TEXT_NODE_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE} from "../ConstVariables"
 
-type nodeTypes = 'text' | 'image' | 'link'
+type nodeTypes = typeof TEXT_NODE_TYPE | 'image' | typeof LINK_NODE_TYPE | typeof BREAK_LINE_TYPE
 type displayType = 'inline' | 'block'
 
 
-export interface DOMhtml {
+interface DOMhtml {
     key?: string
     target?: '_blank' | '_self' | '_parent' | '_top'
 }
 
-export type DOMattr = {
+type DOMattr = {
     html?: {
         key?: string
         target?: '_blank' | '_self' | '_parent' | '_top'
@@ -20,16 +20,20 @@ export type DOMattr = {
     }
 }
 
-export class BaseNode{
+abstract class BaseNode{
     private __type: nodeTypes;
     private __display: displayType;
+    __key: string | undefined; 
 
     constructor(type: nodeTypes, displayType: displayType){
         this.__type = type;
         this.__display = displayType;
+        this.__key = undefined;
     }
 
-
+    $getNodeKey(){
+		return this.__key
+	}
     returnElementDisplay(){
         return this.__display
     }
@@ -40,6 +44,16 @@ export class BaseNode{
 		if(this.__type === TEXT_NODE_TYPE || this.__type === LINK_NODE_TYPE){
             return TEXT_NODE_TYPE
         }
+        else if(this.__type === BREAK_LINE_TYPE) return BREAK_LINE_TYPE
         return 'element'
 	}
+}
+
+export{
+    BaseNode
+}
+
+export type{
+    DOMattr,
+    DOMhtml
 }

@@ -6,11 +6,13 @@ import {
 
 import {TextNode, DOMTextAttr, textNodeConf} from './TextNode';
 import {LinkNode} from './LinkNode';
+import {BreakLine} from './BreakLine'
 
 export {
     BaseNode,
     TextNode,
     LinkNode,
+    BreakLine,
 
 }
 

@@ -1,4 +1,4 @@
-import type {EditorState} from '../../EditorManagmentUtils';
+import type {EditorState} from '../../EditorState';
 import type {floatType} from './imageNode';
 import type {imageNode} from './imageNode';
 
@@ -18,7 +18,7 @@ export function setImageFloatDirection(EditorState: EditorState, direction: floa
 						let previousNode = activeNodes.block.NodeData[charIndex! - 1];
 						if (previousNode !== undefined) {
 							if (previousNode.returnType() === 'text') {
-								activeNodes.block.swapCharPosition(charIndex! - 1, charIndex!);
+								activeNodes.block.swapNodePosition(charIndex! - 1, charIndex!);
 								EditorActiveState.charNode! -= 1;
 								(activeNodes.char as imageNode).$setDirection(undefined, true);
 							}
@@ -31,7 +31,7 @@ export function setImageFloatDirection(EditorState: EditorState, direction: floa
 					let nextNode = activeNodes.block.NodeData[charIndex! + 1];
 					if (nextNode !== undefined) {
 						if (nextNode.returnType() === 'text') {
-							activeNodes.block.swapCharPosition(charIndex!, charIndex! + 1);
+							activeNodes.block.swapNodePosition(charIndex!, charIndex! + 1);
 							EditorActiveState.charNode! += 1;
 							(activeNodes.char as imageNode).$setDirection(undefined, false);
 						}
@@ -47,4 +47,22 @@ export function toggleImageCaption(EditorState: EditorState): void {
 	if(activeNodes?.char.returnActualType() === 'image'){
 		(activeNodes.char as imageNode).toggleCaptition()
 	}
+}
+
+
+export function validateImageURL(imageURL: string): boolean {
+
+	let url
+
+	try {
+		url = new URL(imageURL);
+	  } catch (_) {
+		return false;  
+	  }
+
+	return(
+		imageURL.match(/\.(jpeg|jpg|gif|png)$/) !== null &&
+		(imageURL.startsWith('http://') || imageURL.startsWith('https://'))
+		)
+
 }

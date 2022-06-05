@@ -3,7 +3,21 @@ import {
 } from './ConstVariables';
 import {keyCodeValidator} from './TextEditor';
 
-type commandPriority = keyof typeof EDITOR_PRIORITY;
+import type{
+    KeyboardEventCommand,
+    EventCommands,
+
+    KEYBOARD_COMMAND,
+    SELECTION_COMMAND,
+    MOUSE_COMMAND,
+    LETTER_INSERT_COMMAND,
+    LETTER_REMOVE_COMMAND,
+    ENTER_COMMAND,
+} from './editorCommandsTypes'
+
+import {getEditorState} from './EditorState'
+
+export type commandPriority = keyof typeof EDITOR_PRIORITY;
 type commandTypes =
 	| 'KEYBOARD_COMMAND'
 	| 'SELECTION_COMMAND'
@@ -12,26 +26,7 @@ type commandTypes =
 	| 'LETTER_REMOVE_COMMAND'
 	| 'ENTER_COMMAND';
 
-export type SelectionCOMMAND = React.SyntheticEvent;
-export type keyboardCOMMAND = React.KeyboardEvent | KeyboardEvent;
-export type MouseCOMMAND = React.MouseEvent | MouseEvent;
 
-export type EventCommands = SelectionCOMMAND | keyboardCOMMAND | MouseCOMMAND;
-
-interface KEYBOARD_COMMAND {
-	commandPriority: commandPriority;
-	action: (event: keyboardCOMMAND, ...args: any) => void;
-}
-
-interface SELECTION_COMMAND {
-	commandPriority: commandPriority;
-	action: (event: SelectionCOMMAND, ...args: any) => void;
-}
-
-interface MOUSE_COMMAND {
-	commandPriority: commandPriority;
-	action: (event: MouseCOMMAND, ...args: any) => void;
-}
 
 interface KEYBIND_COMMAND { //eslint-disable-line 
 	key: string;
@@ -39,25 +34,9 @@ interface KEYBIND_COMMAND { //eslint-disable-line
 	ctrlKey?: boolean;
 	altKey?: boolean;
 	commandPriority: commandPriority;
-	action: (event: keyboardCOMMAND, ...args: any) => void;
+	action: (event: KeyboardEventCommand, ...args: any) => void;
 }
 
-interface LETTER_INSERT_COMMAND {
-	commandPriority: commandPriority;
-	action: (event: keyboardCOMMAND, ...args: any) => void;
-}
-
-interface LETTER_REMOVE_COMMAND {
-	commandPriority: commandPriority;
-	action: (event: keyboardCOMMAND, ...args: any) => void;
-}
-
-interface ENTER_COMMAND {
-	commandPriority: commandPriority;
-	action: (event: keyboardCOMMAND, ...args: any) => void;
-}
-
-const KEYBOARD_COMMAND = {}; //eslint-disable-line 
 
 interface commandStorage {
 	KEYBOARD_COMMAND?: KEYBOARD_COMMAND;
@@ -103,12 +82,12 @@ type ActionType = UnionToIntersection<GetCommandActionType<keyof commandStorage>
 
 type decoratorStorage = {[K in keyof commandStorage]+?: Function};
 
-const mainDecoratorStorage: decoratorStorage = {
+const DecoratorStorage: decoratorStorage = {
 	LETTER_INSERT_COMMAND: keyCodeValidator,
-	LETTER_REMOVE_COMMAND: (event: keyboardCOMMAND) => {
+	LETTER_REMOVE_COMMAND: (event: KeyboardEventCommand) => {
 		return event.code === 'Backspace';
 	},
-	ENTER_COMMAND: (event: keyboardCOMMAND) => {
+	ENTER_COMMAND: (event: KeyboardEventCommand) => {
 		return event.code === 'Enter';
 	},
 };
@@ -116,12 +95,10 @@ const mainDecoratorStorage: decoratorStorage = {
 export default class EditorCommands {
 	EditorStateFunction: () => void;
 	CommandStorage: commandStorage;
-	dispatchIsBusy: boolean;
 
 	constructor(EditorStateManager: () => void) {
 		this.EditorStateFunction = EditorStateManager;
 		this.CommandStorage = {};
-		this.dispatchIsBusy = false;
 	}
 
 	registerCommand(
@@ -129,7 +106,7 @@ export default class EditorCommands {
 		commandPriority: commandPriority,
 		action: (...args: any) => void,
 	): void {
-		let actionDecorator = mainDecoratorStorage[commandType];
+		let actionDecorator = DecoratorStorage[commandType];
 		let commandAction;
 
 		if (actionDecorator !== undefined) {
@@ -159,18 +136,26 @@ export default class EditorCommands {
 	dispatchCommand(commandType: commandTypes, event: EventCommands, ...rest: any): void {
 		const Command = this.CommandStorage[commandType];
 
-		if (Command !== undefined && this.dispatchIsBusy === false) {
+		if (Command !== undefined) {
 			if (Command.commandPriority === 'IMMEDIATELY_EDITOR_COMMAND') {
 				Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
-				this.EditorStateFunction();
+				let editorState = getEditorState()
+				if(editorState !== undefined) {
+					//editorState.__editorDOMState.__reconciliation();
+					editorState.selectionState.setCaretPosition();
+				}
 			} else {
 				new Promise((res) => {
-					this.dispatchIsBusy = true;
 					Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
 					res('');
 				}).then((res) => {
-					this.dispatchIsBusy = false;
-					if (Command.commandPriority === 'IGNOREMANAGER_EDITOR_COMMAND') this.EditorStateFunction();
+					if (Command.commandPriority !== 'IGNOREMANAGER_EDITOR_COMMAND'){
+						let editorState = getEditorState()
+						if(editorState !== undefined) {
+							//editorState.__editorDOMState.__reconciliation();
+							editorState.selectionState.setCaretPosition();
+						}
+					}
 				});
 			}
 		}

@@ -15,21 +15,21 @@
 	}
 }
 
-.ATEditor__standart__BOLD {
+.AITEditor__standart__BOLD {
 	font-weight: bold;
 }
 
-.ATEditor__standart__ITALIC {
+.AITEditor__standart__ITALIC {
 	font-style: italic;
 }
 
-.ATEditor__standart__SUPERSCRIPT {
+.AITEditor__standart__SUPERSCRIPT {
 	position: relative;
 	margin-bottom: -8px;
 	font-size: 8px;
 }
 
-.ATEditor__standart__UNDERLINE {
+.AITEditor__standart__UNDERLINE {
 	text-decoration: underline;
 }
 
@@ -46,7 +46,25 @@
 		user-select: none;
 		.AITE_image_caption_wrapper{
 			user-select: text;
+			white-space: pre-wrap;
+			word-wrap: break-word;
+			border: 0;
+			cursor: text;
+			display: block;
+			position: relative;
+			tab-size: 1;
+			outline: none;
 		}
+	}
+	.AITE_image_caption_wrapper{
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		border: 0;
+		cursor: text;
+		display: block;
+		position: relative;
+		tab-size: 1;
+		outline: none;
 	}
 }
 

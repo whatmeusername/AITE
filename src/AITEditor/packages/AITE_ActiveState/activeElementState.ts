@@ -2,7 +2,7 @@ import {findEditorCharIndex, isTextNode} from '../../EditorUtils';
 
 import type {NodeTypes} from '../../BlockNode';
 import type BlockNode from '../../BlockNode';
-import type {EditorState} from '../../EditorManagmentUtils';
+import type {EditorState} from '../../EditorState';
 import {BlockPath} from '../../SelectionUtils'
 
 import type {selectionData} from '../../SelectionUtils'
@@ -54,65 +54,65 @@ export default class ActiveElementState {
 		let currentBlockData: selectionData | undefined = undefined;
 
 		
-		const removeClickEvent = (): void => {
-			this.resetActiveData();
-			document.removeEventListener('click', editorClickEvent);
-			document.removeEventListener('keyup', backspaceEventHandler);
-			this.EditorStateFunction();
-		}
+		// const removeClickEvent = (): void => {
+		// 	this.resetActiveData();
+		// 	document.removeEventListener('click', editorClickEvent);
+		// 	document.removeEventListener('keyup', backspaceEventHandler);
+		// 	this.EditorStateFunction();
+		// }
 
-		const editorClickEvent = (event: MouseEvent): void => {
-			if (event.target === null || event.defaultPrevented === true) return;
-			else if(isTextNode(event.target as HTMLElement)) {
-				removeClickEvent()
-			}
-			else if (this.allowedAllements.includes((event.target as HTMLElement).tagName)) {
-				let newBlockData = this.EditorState.selectionState.getPathToNodeByNode(event.target as HTMLElement);
-				if (newBlockData?.blockNode !== currentBlockData?.blockNode) {
-					currentBlockData = newBlockData;
-					if (currentBlockData !== undefined){
-						this.blockNode?.set(newBlockData!.blockPath);
-						this.charNode = newBlockData!.charIndex;
-						this.EditorStateFunction();
-					}
-				}
-			} 
-			else if (!(currentBlockData!.blockNode as HTMLElement).contains(event.target as HTMLElement)) {
-				removeClickEvent()
-			}
-		};
+		// const editorClickEvent = (event: MouseEvent): void => {
+		// 	if (event.target === null || event.defaultPrevented === true) return;
+		// 	else if(isTextNode(event.target as HTMLElement)) {
+		// 		removeClickEvent()
+		// 	}
+		// 	else if (this.allowedAllements.includes((event.target as HTMLElement).tagName)) {
+		// 		let newBlockData = this.EditorState.selectionState.getPathToNodeByNode(event.target as HTMLElement);
+		// 		if (newBlockData?.blockNode !== currentBlockData?.blockNode) {
+		// 			currentBlockData = newBlockData;
+		// 			if (currentBlockData !== undefined){
+		// 				this.blockNode?.set(newBlockData!.blockPath);
+		// 				this.charNode = newBlockData!.charIndex;
+		// 				this.EditorStateFunction();
+		// 			}
+		// 		}
+		// 	} 
+		// 	else if (!(currentBlockData!.blockNode as HTMLElement).contains(event.target as HTMLElement)) {
+		// 		removeClickEvent()
+		// 	}
+		// };
 
-		const backspaceEventHandler = (event: KeyboardEvent): void => {
-			if (event.key === 'Backspace' && this.blockNode !== null && this.charNode !== null) {
-				let currentBlock = this.EditorState.contentNode.getBlockByPath(this.blockNode.get());
-				if (currentBlock.getType() === 'standart') {
-					(currentBlock as BlockNode).removeCharNode(this.charNode);
-					this.resetActiveData();
-					document.removeEventListener('click', editorClickEvent);
-					document.removeEventListener('keyup', backspaceEventHandler);
-					this.EditorStateFunction();
-				}
-			}
-		};
+		// const backspaceEventHandler = (event: KeyboardEvent): void => {
+		// 	if (event.key === 'Backspace' && this.blockNode !== null && this.charNode !== null) {
+		// 		let currentBlock = this.EditorState.contentNode.getBlockByPath(this.blockNode.get());
+		// 		if (currentBlock.getType() === 'standart') {
+		// 			(currentBlock as BlockNode).removeCharNode(this.charNode);
+		// 			this.resetActiveData();
+		// 			document.removeEventListener('click', editorClickEvent);
+		// 			document.removeEventListener('keyup', backspaceEventHandler);
+		// 			this.EditorStateFunction();
+		// 		}
+		// 	}
+		// };
 
-		if (this.allowedAllements.includes(nodeTag) && event.target !== null) {
-			currentBlockData = this.EditorState.selectionState.getPathToNodeByNode(event.target as HTMLElement);
+		// if (this.allowedAllements.includes(nodeTag) && event.target !== null) {
+		// 	currentBlockData = this.EditorState.selectionState.getPathToNodeByNode(event.target as HTMLElement);
 
-			if (currentBlockData !== undefined && currentBlockData !== undefined && this.isActive === false) {
+		// 	if (currentBlockData !== undefined && currentBlockData !== undefined && this.isActive === false) {
 
-				this.blockNode.set(currentBlockData.blockPath);
-				this.charNode = currentBlockData.charIndex;
-				this.isActive = true;
-				this.EditorStateFunction();
+		// 		this.blockNode.set(currentBlockData.blockPath);
+		// 		this.charNode = currentBlockData.charIndex;
+		// 		this.isActive = true;
+		// 		this.EditorStateFunction();
 
-				let selection = window.getSelection();
-				if (selection !== null) selection.removeAllRanges();
-				this.EditorState.selectionState.resetSelection()
+		// 		let selection = window.getSelection();
+		// 		if (selection !== null) selection.removeAllRanges();
+		// 		this.EditorState.selectionState.resetSelection()
 				
-				document.addEventListener('mousedown', editorClickEvent);
-				document.addEventListener('keyup', backspaceEventHandler);
-			}
-		}
+		// 		document.addEventListener('mousedown', editorClickEvent);
+		// 		document.addEventListener('keyup', backspaceEventHandler);
+		// 	}
+		// }
 	}
 
 	getActiveNodes(): {block: BlockNode, char: NodeTypes} | undefined {

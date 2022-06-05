@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type {EditorState as editorState} from './EditorManagmentUtils';
+import type {EditorState as editorState} from './EditorState';
 import {TextNode} from './AITE_nodes/index';
 import type {LinkNode} from './AITE_nodes/index';
 import type {imageNode} from './packages/AITE_Image/imageNode';
@@ -61,7 +61,7 @@ function createBlockNode(node: BlockNode, childrens: Array<JSX.Element>): JSX.El
 		'data-aite_block_node': true,
 	};
 
-	if (BlockWrapper.c !== undefined && BlockWrapper.c !== null) {
+	if (BlockWrapper.c !== '') {
 		s['className'] = '';
 		s.className += BlockWrapper.c;
 	}
@@ -93,7 +93,7 @@ function createSingleLinkNode(block: BlockNode, offset: number) {
 			}
 			let node = React.createElement(
 				'a',
-				{href: parentURL, key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-pack': true},
+				{href: parentURL, key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-leaf': true},
 				childrens,
 			);
 			return {tag: 'a', url: parentURL, node: node, length: childrens.length};
@@ -171,12 +171,12 @@ function createSingleListNode(BlockNodes: Array<BlockType>, offset: number, isAc
 				} else break;
 				i += 1;
 			}
-			let node = React.createElement(listTag, {key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-pack': true}, childrens);
+			let node = React.createElement(listTag, {key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-leaf': true}, childrens);
 			return {tag: listTag, node: node, length: childrens.length};
 		} else {
 			BlockIndex += 1;
 			let children = createBlockNode(currentBlock, createBlockNodes(currentBlock, isActiveFunction));
-			let node = React.createElement(listTag, {key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-pack': true}, children);
+			let node = React.createElement(listTag, {key: `Editor-block-${BlockIndex}-${NodeIndex + i}-link-wrapper`, 'data-aite-node-leaf': true}, children);
 			return {tag: listTag, node: node, length: 1};
 		}
 	}

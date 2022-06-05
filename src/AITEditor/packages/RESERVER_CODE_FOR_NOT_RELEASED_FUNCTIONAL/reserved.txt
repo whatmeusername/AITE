@@ -29,3 +29,12 @@ onDragStart = {(event) => {
         EditorRef.current.addEventListener('drop', onDrop)
 
     }}
+
+getCountToBlock(nodeIndex: number, BlockNode: Array<Node>): number {
+    let SlicedBlockNodes = BlockNode.slice(0, nodeIndex + 1);
+    let LetterCount = 0;
+    SlicedBlockNodes.forEach((node: Node) => {
+        LetterCount += node.textContent?.length ?? 0;
+    });
+    return LetterCount;
+}

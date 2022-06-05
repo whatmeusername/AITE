@@ -1,6 +1,9 @@
 import React from 'react'
-import {TextNode, DOMattr, DOMTextAttr, textNodeConf, BaseNode} from './index'
-import type {NodeTypes} from '../BlockNode'
+import {TextNode, DOMattr, DOMTextAttr, textNodeConf} from './index'
+
+import {createAiteNode} from '../AITEreconciliation';
+import type {AiteNode, AiteNodeOptions} from '../AITEreconciliation'
+
 type stringURL = `https://${string}` | `http://prefix${string}`
 
 interface linkConf extends textNodeConf{
@@ -11,7 +14,7 @@ interface DOMLinkAttr extends DOMTextAttr{
     href: stringURL
 }
 
-export class LinkNode extends TextNode {
+class LinkNode extends TextNode {
     __url: stringURL
 
     constructor(nodeConf: linkConf){
@@ -25,10 +28,32 @@ export class LinkNode extends TextNode {
 			...attr?.html,
             href: this.__url,
 		};
-		if (styles !== null) s.className = styles
+		if (styles !== '') s.className = styles
         let textNode = this.createSelfTextNode(attr)
 		return React.createElement('a', s, [textNode]);
     }
+
+
+    $updateNodeKey(){
+        this.__key = `AITE_LINK_${this.__content.length}_${this.__styles.length}`
+    }
+
+
+    $getNodeState(options?: AiteNodeOptions): AiteNode{
+		let className = this.__prepareStyles()
+		let props = {
+			className: className,
+            src: this.__url,
+			'data-aite-node': true
+		}
+        this.$updateNodeKey()
+		return createAiteNode(
+			'a',
+			props,
+			[this.__content],
+            {...options, key: this.__key, isAiteWrapper: false}
+		)
+	}
 
     createSelfNode(data: linkConf){
         data.url = data.url ? data.url : this.__url
@@ -67,3 +92,6 @@ function createLinkNode(nodeConf: linkConf): LinkNode | undefined{
     else return undefined;
 }
 
+export{
+    LinkNode
+}

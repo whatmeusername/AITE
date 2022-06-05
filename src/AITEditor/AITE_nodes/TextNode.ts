@@ -2,28 +2,39 @@ import {BaseNode, DOMattr, DOMhtml} from './index';
 import SearchUtils from '../SearchUtils';
 import React from 'react';
 
-export interface DOMTextAttr extends DOMhtml{
+import {createAiteNode} from '../AITEreconciliation';
+import type {AiteNode, AiteNodeOptions} from '../AITEreconciliation'
+
+
+
+
+interface DOMTextAttr extends DOMhtml{
     className?: string;
 	'data-aite-node'?: boolean;
 }
 
 
-export interface textNodeConf{
+interface textNodeConf{
 	plainText: string;
 	stylesArr?: Array<string>
 	nodeType?: 'text' | 'link'
 
 }
 
-export class TextNode extends BaseNode{
+
+function createTextNode(initData?: textNodeConf){
+	return new TextNode(initData)
+}
+
+class TextNode extends BaseNode{
 	
     __content: string;
     __styles: Array<string>
 
-	constructor(nodeConf?: textNodeConf){
-        super(nodeConf?.nodeType ?? 'text', 'inline')
-		this.__content = nodeConf?.plainText ?? ''
-        this.__styles = nodeConf?.stylesArr ?? []
+	constructor(initData?: textNodeConf){
+        super(initData?.nodeType ?? 'text', 'inline')
+		this.__content = initData?.plainText ?? ''
+        this.__styles = initData?.stylesArr ?? []
 	}
 
 	__prepareStyles() {
@@ -34,8 +45,26 @@ export class TextNode extends BaseNode{
  				classString += currentStyle.class + ' ';
 			}
 		});
-		if (classString !== '') return classString
-		return null
+		return classString
+	}
+	
+	$updateNodeKey(){
+		this.__key = `AITE_TEXT_NODE_${this.__content.length}_${this.__styles.length}`
+	}
+
+	$getNodeState(options?: AiteNodeOptions): AiteNode{
+		let className = this.__prepareStyles()
+		let props = {
+			className: className,
+			'data-aite-node': true
+		}
+		this.$updateNodeKey()
+		return createAiteNode(
+			'span',
+			props,
+			[this.__content],
+			{...options, key: this.__key, isAiteWrapper: false}
+		)
 	}
 
     createDOM(attr?: DOMattr){
@@ -44,7 +73,7 @@ export class TextNode extends BaseNode{
 			...attr?.html,
 			'data-aite-node': true
 		};
-		if (styles !== null) s.className = styles
+		if (styles !== '') s.className = styles
 		return React.createElement('span', s, [this.returnContent()]);
     }
 
@@ -72,4 +101,14 @@ export class TextNode extends BaseNode{
 	createSelfNode(data: textNodeConf){
 		return new TextNode(data)
 	}
+}
+
+export{
+	createTextNode,
+	TextNode
+}
+
+export type{
+	DOMTextAttr,
+	textNodeConf
 }
