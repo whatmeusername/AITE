@@ -1,14 +1,20 @@
+
+
 import {ClassVariables} from './Interfaces';
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE, STANDART_BLOCK_TYPE} from './ConstVariables';
 import {getChildrenNodes, isDefined} from './EditorUtils';
 
-import ContentNode from './ContentNode';
-import type {BlockType} from './BlockNode';
-import BlockNode from './BlockNode';
 
-import {getEditorState} from './EditorState'
+import {
+	getEditorState,
+	AiteHTMLNode,
+	BlockNode,
+	ContentNode
+} from './index'
 
-import {AiteHTMLNode} from './AITEreconciliation'
+import type{
+	BlockType
+} from './index'
 
 interface blockNodeDataExtended {
 	node: HTMLElement | Node;
@@ -881,6 +887,8 @@ class SelectionState {
 export {
 	SelectionState,
 	BlockPath,
+	isSelectionBackward,
+	getSelection,
 	getMutatedSelection
 }
 

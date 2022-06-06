@@ -1,9 +1,9 @@
 import {BaseNode, DOMattr, DOMhtml} from './index';
-import SearchUtils from '../SearchUtils';
+import {findStyle} from '../EditorUtils';
 import React from 'react';
 
-import {createAiteNode} from '../AITEreconciliation';
-import type {AiteNode, AiteNodeOptions} from '../AITEreconciliation'
+import {createAiteNode} from '../index';
+import type {AiteNode, AiteNodeOptions} from '../index'
 
 
 
@@ -40,7 +40,7 @@ class TextNode extends BaseNode{
 	__prepareStyles() {
 		let classString = ''
 		this.__styles.forEach((Style) => {
-			let currentStyle = SearchUtils.findStyle(Style);
+			let currentStyle = findStyle(Style);
 			if (currentStyle.class !== undefined) {
  				classString += currentStyle.class + ' ';
 			}

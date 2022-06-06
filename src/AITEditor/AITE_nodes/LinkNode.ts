@@ -1,8 +1,8 @@
 import React from 'react'
 import {TextNode, DOMattr, DOMTextAttr, textNodeConf} from './index'
 
-import {createAiteNode} from '../AITEreconciliation';
-import type {AiteNode, AiteNodeOptions} from '../AITEreconciliation'
+import {createAiteNode} from '../index';
+import type {AiteNode, AiteNodeOptions} from '../index'
 
 type stringURL = `https://${string}` | `http://prefix${string}`
 

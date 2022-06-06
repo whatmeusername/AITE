@@ -3,6 +3,8 @@ import{
 	KeyboardEventCommand
 } from './editorCommandsTypes'
 
+import defaultInlineStyles from './defaultStyles/defaultInlineStyles';
+
 
 function unpackNode(node: HTMLElement): Array<HTMLElement> {
 	return Array.from(node.children) as Array<HTMLElement>;
@@ -44,6 +46,26 @@ function findEditorRoot(node: HTMLElement): HTMLElement | undefined {
 		node = node.parentNode as HTMLElement;
 	}
 	return undefined;
+}
+
+function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent): boolean {
+	const SYMBOLS = [
+		'Comma',
+		'Period',
+		'Minus',
+		'Equal',
+		'IntlBackslash',
+		'Slash',
+		'Quote',
+		'Semicolon',
+		'Backslash',
+		'BracketRight',
+		'BracketLeft',
+		'Backquote',
+	];
+
+	if (event.code.startsWith('Key') || event.code === 'Space' || event.code.startsWith('Digit') || SYMBOLS.includes(event.code)) return true;
+	return false;
 }
 
 function findEditorCharIndex(node: HTMLElement): {node: HTMLElement, index: number} | undefined  {
@@ -169,15 +191,25 @@ function isForwardRemoveWord(event: KeyboardEventCommand): boolean{
 	else return (event.code === 'Delete' || event.code === 'Backspace') && isCtrl(event) && event.which === 46
 }
 
+// DEPRECATED / REPLACE WITH NEW FUNCTION
+function findStyle (StyleKey: string) {
+	let style = defaultInlineStyles.find((style) => style.style === StyleKey);
+	if (style !== undefined) {
+		return style;
+	} else throw new Error(`Can't find inline style with name ${StyleKey}, because its not defineded `);
+}
+
 
 export {
 	getChildrenNodes,
+	keyCodeValidator,
 	
 	editorWarning,
 
 	findEditorBlockIndex,
 	findEditorRoot,
 	findEditorCharIndex,
+	findStyle,
 
 	isApple,
 

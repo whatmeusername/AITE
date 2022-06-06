@@ -1,10 +1,8 @@
-import type {EditorState} from './EditorState'
 
-import type ContentNode from './ContentNode'
-import type {NodeTypes, BlockType} from './BlockNode'
 import type {TextNode} from './AITE_nodes/index'
 
-import {getEditorState} from './EditorState'
+import type {NodeTypes, BlockType, ContentNode} from './index'
+import {getEditorState, EditorState} from './index'
 import {HTML_TEXT_NODE} from './ConstVariables'
 
 type NullUndefined = null | undefined
@@ -57,7 +55,6 @@ function $$bulkUnmountNodes(
     }   
 }
 
-
 function $$mountNode(
     newNode: NodeTypes | BlockType,
     nodePath: Array<number>, 
@@ -80,7 +77,6 @@ function $$mountNode(
             }
         }
 }
-
 
 function $$remountNode(
     updatedNode: NodeTypes | BlockType,
@@ -446,140 +442,6 @@ class editorDOMState{
         }
         return undefined
     }
-
-
-    // __reconciliation(){
-    //     let hasMutated = false
-
-    //     let EditorState = getEditorState()
-    //     let selectionState = getSelectionState()
-
-    //     if(EditorState === undefined || selectionState === undefined) return;
-
-    //     console.time('performance')
-
-    //     // let parentNode = this.__editorObjectState.getObjectNode(selectionState.anchorPath.get()) as AiteNode
-    //     // let nextParentNode = createNewObjectState(EditorState, selectionState.anchorPath.get()).__editorObjectState
-
-    //     /* 
-    //         perfomance tests:
-    //             input: 20000 nodes - 0.3ms - 1.1 ms
-    //             remove: 20000 nodes - 0.7ms - 1.1ms (saw freezes)
-
-    //     */
-
-    //     let parentNode = this.__editorObjectState.getObjectNode([...selectionState.anchorPath.get(), selectionState.anchorNodeKey]) as AiteNode
-    //     let nextParentNode = createNewObjectState(EditorState, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey]).__editorObjectState
-
-    //     if(nextParentNode === undefined){
-    //         this.__editorObjectState = createNewObjectState(EditorState)
-    //     }
-    //     else if(nextParentNode !== undefined && parentNode !== undefined){
-    //         this.__diffChildren(nextParentNode as AiteNode, parentNode as AiteNode);
-    //         (this.__editorObjectState.getObjectNode(selectionState.anchorPath.get()) as AiteNode).children![selectionState.anchorNodeKey] = nextParentNode;
-        
-    //     }
-    //    console.timeEnd('performance')
-    // }   
-
-    // __diffChildren(nextObject: AiteNode | AiteNodes[], currentObject: AiteNode | AiteNodes[]){
-    //     let nextChildren: AiteNodes[] | NullUndefined = undefined
-    //     let currentChildren: AiteNodes[] | NullUndefined = undefined
-
-    //     if(Array.isArray(nextObject) && Array.isArray(currentObject)){
-    //         nextChildren = nextObject
-    //         currentChildren = currentObject
-    //     }
-    //     else if(nextObject instanceof AiteNode && currentObject !instanceof AiteNode){
-    //         nextChildren = nextObject.children 
-    //         currentChildren = currentObject.children
-    //     }
-    //     if(nextChildren && currentChildren){
-    //         for(let i = 0; i < nextChildren.length; i++){
-    //             let nextNode = nextChildren[i]
-    //             let currentNode =  currentChildren[i]
-    //             if(nextNode.__key !== currentNode.__key){
-    //                 currentNode = currentChildren.find(child => child.__key === nextNode.__key) ?? currentNode
-    //             }
-    //             this.__diffNode(nextNode, currentNode)
-    //         }
-    //     }
-    // }
-
-    //  __diffNode(nextNode: AiteNodes, currentNode: AiteNodes): boolean{
-
-    //     let hasMutated = false
-
-    //     if(nextNode instanceof AiteTextNode && currentNode instanceof AiteTextNode){
-    //         this.__reconcileTextNode(nextNode, currentNode)
-    //     }
-    //     else if(nextNode instanceof AiteNode && currentNode instanceof AiteNode){
-    //         let currentDOMNode = this.getDOMNode(currentNode.__path as Array<number>)
-    //         if(currentDOMNode !== undefined){
-    //             if(nextNode.type !== currentNode.type){
-    //                 let parentDOMNode = this.getDOMNode(getParentPath(currentNode.__path) as Array<number>)
-    //                 if(parentDOMNode) parentDOMNode.replaceChild(returnSingleDOMNode(nextNode) as Node, currentDOMNode)
-    //                 return true
-    //             }
-    //             this.__reconcileProps(currentDOMNode, nextNode, currentNode)
-    //         }
-    //         if(nextNode.children && nextNode.children.length > 0){
-    //             this.__diffChildren(nextNode, currentNode)
-    //         }
-    //     }
-    //     return hasMutated
-    // }
-
-    // __reconcileTextNode(nextNode: AiteNodes, currentNode: AiteNodes){
-    //     if(nextNode.__key === currentNode.__key){
-    //         if(currentNode.children !== nextNode.children){
-    //             let currentDOMNode = this.getDOMNode(currentNode.__path as Array<number>)
-    //             if(currentDOMNode !== undefined && typeof nextNode.children === 'string'){
-    //                 currentDOMNode.textContent = nextNode.children as string
-    //             }
-    //         }
-    //     }
-    //     else{
-
-    //         let currentDOMNode = this.getDOMNode(currentNode.__path as Array<number>)
-    //         if(currentDOMNode?.firstChild instanceof Text && currentDOMNode !== undefined && typeof nextNode.children === 'string'){
-    //             currentDOMNode.textContent = nextNode.children as string
-    //         }
-
-    //         // --- replace method
-    //         // --- upodate method
-    //         // --- remove method
-            
-    //     }
-    // }
-
-    // __reconcileStyles($target: AiteHTMLNode, currentStyles: CSSStyles, nextStyles: CSSStyles){
-    //     Object.entries(currentStyles).forEach(([key, value]) => {
-    //         if(nextStyles[key] !== value && nextStyles[key] !== undefined){
-
-    //         }
-    //     })
-    // }
-
-    // __reconcileProps($target: AiteHTMLNode, currentNode: AiteNode, nextNode: AiteNode){
-    //     let nextNodeProps = nextNode.props as {[K: string]: string}
-    //     if(nextNodeProps && currentNode.props){
-    //         Object.entries(currentNode.props).forEach(([key, value]) => {
-    //             if(nextNodeProps[key] !== value && nextNodeProps[key] !== undefined){
-    //                 if(key !== 'style'){
-    //                     setAttribute($target, key, value)
-    //                 }
-    //                 else if(key === 'style'){
-    //                     // TODO: TEST
-    //                     //this.__reconcileStyles($target, currentNode.props[key], nextNodeProps[key])
-    //                 }
-    //             }
-    //             else if(nextNodeProps[key] === undefined){
-    //                 removeAttribute($target, key, value)
-    //             }
-    //         })
-    //     }
-    // }
 }
 
 

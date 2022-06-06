@@ -1,18 +1,19 @@
-import defaultBlocks from './defaultStyles/defaultBlocks';
 import React from 'react';
+
+import defaultBlocks from './defaultStyles/defaultBlocks';
 import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE} from './ConstVariables';
-import type {imageNode} from './packages/AITE_Image/imageNode';
-import {SelectionState} from './SelectionUtils';
 import {ClassVariables} from './Interfaces';
+
 import {TextNode, DOMattr, LinkNode, BreakLine} from './AITE_nodes/index'
+import type {imageNode} from './packages/AITE_Image/imageNode';
 
-import {createAiteNode} from './AITEreconciliation';
-import type {AiteNode, AiteNodeOptions} from './AITEreconciliation'
+import {createAiteNode} from './index';
+import type {AiteNode, AiteNodeOptions} from './index'
 
-export type NodeTypes = TextNode | imageNode | BreakLine;
-export type BlockNodeData = Array<NodeTypes>;
-export type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
-export type BlockType = BlockNode | HorizontalRuleNode;
+type NodeTypes = TextNode | imageNode | BreakLine;
+type BlockNodeData = Array<NodeTypes>;
+type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
+type BlockType = BlockNode | HorizontalRuleNode;
 
 type BlockNodeVariables = ClassVariables<BlockNode>
 interface findNodeOffsetData {
@@ -23,7 +24,7 @@ interface findNodeOffsetData {
 type allowedToInsert = 'all' | 'element' | 'text';
 
 
-export function createBlockNode(initData?: BlockNodeVariables){
+function createBlockNode(initData?: BlockNodeVariables){
 	initData = initData ?? {}
 	if(initData === undefined || initData?.NodeData?.length === 0){
 		initData.NodeData = [new BreakLine()]
@@ -47,7 +48,7 @@ class BaseBlockNode {
 	}
 }
 
-export default class BlockNode extends BaseBlockNode{
+class BlockNode extends BaseBlockNode{
 	plainText: string;
 	blockWrapper: string;
 	NodeData: BlockNodeData;
@@ -280,7 +281,7 @@ export default class BlockNode extends BaseBlockNode{
 	
 }
 
-export class HorizontalRuleNode extends BaseBlockNode{
+class HorizontalRuleNode extends BaseBlockNode{
 
 	constructor() {
 		super(HORIZONTAL_RULE_BLOCK_TYPE, [])
@@ -313,4 +314,17 @@ export class HorizontalRuleNode extends BaseBlockNode{
 			{...options, key: this.__key, isAiteWrapper: false}
 		)
 	} 
+}
+
+export {
+	createBlockNode,
+	BlockNode,
+	HorizontalRuleNode
+}
+
+export type{
+	NodeTypes,
+	BlockNodeData,
+	BlockTypes,
+	BlockType,
 }

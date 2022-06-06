@@ -1,7 +1,7 @@
 import { BaseNode } from "./BaseNode";
 import {BREAK_LINE_TYPE} from '../ConstVariables'
-import {createAiteNode} from '../AITEreconciliation'
-import type {AiteNode, AiteNodeOptions} from '../AITEreconciliation'
+import {createAiteNode} from '../index'
+import type {AiteNode, AiteNodeOptions} from '../index'
 
 
 class BreakLine extends BaseNode {

@@ -1,4 +1,4 @@
-import {getEditorState} from './EditorState'
+import {getEditorState} from './index'
 import {isArrow, isBackwardRemoveWord, isBackwardRemoveLine, isForwardBackspace, isForwardRemoveLine, isForwardRemoveWord} from './EditorUtils';
 
 
@@ -20,17 +20,14 @@ function onFocusDecorator(callback?: (...args: any) => void): void {
     }
 }
 
-function addRootEvents(){
-    
-}
-
 
 function onKeyDownEvent(event: KeyboardEvent){
     let EditorState = getEditorState()
     if(EditorState !== undefined){
         let Key = event.key
         let isArrowKey = isArrow(event);
-        if (EditorState.EditorActiveElementState?.isActive === false && isArrowKey === false) {
+         //TODO : REPLACE ACTIVE ELEMENT CONDITION AFTER REDESIGN
+        if (EditorState.EditorActiveElementState === undefined && isArrowKey === false) {
             let EDC = EditorState.EditorCommands
             if (Key === 'Backspace' || Key === 'Delete') {
                 event.preventDefault();
@@ -42,17 +39,17 @@ function onKeyDownEvent(event: KeyboardEvent){
                     HAVE SAME BUTTON AND LESS OF THEM TO ACTIVATE THEN 
                     COMMAND WITH LESS BUTTONS WILL BE CALLED 
                 */
-               
-                if (isForwardRemoveLine(event)) EditorState.EditorCommands?.dispatchCommand('FORWARD_LINE_REMOVE_COMMAND', event);
-                else if (isForwardRemoveWord(event)) EditorState.EditorCommands?.dispatchCommand('FORWARD_WORD_REMOVE_COMMAND', event);
-                else if (isForwardBackspace(event)) EditorState.EditorCommands?.dispatchCommand('FORWARD_LETTER_REMOVE_COMMAND', event);
-                else if (isBackwardRemoveLine(event)) EditorState.EditorCommands?.dispatchCommand('LINE_REMOVE_COMMAND', event);
+
+                if (isForwardRemoveLine(event)) EDC?.dispatchCommand('FORWARD_LINE_REMOVE_COMMAND', event);
+                else if (isForwardRemoveWord(event)) EDC?.dispatchCommand('FORWARD_WORD_REMOVE_COMMAND', event);
+                else if (isForwardBackspace(event)) EDC?.dispatchCommand('FORWARD_LETTER_REMOVE_COMMAND', event);
+                else if (isBackwardRemoveLine(event)) EDC?.dispatchCommand('LINE_REMOVE_COMMAND', event);
                 else if (isBackwardRemoveWord(event)) EDC?.dispatchCommand('WORD_REMOVE_COMMAND', event);
-				else EditorState.EditorCommands?.dispatchCommand('LETTER_REMOVE_COMMAND', event);
+				else EDC?.dispatchCommand('LETTER_REMOVE_COMMAND', event);
                 
             } else if (Key === 'Enter') {
                 event.preventDefault();
-                EditorState.EditorCommands?.dispatchCommand('ENTER_COMMAND', event);
+                EDC?.dispatchCommand('ENTER_COMMAND', event);
             }
             else if (isArrowKey === false) event.preventDefault();
         }
@@ -66,7 +63,9 @@ function onKeyUpEvent(event: KeyboardEvent){
     if(EditorState !== undefined){
         let Key = event.key
         let isArrowKey = isArrow(event);
-        if (EditorState.EditorActiveElementState?.isActive === false && isArrowKey === false) {
+
+        //TODO : REPLACE ACTIVE ELEMENT CONDITION AFTER REDESIGN
+        if (EditorState.EditorActiveElementState === undefined && isArrowKey === false) {
             if (isArrowKey === false){
                 event.preventDefault();
                 EditorState.EditorCommands?.dispatchCommand('LETTER_INSERT_COMMAND', event);
@@ -80,8 +79,6 @@ function onKeyUpEvent(event: KeyboardEvent){
 
 
 export {
-    onBlurDecorator,
-    onFocusDecorator,
 
     onKeyDownEvent,
     onKeyUpEvent

@@ -1,14 +1,22 @@
-import BlockNode, {HorizontalRuleNode} from './BlockNode';
-import {SelectionState, BlockPath} from './SelectionUtils';
-import {BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from './ConstVariables';
+
+import {BREAK_LINE_TYPE, ELEMENT_NODE_TYPE} from './ConstVariables';
 import {TextNode, LinkNode, BreakLine} from './AITE_nodes/index'
 import {createImageNode} from './packages/AITE_Image/imageNode';
 import type {imageNode} from './packages/AITE_Image/imageNode'
 
-import ValidationUtils from './ValidationUtils';
-import {BlockType} from './BlockNode';
 
-import {$$mountNode, $$unmountNode, $$updateNodeTextContent, $$bulkUnmountNodes, $$remountNode} from './AITEreconciliation'
+import {
+	$$mountNode, 
+	$$unmountNode, 
+	$$updateNodeTextContent, 
+	$$bulkUnmountNodes, 
+	$$remountNode,
+	BlockType,
+	SelectionState,
+	BlockPath,
+	BlockNode, 
+	HorizontalRuleNode,
+} from './index'
 import {isDefined} from './EditorUtils'
 
 
@@ -144,11 +152,11 @@ let test = [
 
 
 
-export function createContentNode(initData?: contentNodeConf){
+function createContentNode(initData?: contentNodeConf){
 	return new ContentNode(initData)
 }
 
-export default class ContentNode {
+class ContentNode {
 	blocksLength: () => number;
 	BlockNodes: Array<BlockNode | HorizontalRuleNode>;
 
@@ -168,7 +176,6 @@ export default class ContentNode {
 					new TextNode(
 						{plainText: `Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.`}
 					),
-	
 				],
 			}),
 			new BlockNode({
@@ -989,4 +996,10 @@ export default class ContentNode {
 			}
 		}
 	}
+}
+
+
+export {
+	createContentNode,
+	ContentNode
 }

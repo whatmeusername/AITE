@@ -1,9 +1,9 @@
 import React from 'react';
 
-import type {EditorState as editorState} from './EditorState';
 import {TextNode} from './AITE_nodes/index';
 import type {LinkNode} from './AITE_nodes/index';
 import type {imageNode} from './packages/AITE_Image/imageNode';
+
 import {
 	TEXT_NODE_TYPE,
 	LINK_NODE_TYPE,
@@ -13,11 +13,11 @@ import {
 	ORDERED_LIST_ITEM,
 	UNORDERED_LIST_ITEM,
 } from './ConstVariables';
-import BlockNode, {BlockType, NodeTypes} from './BlockNode';
-import type {HorizontalRuleNode} from './BlockNode';
-import SearchUtils from './SearchUtils';
 import defaultBlocks from './defaultStyles/defaultBlocks';
-import type ContentNode from './ContentNode';
+
+import {BlockNode, EditorState} from './index';
+
+import type {HorizontalRuleNode, BlockType} from './index';
 
 type BlockParameters = {
 	key: string;
@@ -27,6 +27,8 @@ type BlockParameters = {
 
 let BlockIndex = 0;
 let NodeIndex = 0;
+
+// DEPRECATED - OLD EDITOR STATE
 
 // eslint-disable-next-line
 function createReactStyle(style: string) {
@@ -41,7 +43,7 @@ function createReactStyle(style: string) {
 	return {[spiletedPrefix.join('')]: spiletedStyle[1].trim()};
 }
 
-function isActive(EditorState: editorState): (charIndex: number, blockIndex: number) => boolean {
+function isActive(EditorState: EditorState): (charIndex: number, blockIndex: number) => boolean {
 	let EditorActiveElement = EditorState.EditorActiveElementState;
 	return function (charIndex: number, blockIndex: number) {
 		if (EditorActiveElement?.charNode === charIndex && EditorActiveElement?.blockNode.getLastIndex() === blockIndex) return true;
@@ -215,7 +217,7 @@ export function createBlockElements(blocks: Array<BlockType>, isActiveFunction: 
 	return BlockElements;
 }
 
-export function CreateReactEditor({EditorState}: {EditorState: editorState}): JSX.Element {
+export function CreateReactEditor({EditorState}: {EditorState: EditorState}): JSX.Element {
 	BlockIndex = 0;
 	NodeIndex = 0;
 	let isActiveFunction = isActive(EditorState);

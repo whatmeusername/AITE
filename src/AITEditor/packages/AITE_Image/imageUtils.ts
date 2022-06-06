@@ -1,6 +1,5 @@
-import type {EditorState} from '../../EditorState';
-import type {floatType} from './imageNode';
-import type {imageNode} from './imageNode';
+import type {EditorState} from '../../index';
+import type {floatType, imageNode} from './imageNode';
 
 export function setImageFloatDirection(EditorState: EditorState, direction: floatType): void {
 	let activeNodes = EditorState.EditorActiveElementState?.getActiveNodes();

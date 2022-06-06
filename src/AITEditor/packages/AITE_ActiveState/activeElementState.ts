@@ -1,7 +1,7 @@
 import {findEditorCharIndex, isTextNode} from '../../EditorUtils';
 
 import type {NodeTypes} from '../../BlockNode';
-import type BlockNode from '../../BlockNode';
+import type {BlockNode} from '../../BlockNode';
 import type {EditorState} from '../../EditorState';
 import {BlockPath} from '../../SelectionUtils'
 

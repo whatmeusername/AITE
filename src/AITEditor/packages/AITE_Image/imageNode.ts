@@ -1,7 +1,5 @@
 import React from 'react';
-import BlockNode from '../../BlockNode';
 import {TextNode, LinkNode} from '../../AITE_nodes/index'
-import ContentNode from '../../ContentNode';
 
 import {BaseNode} from '../../AITE_nodes/index';
 import {DOMattr} from '../../AITE_nodes/index'
@@ -10,7 +8,7 @@ import BlockResizeElemets from './imageResizeElements'
 import {createBlockElements} from '../../rootElement'
 import {validateImageURL} from './imageUtils'
 
-import {AiteNode} from '../../AITEreconciliation'
+import {BlockNode, ContentNode, AiteNode} from '../../index';
 
 export type floatType = 'right' | 'left' | 'none';
 

@@ -1,9 +1,10 @@
 import {
 	EDITOR_PRIORITY,
 } from './ConstVariables';
-import {keyCodeValidator} from './TextEditor';
-
-import {onFocusDecorator, onBlurDecorator} from './EditorEvents'
+import {editorWarning, keyCodeValidator} from './EditorUtils'
+import {
+	getEditorState,
+} from './index'
 
 import type{
     KeyboardEventCommand,
@@ -29,10 +30,7 @@ import type{
 
 } from './editorCommandsTypes'
 
-import {getEditorState} from './EditorState'
-import {editorWarning} from './EditorUtils'
-
-export type commandPriority = keyof typeof EDITOR_PRIORITY;
+type commandPriority = keyof typeof EDITOR_PRIORITY;
 type commandTypes =
 	| 'KEYBOARD_COMMAND'
 	| 'SELECTION_COMMAND'
@@ -120,8 +118,8 @@ type decoratorStorage<S> = {[K in keyof S]+?: Function};
 
 
 const rootDecoratorStorage: decoratorStorage<rootCommandStorage> = {
-	FOCUS_COMMAND: onFocusDecorator,
-	BLUR_COMMAND: onBlurDecorator
+	// FOCUS_COMMAND: onFocusDecorator,
+	// BLUR_COMMAND: onBlurDecorator
 }
 
 const DecoratorStorage: decoratorStorage<commandStorage> = {
@@ -134,19 +132,20 @@ const DecoratorStorage: decoratorStorage<commandStorage> = {
 	},
 };
 
-export default class EditorCommands {
-	EditorStateFunction: () => void;
-	CommandStorage: commandStorage;
+class EditorCommands {
+
+	commandStorage: commandStorage;
+	removeHandles: Array<any>;
 	rootCommands: rootCommandStorage
 
-	constructor(EditorStateManager: () => void) {
-		this.EditorStateFunction = EditorStateManager;
-		this.CommandStorage = {};
+	constructor() {
+		this.commandStorage = {};
 		this.rootCommands = {
 			'SELECTION_COMMAND': undefined,
 			'FOCUS_COMMAND': undefined,
 			'BLUR_COMMAND': undefined,
 		}
+		this.removeHandles = []
 	}
 
 	registerCommand(
@@ -158,7 +157,7 @@ export default class EditorCommands {
 		let actionDecorator = DecoratorStorage[commandType];
 		let commandAction;
 
-		if(this.CommandStorage[commandType] === undefined || reassign === true) {
+		if(this.commandStorage[commandType] === undefined || reassign === true) {
 			if (actionDecorator !== undefined) {
 				commandAction = function <C extends typeof commandType>(
 					event: GetCommandEventType<C>,
@@ -177,7 +176,7 @@ export default class EditorCommands {
 				};
 			}
 	
-			this.CommandStorage[commandType] = {
+			this.commandStorage[commandType] = {
 				commandPriority: commandPriority,
 				action: commandAction as ActionType,
 			};
@@ -186,28 +185,38 @@ export default class EditorCommands {
 	}
 
 	dispatchCommand(commandType: commandTypes, event: EventCommands, ...rest: any): void {
-		const Command = this.CommandStorage[commandType];
+		const Command = this.commandStorage[commandType];
 
 		if (Command !== undefined) {
 			let editorState = getEditorState()
-			editorState?.setPreviousSelection()
-			if (Command.commandPriority === 'IMMEDIATELY_EDITOR_COMMAND') {
-				Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
-				if(editorState !== undefined) {
-					editorState.selectionState.setCaretPosition();
-				}
-			} else {
-				new Promise((res) => {
+			if(editorState !== undefined){
+				editorState?.setPreviousSelection()
+				if (Command.commandPriority === 'IMMEDIATELY_EDITOR_COMMAND') {
 					Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
-					res('');
-				}).then((res) => {
-					if (Command.commandPriority !== 'IGNOREMANAGER_EDITOR_COMMAND'){
-						if(editorState !== undefined) {
-							editorState.selectionState.setCaretPosition();
-						}
+					if(editorState !== undefined) {
+						editorState.selectionState.setCaretPosition();
 					}
-				});
+				} else {
+					new Promise((res) => {
+						Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
+						res('');
+					}).then((res) => {
+						if (Command.commandPriority !== 'IGNOREMANAGER_EDITOR_COMMAND'){
+							if(editorState !== undefined) {
+								editorState.selectionState.setCaretPosition();
+							}
+						}
+					});
+				}
 			}
 		}
 	}
+}
+
+export{
+	EditorCommands
+}
+
+export type{
+	commandPriority
 }
