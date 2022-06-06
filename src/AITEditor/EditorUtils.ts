@@ -1,4 +1,4 @@
-import {LINK_NODE_TAGNAME} from './ConstVariables'
+
 import{
 	KeyboardEventCommand
 } from './editorCommandsTypes'
@@ -94,6 +94,14 @@ function isArrowDown(event: KeyboardEventCommand){
 }
 
 
+function editorWarning(shoudThrow: boolean, message: string){
+	if(shoudThrow) {
+		console.warn(
+		`AITE internal warning: ${message}`
+	)
+}
+}
+
 function editorError(shoudThrow: boolean, message: string){
 	if(shoudThrow) throw new Error(
 		`AITE internal error: ${message}`
@@ -106,12 +114,79 @@ function isDefined(obj: any): boolean{
 }
 
 
+function isSafari(): boolean{
+	let userAgent = navigator.userAgent
+	return (/safari/i.test(userAgent) && !/chromium|edg|ucbrowser|chrome|crios|opr|opera|fxios|firefox/i.test(userAgent))
+}
+function isApple(): boolean{
+	return /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
+}
+
+function isMeta(event: KeyboardEventCommand){
+	if(isApple()){
+		return event.metaKey
+	}
+	return false
+}
+
+function isAlt(event: KeyboardEventCommand){
+	return event.altKey
+}
+
+function isCtrl(event: KeyboardEventCommand){
+	return event.ctrlKey
+}
+
+function isForwardBackspace(event: KeyboardEventCommand): boolean{
+	return (event.code === 'Delete' || event.code === 'Backspace') && event.which === 46
+}
+
+function isBackwardRemoveLine(event: KeyboardEventCommand): boolean{
+	if(isApple()){
+		return (event.code === 'Delete' || event.code === 'Backspace') && isMeta(event)
+	}
+	else return false
+}
+
+function isForwardRemoveLine(event: KeyboardEventCommand): boolean{
+	if(isApple()){
+		return (event.code === 'Delete' || event.code === 'Backspace') && event.which === 46 && isMeta(event)
+	}
+	else return false
+}
+
+function isBackwardRemoveWord(event: KeyboardEventCommand | React.KeyboardEvent): boolean{
+	if(isApple()){
+		return event.code === 'Backspace' && isAlt(event)
+	}
+	else return event.code === 'Backspace' && isCtrl(event)
+}
+
+function isForwardRemoveWord(event: KeyboardEventCommand): boolean{
+	if(isApple()){
+		return (event.code === 'Delete' || event.code === 'Backspace') && isAlt(event) && event.which === 46
+	}
+	else return (event.code === 'Delete' || event.code === 'Backspace') && isCtrl(event) && event.which === 46
+}
+
+
 export {
 	getChildrenNodes,
+	
+	editorWarning,
 
 	findEditorBlockIndex,
 	findEditorRoot,
 	findEditorCharIndex,
+
+	isApple,
+
+	isBackwardRemoveLine,
+	isBackwardRemoveWord,
+
+	isForwardBackspace,
+	isForwardRemoveWord,
+	isForwardRemoveLine,
 
 	isArrow,
 	isArrowLeft,

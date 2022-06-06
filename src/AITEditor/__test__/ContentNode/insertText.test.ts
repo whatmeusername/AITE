@@ -47,7 +47,7 @@ let testData = [
 describe('testing inserting letters', () => {
     test.each(testData)('$caseName', ({expectedHTML, caseSelection, expectedSelection, caseActions}) => {
         let testEditor = createTestEditor('one-line')
-        testEditor.selectionState.insertSelection(caseSelection)
+        testEditor.selectionState.insertSelectionData(caseSelection)
         expect(false).toBe(false)
     })
 })

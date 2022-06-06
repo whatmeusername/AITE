@@ -1,7 +1,11 @@
 import ContentNode from './ContentNode';
-import {SelectionState} from './SelectionUtils';
 import type EditorCommands from './EditorCommands';
 import type ActiveElementState from './packages/AITE_ActiveState/activeElementState';
+
+import {ClassVariables} from './Interfaces';
+import {SelectionState, insertSelection} from './SelectionUtils'
+
+import {editorWarning} from './EditorUtils'
 
 import{
 	editorDOMState,
@@ -41,6 +45,7 @@ class EditorState {
 	contentNode: ContentNode;
 	selectionState: SelectionState;
 	EditorCommands: EditorCommands | undefined;
+
 	EditorActiveElementState: ActiveElementState | undefined;
 	__editorDOMState: editorDOMState;
 
@@ -49,8 +54,9 @@ class EditorState {
 	// __editorListeners?: Array<EventListener>;
 	// __onError?: (...rest: any) => void
 
+	focus: boolean;
 	__readOnly: boolean;
-	__updating: boolean;
+	__previousSelection: insertSelection | undefined;
 
 	constructor(initData?: editorConf) {
 		this.contentNode = initData?.ContentNode ?? new ContentNode();
@@ -58,29 +64,32 @@ class EditorState {
 		this.EditorCommands = undefined;
 		this.EditorActiveElementState = undefined;
 
+		this.focus = false;
 		this.__editorDOMState = new editorDOMState(this)
 		this.__readOnly = false
-		this.__updating = false
+		this.__previousSelection = undefined
 	}
 
 
-	onError(){
+
+
+	replaceActiveSelectionWithPrevious(): void{
+		if(this.__previousSelection){
+			this.selectionState.insertSelectionData(this.__previousSelection)
+			this.selectionState.setCaretPosition()
+		}
+		else editorWarning(true, 'tried to set selection by previous selection data, when it undefined')
+	}
+
+	setPreviousSelection(): void{
+		this.__previousSelection = this.selectionState.get()
+	}
+
+	onError(): void{
 		// TODO:
 	}
-	editorWillUpdate(){
+	onEditorDOMChange(): void{
 		// TODO:
-	}
-	onUpdate(){
-		//: TODO:
-	}
-	update(){
-		// if(this.__rootElement === undefined && this.__editorDOMState === undefined){
-		// 	this.__editorDOMState = createNewDOMstate(this)
-		// 	this.__rootElement = returnSingleDOMNode(this.__editorDOMState)
-		// }  
-
-		// let currentEditorState = this.__editorDOMState
-		// let nextEditorState = createNewDOMstate(this)
 	}
 }
 

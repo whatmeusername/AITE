@@ -16,19 +16,48 @@ interface blockNodeDataExtended {
 	elementType: string | null;
 }
 
-export interface selectionData {
+interface selectionData {
 	charNode: HTMLElement;
 	nodePath: Array<number>;
 }
 
+type granularity = "character" | "word" | "sentence" |  "line" | "lineboundary" | "sentenceboundary"
+
 
 interface insertSelection extends Omit<ClassVariables<SelectionState>, 'anchorPath' | 'focusPath'>{
-	anchorPath: Array<number>;
-	focusPath: Array<number>;
+	anchorPath?: Array<number>;
+	focusPath?: Array<number>;
+}
+
+/**
+ * Проверяет навраления каретки на backward
+ * @returns boolean - возращает ответ от условия
+ */
+const isSelectionBackward = (sel: Selection) => {
+	let pos = sel?.anchorNode?.compareDocumentPosition(sel.focusNode as HTMLElement);
+	if ((!pos && sel.anchorOffset > sel.focusOffset) || pos === Node.DOCUMENT_POSITION_PRECEDING) return true;
+	return false;
+}
+
+const getSelection = (): Selection => window.getSelection() as Selection;
+const getMutatedSelection = (
+	alter: "move" | 'extend', 
+	granularity: granularity,
+	direction?: 'backward' | 'forward'
+	): Selection => {
+	let selection = getSelection()
+	// @ts-expect-error
+	selection.modify(
+		alter,
+		direction ? direction : (isSelectionBackward(selection) ? 'backward' : 'forward'),
+		granularity
+		)
+		
+	return selection
 }
 
 
-export class BlockPath {
+class BlockPath {
 	path: Array<number>;
 
 	constructor(path?: Array<number>) {
@@ -87,7 +116,7 @@ export class BlockPath {
 	}
 }
 
-export class SelectionState {
+class SelectionState {
 	anchorOffset: number;
 	focusOffset: number;
 
@@ -158,16 +187,6 @@ export class SelectionState {
 	// DEPRECATED / TODO
 	isNodesSame(): boolean {
 		return this.focusNodeKey === this.anchorNodeKey
-	}
-
-	/**
-	 * Проверяет навраления каретки на backward
-	 * @returns boolean - возращает ответ от условия
-	 */
-	isSelectionBackward(sel: Selection) {
-		let pos = sel?.anchorNode?.compareDocumentPosition(sel.focusNode as HTMLElement);
-		if ((!pos && sel.anchorOffset > sel.focusOffset) || pos === Node.DOCUMENT_POSITION_PRECEDING) return true;
-		return false;
 	}
 
 	/**
@@ -243,13 +262,18 @@ export class SelectionState {
 		this.isDirty = false;
 		return this;
 	}
+	
+
+	offsetToZero(){
+		this.anchorOffset = 0;
+		this.focusOffset = 0;
+	}
 	/**
 	 * Обнуляет позицию каретки в блоке до начала
 	 * @returns SelectionState - собственный возрат
 	 */
-	offsetToZero(): SelectionState{
-		this.anchorOffset = 0;
-		this.focusOffset = 0;
+	moveBlockOffsetToZero(): SelectionState{
+		this.offsetToZero()
 		this.anchorNodeKey = 0;
 		this.focusNodeKey = 0;
 		return this
@@ -706,7 +730,7 @@ export class SelectionState {
 
 			let isCollapsed = selection.isCollapsed;
 			this.isCollapsed = isCollapsed;
-			let isBackward = this.isSelectionBackward(selection);
+			let isBackward = isSelectionBackward(selection);
 
 			let anchorTextNode = range.startContainer;
 			let focusTextNode = range.endContainer;
@@ -804,12 +828,37 @@ export class SelectionState {
 		}
 	}
 
+	
+	/**
+	 * Возращает текущее данные о каретки
+	 * @returns insertSelection
+	 */
+	get(): insertSelection{
+		return({
+			anchorOffset: this.anchorOffset,
+			focusOffset: this.focusOffset,
+
+			anchorPath: this.anchorPath.get(),
+			focusPath: this.focusPath.get(),
+
+			anchorNodeKey: this.anchorNodeKey,
+			focusNodeKey: this.focusNodeKey,
+
+			anchorType: this.anchorType,
+			focusType: this.focusType,
+
+			isCollapsed: this.isCollapsed,
+			isDirty: this.isDirty,
+
+		})
+	}
+
 	/**
 	 * Ручное внесение данных для каретки
 	 * @param  {insertSelection} SelectionData - все доступные параметры каретки 
 	 * @returns void
 	 */
-	insertSelection(SelectionData: insertSelection): void{
+	insertSelectionData(SelectionData: insertSelection): void{
 
 		if(SelectionData.anchorOffset && typeof SelectionData.anchorOffset === 'number') this.anchorOffset = SelectionData.anchorOffset < this.anchorOffset ? 0 : SelectionData.anchorOffset
 		if(SelectionData.focusOffset && typeof SelectionData.anchorOffset === 'number') this.focusOffset = SelectionData.focusOffset < this.anchorOffset ? 0 : SelectionData.focusOffset
@@ -826,4 +875,16 @@ export class SelectionState {
 		this.isCollapsed = SelectionData.isCollapsed ?? this.isCollapsed;
 		this.isDirty = SelectionData.isDirty ?? this.isDirty;
 	}
+}
+
+
+export {
+	SelectionState,
+	BlockPath,
+	getMutatedSelection
+}
+
+export type{
+	selectionData,
+	insertSelection
 }

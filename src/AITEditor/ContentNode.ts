@@ -714,7 +714,7 @@ export default class ContentNode {
 						if(anchorBlockNode.isBreakLine()){
 							anchorBlockNode.replaceNode(selectionState.anchorNodeKey, new BreakLine())
 							$$remountNode(anchorBlockNode, selectionState.anchorPath.get(), true)
-							selectionState.offsetToZero()	
+							selectionState.moveBlockOffsetToZero()	
 						}
 						else{
 							anchorBlockNode.removeNode(selectionState.anchorNodeKey)
@@ -743,7 +743,7 @@ export default class ContentNode {
 							if(anchorBlockNode.isBreakLine()){
 								anchorBlockNode.replaceNode(selectionState.anchorNodeKey, new BreakLine())
 								$$remountNode(anchorBlockNode, selectionState.anchorPath.get(), true)
-								selectionState.offsetToZero()	
+								selectionState.moveBlockOffsetToZero()	
 							}
 							else{
 								anchorBlockNode.removeNode(selectionState.anchorNodeKey)
@@ -753,7 +753,7 @@ export default class ContentNode {
 	
 						} else {
 							$$updateNodeTextContent(anchorNodeData, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
-							selectionState.moveSelectionBackward();
+							selectionState.moveSelectionBackward().toggleCollapse();
 						}
 					} else {
 						anchorBlockNode.removeNode(selectionState.anchorNodeKey); 
@@ -795,7 +795,7 @@ export default class ContentNode {
 							let breakLineNode = new BreakLine()
 							anchorBlockNode.replaceNode(0, breakLineNode)
 							$$remountNode(anchorBlockNode, selectionState.anchorPath.get())
-							selectionState.offsetToZero()
+							selectionState.moveBlockOffsetToZero()
 						}
 						else {
 							$$bulkUnmountNodes([...selectionState.anchorPath.get()], nodeSliceFocus - nodeSliceAnchor, nodeSliceAnchor)
@@ -809,7 +809,7 @@ export default class ContentNode {
 						let breakLineNode = new BreakLine()
 						anchorBlockNode.replaceNode(0, breakLineNode)
 						$$remountNode(anchorBlockNode, selectionState.anchorPath.get())
-						selectionState.offsetToZero()
+						selectionState.moveBlockOffsetToZero()
 					}
 				}
 
@@ -851,7 +851,7 @@ export default class ContentNode {
 						let breakLine = new BreakLine()
 						anchorBlockNode.replaceNode(0, breakLine)
 						$$remountNode(anchorBlockNode, anchorBlockPath, true)
-						selectionState.offsetToZero().toggleCollapse();
+						selectionState.moveBlockOffsetToZero().toggleCollapse();
 					}
 					else {
 						this.MergeWithUpdate(ParentContentNode, selectionState, 'up', 'backward');

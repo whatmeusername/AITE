@@ -2,15 +2,15 @@ import React, {useState, useEffect} from 'react';
 
 import defaultBlocks from './defaultStyles/defaultBlocks';
 
-//import {CreateReactEditor} from './rootElement';
 import {createEmptyEditorState, updateActiveEditor} from './EditorState';
 import type {EditorState as editorState} from './EditorState';
+import {getMutatedSelection} from './SelectionUtils';
 
 import EditorCommands from './EditorCommands';
 
 import activeElementState from './packages/AITE_ActiveState/activeElementState';
 import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
-import {isArrow} from './EditorUtils';
+import {onKeyDownEvent, onKeyUpEvent} from './EditorEvents';
 
 import './defaultinlineStyles.scss';
 import './AITE_test.scss';
@@ -53,24 +53,6 @@ export default function AITEditor(): JSX.Element {
 
 	const [EditorState, setEditorState] = useState<editorState>(createEmptyEditorState());
 
-	function HandleKeyClick(event: React.KeyboardEvent) {
-		let Key = event.key;
-		let isArrowKey = isArrow(event);
-
-		if (EditorState.EditorActiveElementState?.isActive === false && isArrowKey === false) {
-			if (Key === 'Backspace') {
-				event.preventDefault();
-				EditorState.EditorCommands?.dispatchCommand('LETTER_REMOVE_COMMAND', event);
-			} else if (Key === 'Enter') {
-				event.preventDefault();
-				EditorState.EditorCommands?.dispatchCommand('ENTER_COMMAND', event);
-			} else {
-				event.preventDefault();
-				EditorState.EditorCommands?.dispatchCommand('LETTER_INSERT_COMMAND', event);
-			}
-		} else if (isArrowKey === false) event.preventDefault();
-	}
-
 	useEffect(() => {
 		if (EditorState.EditorCommands === undefined) {
 			let EditorNodes = returnSingleDOMNode(createAITEContentNode(EditorState.contentNode)) as AiteHTMLNode[];
@@ -81,8 +63,12 @@ export default function AITEditor(): JSX.Element {
 
 			EditorState.EditorCommands = new EditorCommands(() => setEditorState({...(EditorState as any)}));
 
-			EditorState.EditorCommands.registerCommand('KEYBOARD_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (event) => {
-				HandleKeyClick(event);
+			EditorState.EditorCommands.registerCommand('KEYDOWN_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (event) => {
+				onKeyDownEvent(event);
+			});
+
+			EditorState.EditorCommands.registerCommand('KEYUP_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (event) => {
+				onKeyUpEvent(event);
 			});
 
 			EditorState.EditorCommands.registerCommand('LETTER_INSERT_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (event) => {
@@ -94,8 +80,47 @@ export default function AITEditor(): JSX.Element {
 				EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
 			});
 
+			EditorState.EditorCommands.registerCommand('FORWARD_LETTER_REMOVE_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
+				getMutatedSelection('extend', 'character', 'forward');
+				EditorState.selectionState.getCaretPosition();
+				EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
+				EditorState.replaceActiveSelectionWithPrevious();
+			});
+
 			EditorState.EditorCommands.registerCommand('ENTER_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
 				EditorState.contentNode.handleEnter(EditorState.selectionState);
+			});
+
+			EditorState.EditorCommands.registerCommand('WORD_REMOVE_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
+				getMutatedSelection('extend', 'word', 'backward');
+				EditorState.selectionState.getCaretPosition();
+				EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
+				if (EditorState.selectionState.isOffsetOnStart() === false) {
+					EditorState.selectionState.moveSelectionForward();
+				}
+			});
+
+			EditorState.EditorCommands.registerCommand('FORWARD_WORD_REMOVE_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
+				getMutatedSelection('extend', 'word', 'forward');
+				EditorState.selectionState.getCaretPosition();
+				EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
+				EditorState.replaceActiveSelectionWithPrevious();
+			});
+
+			EditorState.EditorCommands.registerCommand('FORWARD_LINE_REMOVE_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
+				getMutatedSelection('extend', 'lineboundary', 'forward');
+				EditorState.selectionState.getCaretPosition();
+				EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
+				EditorState.replaceActiveSelectionWithPrevious();
+			});
+
+			EditorState.EditorCommands.registerCommand('LINE_REMOVE_COMMAND', 'IMMEDIATELY_EDITOR_COMMAND', (_) => {
+				getMutatedSelection('extend', 'lineboundary', 'backward');
+				EditorState.selectionState.getCaretPosition();
+				EditorState.contentNode.removeLetterFromBlock(EditorState.selectionState);
+				if (EditorState.selectionState.isOffsetOnStart() === false) {
+					EditorState.selectionState.moveSelectionForward();
+				}
 			});
 
 			EditorState.EditorCommands.registerCommand('SELECTION_COMMAND', 'IGNOREMANAGER_EDITOR_COMMAND', (_) => {
@@ -109,10 +134,6 @@ export default function AITEditor(): JSX.Element {
 
 			updateActiveEditor(EditorState);
 			setEditorState({...(EditorState as any)});
-		}
-		if (EditorState.EditorActiveElementState?.isActive === false) {
-			updateActiveEditor(EditorState);
-			EditorState.selectionState.setCaretPosition();
 		}
 	}, [EditorState]); //eslint-disable-line
 
@@ -176,10 +197,10 @@ export default function AITEditor(): JSX.Element {
 				// 	EditorState.EditorCommands?.dispatchCommand('CLICK_COMMAND', event);
 				// }}
 				onKeyDown={(event) => {
-					if (!isArrow(event)) event.preventDefault();
+					EditorState.EditorCommands?.dispatchCommand('KEYDOWN_COMMAND', event);
 				}}
 				onKeyUp={(event) => {
-					EditorState.EditorCommands?.dispatchCommand('KEYBOARD_COMMAND', event);
+					EditorState.EditorCommands?.dispatchCommand('KEYUP_COMMAND', event);
 				}}
 				onDrop={(event) => event.preventDefault()}
 			></div>

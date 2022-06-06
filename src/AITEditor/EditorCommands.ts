@@ -3,6 +3,8 @@ import {
 } from './ConstVariables';
 import {keyCodeValidator} from './TextEditor';
 
+import {onFocusDecorator, onBlurDecorator} from './EditorEvents'
+
 import type{
     KeyboardEventCommand,
     EventCommands,
@@ -10,12 +12,25 @@ import type{
     KEYBOARD_COMMAND,
     SELECTION_COMMAND,
     MOUSE_COMMAND,
+
     LETTER_INSERT_COMMAND,
-    LETTER_REMOVE_COMMAND,
     ENTER_COMMAND,
+
+	LETTER_REMOVE_COMMAND,
+    WORD_REMOVE_COMMAND,
+    LINE_REMOVE_COMMAND,
+    FORWARD_LETTER_REMOVE_COMMAND,
+    FORWARD_WORD_REMOVE_COMMAND,
+    FORWARD_LINE_REMOVE_COMMAND,
+
+	KEYDOWN_COMMAND,
+    KEYUP_COMMAND,
+
+
 } from './editorCommandsTypes'
 
 import {getEditorState} from './EditorState'
+import {editorWarning} from './EditorUtils'
 
 export type commandPriority = keyof typeof EDITOR_PRIORITY;
 type commandTypes =
@@ -24,7 +39,14 @@ type commandTypes =
 	| 'CLICK_COMMAND'
 	| 'LETTER_INSERT_COMMAND'
 	| 'LETTER_REMOVE_COMMAND'
-	| 'ENTER_COMMAND';
+	| 'ENTER_COMMAND'
+	| 'WORD_REMOVE_COMMAND'
+    | 'LINE_REMOVE_COMMAND'
+    | 'FORWARD_LETTER_REMOVE_COMMAND'
+    | 'FORWARD_WORD_REMOVE_COMMAND'
+    | 'FORWARD_LINE_REMOVE_COMMAND'
+	| 'KEYDOWN_COMMAND'
+	| 'KEYUP_COMMAND'
 
 
 
@@ -38,30 +60,44 @@ interface KEYBIND_COMMAND { //eslint-disable-line
 }
 
 
-interface commandStorage {
-	KEYBOARD_COMMAND?: KEYBOARD_COMMAND;
+interface rootCommandStorage{
 	SELECTION_COMMAND?: SELECTION_COMMAND;
 
-	CLICK_COMMAND?: MOUSE_COMMAND;
+	// COPY_COMMAND?: any
+	// PASTE_COMMAND?: any
 
-	ENTER_COMMAND?: ENTER_COMMAND;
-	// BACKSPACE_COMMAND?: any
-	LETTER_INSERT_COMMAND?: LETTER_INSERT_COMMAND;
-	LETTER_REMOVE_COMMAND?: LETTER_REMOVE_COMMAND;
+	FOCUS_COMMAND?: MOUSE_COMMAND
+	BLUR_COMMAND?: MOUSE_COMMAND
 
 	// DRAG_START_COMANND?: any
 	// DRAG_OVER_COMMAND?: any
 	// DRAG_END_COMMAND?: any
 	// DROP_COMMAND?: any
+}
 
-	// COPY_COMMAND?: any
-	// PASTE_COMMAND?: any
+interface commandStorage {
+	KEYBOARD_COMMAND?: KEYBOARD_COMMAND;
+
+	KEYDOWN_COMMAND?: KEYDOWN_COMMAND;
+    KEYUP_COMMAND?: KEYUP_COMMAND;
+
+	SELECTION_COMMAND?: SELECTION_COMMAND;
+
+	CLICK_COMMAND?: MOUSE_COMMAND;
+
+	ENTER_COMMAND?: ENTER_COMMAND;
+	
+	LETTER_INSERT_COMMAND?: LETTER_INSERT_COMMAND;
+	LETTER_REMOVE_COMMAND?: LETTER_REMOVE_COMMAND;
+    WORD_REMOVE_COMMAND?: WORD_REMOVE_COMMAND;
+    LINE_REMOVE_COMMAND?: LINE_REMOVE_COMMAND;
+    FORWARD_LETTER_REMOVE_COMMAND?: FORWARD_LETTER_REMOVE_COMMAND;
+    FORWARD_WORD_REMOVE_COMMAND?: FORWARD_WORD_REMOVE_COMMAND;
+    FORWARD_LINE_REMOVE_COMMAND?: FORWARD_LINE_REMOVE_COMMAND;
 }
 
 type FindWithoutUndefined<O, K extends keyof O> = {[I in K]-?: O[K]};
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
-	? I
-	: never;
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
 type GetCommandEventType<C extends keyof commandStorage> =
 	('action' extends keyof FindWithoutUndefined<commandStorage, C>[C]
@@ -80,9 +116,15 @@ type GetCommandActionType<S extends keyof commandStorage> =
 
 type ActionType = UnionToIntersection<GetCommandActionType<keyof commandStorage>>;
 
-type decoratorStorage = {[K in keyof commandStorage]+?: Function};
+type decoratorStorage<S> = {[K in keyof S]+?: Function};
 
-const DecoratorStorage: decoratorStorage = {
+
+const rootDecoratorStorage: decoratorStorage<rootCommandStorage> = {
+	FOCUS_COMMAND: onFocusDecorator,
+	BLUR_COMMAND: onBlurDecorator
+}
+
+const DecoratorStorage: decoratorStorage<commandStorage> = {
 	LETTER_INSERT_COMMAND: keyCodeValidator,
 	LETTER_REMOVE_COMMAND: (event: KeyboardEventCommand) => {
 		return event.code === 'Backspace';
@@ -95,53 +137,63 @@ const DecoratorStorage: decoratorStorage = {
 export default class EditorCommands {
 	EditorStateFunction: () => void;
 	CommandStorage: commandStorage;
+	rootCommands: rootCommandStorage
 
 	constructor(EditorStateManager: () => void) {
 		this.EditorStateFunction = EditorStateManager;
 		this.CommandStorage = {};
+		this.rootCommands = {
+			'SELECTION_COMMAND': undefined,
+			'FOCUS_COMMAND': undefined,
+			'BLUR_COMMAND': undefined,
+		}
 	}
 
 	registerCommand(
 		commandType: commandTypes,
 		commandPriority: commandPriority,
 		action: (...args: any) => void,
+		reassign: boolean = false,
 	): void {
 		let actionDecorator = DecoratorStorage[commandType];
 		let commandAction;
 
-		if (actionDecorator !== undefined) {
-			commandAction = function <C extends typeof commandType>(
-				event: GetCommandEventType<C>,
-				...args: any
-			): void {
-				if ((actionDecorator as Function)(event) === true) {
+		if(this.CommandStorage[commandType] === undefined || reassign === true) {
+			if (actionDecorator !== undefined) {
+				commandAction = function <C extends typeof commandType>(
+					event: GetCommandEventType<C>,
+					...args: any
+				): void {
+					if ((actionDecorator as Function)(event) === true) {
+						action(event, ...args);
+					}
+				};
+			} else {
+				commandAction = function <C extends typeof commandType>(
+					event: GetCommandEventType<C>,
+					...args: any
+				): void {
 					action(event, ...args);
-				}
-			};
-		} else {
-			commandAction = function <C extends typeof commandType>(
-				event: GetCommandEventType<C>,
-				...args: any
-			): void {
-				action(event, ...args);
+				};
+			}
+	
+			this.CommandStorage[commandType] = {
+				commandPriority: commandPriority,
+				action: commandAction as ActionType,
 			};
 		}
-
-		this.CommandStorage[commandType] = {
-			commandPriority: commandPriority,
-			action: commandAction as ActionType,
-		};
+		else editorWarning(true, `tried to reassign command of ${commandType}. If you sure to apply changes to command, then pass 'reassign' as true.`)
 	}
 
 	dispatchCommand(commandType: commandTypes, event: EventCommands, ...rest: any): void {
 		const Command = this.CommandStorage[commandType];
 
 		if (Command !== undefined) {
+			let editorState = getEditorState()
+			editorState?.setPreviousSelection()
 			if (Command.commandPriority === 'IMMEDIATELY_EDITOR_COMMAND') {
 				Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
-				let editorState = getEditorState()
 				if(editorState !== undefined) {
-					//editorState.__editorDOMState.__reconciliation();
 					editorState.selectionState.setCaretPosition();
 				}
 			} else {
@@ -150,9 +202,7 @@ export default class EditorCommands {
 					res('');
 				}).then((res) => {
 					if (Command.commandPriority !== 'IGNOREMANAGER_EDITOR_COMMAND'){
-						let editorState = getEditorState()
 						if(editorState !== undefined) {
-							//editorState.__editorDOMState.__reconciliation();
 							editorState.selectionState.setCaretPosition();
 						}
 					}
