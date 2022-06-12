@@ -1,11 +1,10 @@
-import React from 'react';
+
 import {TextNode, LinkNode} from '../../AITE_nodes/index'
 
 import {BaseNode} from '../../AITE_nodes/index';
-import {DOMattr} from '../../AITE_nodes/index'
 
+//eslint-disable-next-line
 import BlockResizeElemets from './imageResizeElements'
-import {createBlockElements} from '../../rootElement'
 import {validateImageURL} from './imageUtils'
 
 import {BlockNode, ContentNode, AiteNode} from '../../index';
@@ -34,18 +33,12 @@ interface imageConf {
 interface ImageWrapperAttrType {
 	key?: string;
 	className: string;
+	draggable?: boolean;
 	contentEditable: false;
 	style?: {[K: string]: string}
 	'data-aite_decorator_node'?: boolean
 }
 
-interface imageAttributesType {
-	key: string;
-	alt: string;
-	className: string | null | undefined;
-	src: string;
-	style?: {[K: string]: string};
-}
 
 class imageNode extends BaseNode{
 	imageConf: {
@@ -174,10 +167,10 @@ class imageNode extends BaseNode{
 		};
 	}
 
-	returnContent(): string {
+	getContent(): string {
 		return this.imageConf.src;
 	}
-	returnContentLength(): number {
+	getContentLength(): number {
 		return 1;
 	}
 
@@ -185,85 +178,42 @@ class imageNode extends BaseNode{
 		return createImageNode(data)
 	}
 
-	createDOM(attr?: DOMattr){
-
-		let imageAttributes: imageAttributesType = {
-			key: attr?.html?.key ? attr.html?.key : 'aite-image-node',
-			alt: this.imageConf.alt,
-			className: this.imageConf.className,
+	getData(): imageConf{
+		return {
 			src: this.imageConf.src,
-			style: this.imageStyle.s,
-		};
+			alt: this.imageConf.alt,
+			canResize: this.imageConf.canResize,
+			canFloat: this.imageConf.canFloat,
+			captionEnabled: this.imageConf.captionEnabled,
+			className: this.imageConf.className,
 
-		let imageElements: Array<JSX.Element> = [];
+			float: this.imageStyle.float.dir,
 
-		const ImageWrapperAttr: ImageWrapperAttrType = {
-			key: attr?.html?.key ? attr.html?.key : 'aite-image-node-wrapper',
-			className: 'image-wrapper',
-			contentEditable: false,
-			style: {
-				width: this.imageStyle.s.width,
-				minHeight: this.imageStyle.s.height,
-				minWidth: this.imageStyle.s.minWidth,
-			},
-		};
+			width: parseInt(this.imageStyle.s.width),
+			height: parseInt(this.imageStyle.s.height),
 
-		if (attr?.other?.isActive === true) {
-			ImageWrapperAttr.className += ' AITE__image__active';
-			imageElements = [...imageElements, ...BlockResizeElemets(this, attr?.html?.key ? attr.html?.key : 'image-resize-elements-active')];
+			minWidth: parseInt(this.imageStyle.s.minWidth),
+			minHeight: parseInt(this.imageStyle.s.minHeight),
+			maxWidth: parseInt(this.imageStyle.s.maxWidth),
+			maxHeight: parseInt(this.imageStyle.s.maxHeight),
 		}
-
-		if (this.imageStyle.float.dir !== 'none') {
-			ImageWrapperAttr.style = {
-				...ImageWrapperAttr.style,
-				float: this.imageStyle.float.dir,
-			};
-		}
-
-		if (this.ContentNode !== undefined && this.ContentNode.BlockNodes.length > 0 && this.imageConf.captionEnabled) {
-			let captionBlockNodes = createBlockElements(this.ContentNode.BlockNodes, attr?.other?.isActiveFunction!, '-imageCaption');
-			let captionWrapper = React.createElement(
-				'div',
-				{
-					key: attr?.html?.key ? attr.html?.key : 'image-caption-wrapper',
-					className: 'AITE_image_caption_wrapper',
-					spellCheck: false,
-					contentEditable: true,
-					suppressContentEditableWarning: true,
-					'data-aite_block_content_node': true,
-				},
-				captionBlockNodes,
-			);
-			imageElements = [...imageElements, captionWrapper];
-		}
-
-		const ImageElement = React.createElement('img', imageAttributes, null);
-		return React.createElement('span', ImageWrapperAttr, [ImageElement, imageElements]);
-	}
-
-
-	$getNodeKey(){
-		return `
-		AITE_IMAGE_WRAPPER_
-		${this.imageConf.src.slice(10, 20)}_
-		${this.imageConf.alt.slice(0, 5)}_
-		${this.imageConf.canFloat}_
-		${this.imageConf.canResize}_
-		${this.imageConf.captionEnabled}`
 	}
 
 	$getNodeState(options?: {path?: Array<number>}): AiteNode{
 
+		this.$updateNodeKey()
+		let key = this.$getNodeKey()
 		let imageNode = new AiteNode(
 			'img',
 			{
 				alt: this.imageConf.alt,
 				className: this.imageConf.className,
+				draggable: true,
 				src: this.imageConf.src,
 				style: this.imageStyle.s,
 			},
 			[],
-			{isAiteWrapper: true}
+			{AiteNodeType: 'image/gif', isAiteWrapper: true}
 		)
 
 		let imageElements = [imageNode]
@@ -274,7 +224,6 @@ class imageNode extends BaseNode{
 				captionBlockNodes.push(node.$getNodeState())
 			})
 
-			let wrapperKey = this.$getNodeKey()
 			let captionWrapper = new AiteNode(
 				'div',
 				{
@@ -284,7 +233,7 @@ class imageNode extends BaseNode{
 					'data-aite_content_node': true,
 				},
 				captionBlockNodes,
-				{key: wrapperKey, isAiteWrapper: false}
+				{AiteNodeType: 'image/gif', key: key, isAiteWrapper: false}
 			);
 			imageElements = [...imageElements, captionWrapper];
 		}
@@ -293,6 +242,7 @@ class imageNode extends BaseNode{
 			className: 'image-wrapper',
 			'data-aite_decorator_node': true,
 			contentEditable: false,
+			draggable: true,
 			style: {
 				width: this.imageStyle.s.width,
 				minHeight: this.imageStyle.s.height,
@@ -300,6 +250,11 @@ class imageNode extends BaseNode{
 			},
 		};
 
+
+		if(true){
+			ImageWrapperAttr.className += ' AITE__image__active'
+			imageElements = [...imageElements, ...BlockResizeElemets(this)]
+		}
 		if (this.imageStyle.float.dir !== 'none') {
 			ImageWrapperAttr.style = {
 				...ImageWrapperAttr.style,
@@ -307,13 +262,11 @@ class imageNode extends BaseNode{
 			};
 		}
 
-		let imageKey = `AITE_IMAGE_WRAPPER_${this.imageConf.src.slice(10, 20)}_${this.imageConf.alt.slice(0, 5)}`
-
 		return new AiteNode(
 			'div',
 			ImageWrapperAttr,
 			imageElements,
-			{key: imageKey, isAiteWrapper: false}
+			{AiteNodeType: 'image/gif', key: key, isAiteWrapper: false}
 			) 
 	} 
 
@@ -347,6 +300,8 @@ function createImageNode(imageConf: imageConf): imageNode | undefined {
 		ImageNode.imageStyle.s.minHeight = minHeight + 'px';
 	};
 	img.src = imageConf.src;
+
+	ImageNode?.$updateNodeKey()
 
 	return ImageNode;
 }

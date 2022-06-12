@@ -3,7 +3,7 @@ import {findEditorCharIndex, isTextNode} from '../../EditorUtils';
 import type {NodeTypes} from '../../BlockNode';
 import type {BlockNode} from '../../BlockNode';
 import type {EditorState} from '../../EditorState';
-import {BlockPath} from '../../SelectionUtils'
+import {NodePath} from '../../SelectionUtils'
 
 import type {selectionData} from '../../SelectionUtils'
 
@@ -17,7 +17,7 @@ export default class ActiveElementState {
 	isActive: boolean;
 	activeNode: HTMLElement | null;
 	charNode: number | null;
-	blockNode: BlockPath;
+	blockNode: NodePath;
 
 	constructor(EditorStateManager: () => void, editorState: EditorState) {
 		this.EditorStateFunction = EditorStateManager;
@@ -26,7 +26,7 @@ export default class ActiveElementState {
 		this.isActive = false;
 		this.activeNode = null;
 		this.charNode = null;
-		this.blockNode = new BlockPath();
+		this.blockNode = new NodePath();
 	}
 
 	addElementToAllowed(element: string): void {
@@ -71,7 +71,7 @@ export default class ActiveElementState {
 		// 		if (newBlockData?.blockNode !== currentBlockData?.blockNode) {
 		// 			currentBlockData = newBlockData;
 		// 			if (currentBlockData !== undefined){
-		// 				this.blockNode?.set(newBlockData!.blockPath);
+		// 				this.blockNode?.set(newBlockData!.NodePath);
 		// 				this.charNode = newBlockData!.charIndex;
 		// 				this.EditorStateFunction();
 		// 			}
@@ -100,7 +100,7 @@ export default class ActiveElementState {
 
 		// 	if (currentBlockData !== undefined && currentBlockData !== undefined && this.isActive === false) {
 
-		// 		this.blockNode.set(currentBlockData.blockPath);
+		// 		this.blockNode.set(currentBlockData.NodePath);
 		// 		this.charNode = currentBlockData.charIndex;
 		// 		this.isActive = true;
 		// 		this.EditorStateFunction();
@@ -117,7 +117,7 @@ export default class ActiveElementState {
 
 	getActiveNodes(): {block: BlockNode, char: NodeTypes} | undefined {
 		if (this.blockNode !== null && this.charNode !== null) {
-			let currentBlock = this.EditorState.contentNode.getBlockByPath(this.blockNode.get()) as BlockNode;
+			let currentBlock = this.EditorState.contentNode.getBlockByPath(this.blockNode.getBlockPath()) as BlockNode;
 			let currentChar = currentBlock.getNodeByIndex(this.charNode);
 			return {block: currentBlock, char: currentChar};
 		}

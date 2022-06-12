@@ -4,7 +4,7 @@ import {
     DOMhtml
 } from './BaseNode';
 
-import {TextNode, DOMTextAttr, textNodeConf} from './TextNode';
+import {TextNode, DOMTextAttr, textNodeConf, createTextNode} from './TextNode';
 import {LinkNode} from './LinkNode';
 import {BreakLine} from './BreakLine'
 
@@ -13,6 +13,7 @@ export {
     TextNode,
     LinkNode,
     BreakLine,
+    createTextNode
 
 }
 

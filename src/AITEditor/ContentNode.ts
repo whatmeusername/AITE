@@ -13,7 +13,7 @@ import {
 	$$remountNode,
 	BlockType,
 	SelectionState,
-	BlockPath,
+	NodePath,
 	BlockNode, 
 	HorizontalRuleNode,
 } from './index'
@@ -24,6 +24,7 @@ interface contentNodeConf {
 	BlockNodes?: Array<BlockType>;
 }
 
+//eslint-disable-next-line
 let test = [
 	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC', 'BOLD']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
 	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
@@ -158,7 +159,7 @@ function createContentNode(initData?: contentNodeConf){
 
 class ContentNode {
 	blocksLength: () => number;
-	BlockNodes: Array<BlockNode | HorizontalRuleNode>;
+	BlockNodes: Array<BlockType>;
 
 	constructor(initData?: contentNodeConf) {
 		this.blocksLength = () => {
@@ -177,11 +178,12 @@ class ContentNode {
 						{plainText: `Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.`}
 					),
 				],
+				
 			}),
 			new BlockNode({
 				blockWrapper: 'header-one',
 				NodeData: [
-					new TextNode({plainText: `Языки программирования`}),
+					new TextNode({plainText: `Языки программирования`, stylesArr: ['STRIKETHROUGH', 'UNDERLINE']}),
 				],
 			}),
 			new BlockNode({
@@ -200,7 +202,6 @@ class ContentNode {
 				NodeData: [
 					createImageNode({
 						src: 'https://i.gifer.com/2GU.gif',
-						float: 'left',
 						captionEnabled: true,
 					}) as imageNode,
 					new TextNode(
@@ -288,17 +289,14 @@ class ContentNode {
 		];
 	}
 
-	getCurrentContentNode(selectionKey: BlockPath): ContentNode {
+
+	getCurrentContentNode(selectionKey: NodePath): ContentNode {
 		if (selectionKey.length() !== 1) {
-			let currentContentNode = this.getBlockByPath(selectionKey.getPathBeforeLast()) as any;
+			let currentContentNode = this.getBlockByPath(selectionKey.getContentNode()) as any;
 			if (currentContentNode instanceof ContentNode) return currentContentNode;
 			else if (currentContentNode.ContentNode !== undefined) return currentContentNode.ContentNode;
 		}
 		return this;
-	}
-
-	findBlockByIndex(index: number) {
-		return this.BlockNodes[index] as BlockNode;
 	}
 
 	getBlockByPath(path: Array<number>) {
@@ -321,23 +319,6 @@ class ContentNode {
 		}
 	}
 
-	spliceBlockByPath(path: Array<number>): void {
-		let currentBlock: any = this.BlockNodes[path[0]];
-		if (path.length === 0) {
-			this.BlockNodes.splice(path[0], 1);
-		} else {
-			for (let i = 1; i < path.length; i++) {
-				if (i !== path.length - 1) {
-					if (currentBlock instanceof BlockNode || currentBlock[0] instanceof BlockNode) {
-						currentBlock = currentBlock.NodeData[path[i]];
-					} else if (!(currentBlock instanceof BlockNode)) {
-						currentBlock = currentBlock?.NodeData[path[i]];
-					}
-				} else currentBlock.splice(path[i], 1);
-			}
-		}
-	}
-
 	TextNodeSlice(char: TextNode, CharToInsert: string = '', start: number, end?: number): void {
 		if (start === -1) {
 			char.__content = char.__content + CharToInsert;
@@ -356,34 +337,35 @@ class ContentNode {
 		joiningBlockDirection: 'up' | 'down',
 		joiningSideDirection: 'backward' | 'forward',
 	): void {
-		let AnchorIndex = new BlockPath([...selectionState.anchorPath.get()]);
+		let AnchorIndex = new NodePath([...selectionState.anchorPath.get()]);
 		let lastConnectingNode = undefined;
 		let anchorNodeKey = 0;
 		let newAnchorOffset = 0;
 		let connectingBlockLength = 0;
 
 		if (joiningSideDirection === 'backward') {
-			joiningBlockDirection === 'down' ? AnchorIndex.decrementLastPathIndex(1) : AnchorIndex.incrementLastPathIndex(1);
-			let connectingBlock = this.getBlockByPath([...selectionState.anchorPath.get()]) as BlockNode;
+			joiningBlockDirection === 'down' ? AnchorIndex.addOrRemoveToBlock('dec', 1) : AnchorIndex.addOrRemoveToBlock('inc', 1);
+			let connectingBlock = this.getBlockByPath([...selectionState.anchorPath.getBlockPath()]) as BlockNode;
+
 
 			connectingBlockLength = connectingBlock.lastNodeIndex() + 1;
 			lastConnectingNode = connectingBlock.NodeData[connectingBlockLength - 1];
-			let lastConnectingNodeLength = connectingBlock.NodeData[connectingBlockLength - 1].returnContentLength();
+			let lastConnectingNodeLength = connectingBlock.NodeData[connectingBlockLength - 1].getContentLength();
 
 			let connectingMaxSize = connectingBlock.countToIndex(connectingBlockLength - 1);
 
-			let joiningBlock = this.getBlockByPath(AnchorIndex.get()) as BlockNode;
+			let joiningBlock = this.getBlockByPath(AnchorIndex.getBlockPath()) as BlockNode;
 
 			connectingBlock.NodeData = [...connectingBlock.NodeData, ...joiningBlock.NodeData];
 
-			connectingBlock.blockUpdate();
+			connectingBlock.collectSameNodes();
 
 
-			if (BlockNodes instanceof ContentNode) BlockNodes.BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
-			else BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
+			if (BlockNodes instanceof ContentNode) BlockNodes.BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
+			else BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
 
-			$$unmountNode(AnchorIndex.get())
-			$$remountNode(connectingBlock, selectionState.anchorPath.get(), true)
+			$$unmountNode(AnchorIndex.getBlockPath())
+			$$remountNode(connectingBlock, selectionState.anchorPath.getBlockPath(), true)
 
 			if (connectingBlock.NodeData.length <= connectingBlockLength) {
 				let updateAnchorChar = connectingBlock.findNodeByOffset(connectingMaxSize);
@@ -394,10 +376,11 @@ class ContentNode {
 				newAnchorOffset = lastConnectingNodeLength;
 			}
 		} else {
-			joiningBlockDirection === 'down' ? AnchorIndex.decrementLastPathIndex(1) : AnchorIndex.incrementLastPathIndex(1);
+			joiningBlockDirection === 'down' ? AnchorIndex.addOrRemoveToBlock('dec', 1) : AnchorIndex.addOrRemoveToBlock('inc', 1);
 
-			let connectingBlock = this.getBlockByPath([...selectionState.anchorPath.get()]) as BlockNode;
-			let joiningBlock = this.getBlockByPath(AnchorIndex.get()) as BlockNode;
+
+			let connectingBlock = this.getBlockByPath([...selectionState.anchorPath.getBlockPath()]) as BlockNode;
+			let joiningBlock = this.getBlockByPath(AnchorIndex.getBlockPath()) as BlockNode;
 
 			connectingBlockLength = connectingBlock.lastNodeIndex() + 1;
 
@@ -405,36 +388,34 @@ class ContentNode {
 
 			connectingBlock.NodeData = [...connectingBlock.NodeData, ...joiningBlock.NodeData];
 
-			connectingBlock.blockUpdate();
+			connectingBlock.collectSameNodes();
 			if (BlockNodes instanceof ContentNode){
-				BlockNodes.BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
+				BlockNodes.BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
 			}
-			else BlockNodes.splice(AnchorIndex.getLastIndex(), 1);
+			else BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
 
 
 			
-			$$unmountNode(AnchorIndex.get())
-			$$remountNode(connectingBlock, selectionState.anchorPath.get(), true)
+			$$unmountNode(AnchorIndex.getBlockPath())
+			$$remountNode(connectingBlock, selectionState.anchorPath.getBlockPath(), true)
+
 
 			newAnchorOffset = selectionState.anchorOffset;
-			anchorNodeKey = selectionState.anchorNodeKey;
-			AnchorIndex.decrementLastPathIndex(1);
+			anchorNodeKey = selectionState.anchorPath.getLastIndex();
+			AnchorIndex.addOrRemoveToBlock('dec', 1);
 		}
 
 		selectionState.focusPath = joiningSideDirection !== 'backward' ? AnchorIndex : selectionState.anchorPath;
 		selectionState.anchorPath = joiningSideDirection !== 'backward' ? AnchorIndex : selectionState.anchorPath;
 
-		selectionState.anchorNodeKey = anchorNodeKey;
-		selectionState.focusNodeKey = selectionState.anchorNodeKey;
-
-		selectionState._anchorNode = selectionState.anchorNodeKey;
-		selectionState._focusNode = selectionState.anchorNodeKey;
+		selectionState.anchorPath.setLastPathIndex(anchorNodeKey)
+		selectionState.focusPath.setLastPathIndex(anchorNodeKey)
 
 		selectionState.anchorOffset = newAnchorOffset;
 		selectionState.focusOffset = newAnchorOffset;
 
-		selectionState.anchorType = lastConnectingNode.returnType();
-		selectionState.focusType = lastConnectingNode.returnType();
+		selectionState.anchorType = lastConnectingNode.getType();
+		selectionState.focusType = lastConnectingNode.getType();
 
 		selectionState.isDirty = true;
 		selectionState.isCollapsed = true;
@@ -457,7 +438,7 @@ class ContentNode {
 	}
 
 	getTextNodeOffset(node: TextNode, offset: number): number {
-		let TextContentLength = node.returnContentLength();
+		let TextContentLength = node.getContentLength();
 		if (offset === -1) {
 			offset = TextContentLength;
 		} else if (offset > TextContentLength) {
@@ -469,34 +450,36 @@ class ContentNode {
 	insertLetterIntoTextNode(KeyBoardEvent: React.KeyboardEvent, selectionState: SelectionState): void {
 		let Key = KeyBoardEvent.key;
 		
-		let anchorBlockNode = this.getBlockByPath(selectionState.anchorPath.get()) as BlockNode;
+		let anchorPath = selectionState.anchorPath
+		let focusPath = selectionState.focusPath
+		let anchorBlockNode = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
 		let focusBlockNode
 
-		let anchorNodeData = anchorBlockNode.NodeData !== undefined ? anchorBlockNode.getNodeByIndex(selectionState.anchorNodeKey) : undefined;
+		let anchorNodeData = anchorBlockNode.NodeData !== undefined ? anchorBlockNode.getNodeByIndex(anchorPath.getLastIndex()) : undefined;
 		let focusNodeData
 
 		let isBlockPathEqual = false
 
-		if(anchorNodeData?.returnType() === BREAK_LINE_TYPE){
+		if(anchorNodeData?.getType() === BREAK_LINE_TYPE){
 			let newNode = new TextNode();
 			anchorNodeData = newNode
-			anchorBlockNode.replaceNode(selectionState.anchorNodeKey, newNode)
-			$$remountNode(anchorNodeData, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey], false)
+			anchorBlockNode.replaceNode(anchorPath.getLastIndex(), newNode)
+			$$remountNode(anchorNodeData, selectionState.anchorPath.get(), false)
 		}
 		if(selectionState.isCollapsed === false){
 			isBlockPathEqual = selectionState.isBlockPathEqual()
-			if(selectionState.anchorNodeKey !== selectionState.focusNodeKey || isBlockPathEqual === false){
-				focusBlockNode = this.getBlockByPath(selectionState.focusPath.get()) as BlockNode;
-				focusNodeData = focusBlockNode.NodeData !== undefined ? focusBlockNode.getNodeByIndex(selectionState.focusNodeKey) : undefined;
+			if(anchorPath.getLastIndex() !== focusPath.getLastIndex() || isBlockPathEqual === false){
+				focusBlockNode = this.getBlockByPath(selectionState.focusPath.getBlockPath()) as BlockNode;
+				focusNodeData = focusBlockNode.NodeData !== undefined ? focusBlockNode.getNodeByIndex(focusPath.getLastIndex()) : undefined;
 			}
 			else{
 				focusBlockNode = anchorBlockNode
-				focusNodeData = anchorBlockNode.getNodeByIndex(selectionState.focusNodeKey);
+				focusNodeData = anchorBlockNode.getNodeByIndex(focusPath.getLastIndex());
 			}
-			if(focusNodeData && focusNodeData.returnType() === BREAK_LINE_TYPE){
+			if(focusNodeData && focusNodeData.getType() === BREAK_LINE_TYPE){
 				let newNode = new TextNode();
 				focusNodeData = newNode
-				focusBlockNode.replaceNode(selectionState.anchorNodeKey, newNode)
+				focusBlockNode.replaceNode(anchorPath.getLastIndex(), newNode)
 			}
 			} 
 		else {
@@ -517,7 +500,7 @@ class ContentNode {
 				}
 
 				this.TextNodeSlice(anchorNodeData, Key, SliceFrom, SliceTo);
-				$$updateNodeTextContent(anchorNodeData, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+				$$updateNodeTextContent(anchorNodeData, anchorPath.get())
 
 				selectionState.moveSelectionForward();
 				
@@ -525,21 +508,21 @@ class ContentNode {
 		} else if (isBlockPathEqual === true) {
 			if (selectionState.isNodesSame() === false) {
 
-				let NodeSplitStart = selectionState.anchorNodeKey + 1;
-				let NodeSplitEnd = selectionState.focusNodeKey;
+				let NodeSplitStart = anchorPath.getLastIndex() + 1;
+				let NodeSplitEnd = focusPath.getLastIndex();
 
 				if (anchorNodeData instanceof TextNode) {
 
 					this.TextNodeSlice(anchorNodeData, Key, selectionState.anchorOffset);
-					$$updateNodeTextContent(anchorNodeData, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+					$$updateNodeTextContent(anchorNodeData, anchorPath.get())
 
 				} 
 				else {
 
-					let previousSibling = anchorBlockNode.previousSibling(selectionState.anchorNodeKey);
+					let previousSibling = anchorBlockNode.previousSibling(anchorPath.getLastIndex());
 					if (previousSibling !== undefined && previousSibling instanceof TextNode) {
 						this.TextNodeSlice(previousSibling, Key, -1);
-						$$updateNodeTextContent(previousSibling, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+						$$updateNodeTextContent(previousSibling, selectionState.anchorPath.get())
 					}
 					 else NodeSplitStart -= 1;
 				}
@@ -547,14 +530,14 @@ class ContentNode {
 				if (focusNodeData instanceof TextNode) {
 
 					this.TextNodeSlice(focusNodeData, '', selectionState.focusOffset, -1);
-					$$updateNodeTextContent(focusNodeData, [...selectionState.focusPath.get(), selectionState.focusNodeKey])
+					$$updateNodeTextContent(focusNodeData, focusPath.get())
 
 				} else NodeSplitEnd += 1;
 
 				let nodesToRemove = NodeSplitEnd - NodeSplitStart
 				if(nodesToRemove > 0){
 					anchorBlockNode.splitNodes(true, NodeSplitStart, NodeSplitEnd);
-					$$bulkUnmountNodes(selectionState.anchorPath.get(), nodesToRemove, NodeSplitStart)
+					$$bulkUnmountNodes(selectionState.anchorPath.getBlockPath(), nodesToRemove, NodeSplitStart)
 				}
 
 				selectionState.moveSelectionForward().toggleCollapse();
@@ -562,30 +545,31 @@ class ContentNode {
 			} else {
 				if (anchorNodeData instanceof TextNode) {
 					this.TextNodeSlice(anchorNodeData, Key, selectionState.anchorOffset, selectionState.focusOffset);
-					if (anchorNodeData.returnContent() === '') {
-						anchorBlockNode.splitNodes(true, selectionState.anchorNodeKey);
-						$$unmountNode([...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+					if (anchorNodeData.getContent() === '') {
+						anchorBlockNode.splitNodes(true, anchorPath.getLastIndex());
+						$$unmountNode(anchorPath.get())
 						selectionState.moveSelectionToPreviousSibling(this);
 					} else {
-						$$updateNodeTextContent(anchorNodeData, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+						$$updateNodeTextContent(anchorNodeData, selectionState.anchorPath.get())
 						selectionState.toggleCollapse().moveSelectionForward();
 					}	
 				} else {
-					anchorBlockNode.splitNodes(false, selectionState.anchorNodeKey, selectionState.anchorNodeKey + 1);
-					$$unmountNode([...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+					anchorBlockNode.splitNodes(false, anchorPath.getBlockIndex(), anchorPath.getBlockIndex() + 1);
+					$$unmountNode(selectionState.anchorPath.get())
 				}
 			}
 		} else if (isBlockPathEqual === false) {
 
-			let NodeSplitStart = selectionState.anchorNodeKey + 1;
-			let NodeSplitEnd = selectionState.focusNodeKey;
+			let NodeSplitStart = anchorPath.getLastIndex() + 1;
+			let NodeSplitEnd = focusPath.getLastIndex();
+
 
 			if (isDefined(anchorNodeData)) {
 				if (anchorNodeData instanceof TextNode) {
 					this.TextNodeSlice(anchorNodeData, Key, selectionState.anchorOffset);
 				} 
 				else {
-					let previousSibling = anchorBlockNode.previousSibling(selectionState.anchorNodeKey);
+					let previousSibling = anchorBlockNode.previousSibling(anchorPath.getBlockIndex());
 					if (isDefined(previousSibling) && previousSibling instanceof TextNode) {
 						this.TextNodeSlice(previousSibling, Key, -1);
 					} 
@@ -608,15 +592,15 @@ class ContentNode {
 
 			if(isDefined(anchorNodeData) && isDefined(focusNodeData)) {
 
-				let ParentNode = this.getBlockByPath(selectionState.anchorPath.getPathBeforeLast());
+				let ParentNode = this.getBlockByPath(anchorPath.getContentNode());
 				let ParentContentNode = ParentNode.ContentNode ? ParentNode.ContentNode : ParentNode
-				let anchorBlockSlice = selectionState.anchorPath.getPathIndexByIndex(0) + 1
-				let focusBlockSlice = selectionState.focusPath.getPathIndexByIndex(0)
+				let anchorBlockSlice = anchorPath.getBlockIndex() + 1
+				let focusBlockSlice = focusPath.getBlockIndex()
 
 				ParentContentNode.sliceBlockFromContent(anchorBlockSlice, focusBlockSlice)
 				
 				if(focusBlockSlice - anchorBlockSlice > 0){
-					$$bulkUnmountNodes(selectionState.anchorPath.getPathBeforeLast(), focusBlockSlice - anchorBlockSlice, anchorBlockSlice)
+					$$bulkUnmountNodes(anchorPath.getContentNode(), focusBlockSlice - anchorBlockSlice, anchorBlockSlice)
 				}
 
 				this.MergeWithUpdate(ParentContentNode, selectionState, 'up', 'forward');
@@ -631,23 +615,26 @@ class ContentNode {
 	}
 	removeLetterFromBlock(selectionState: SelectionState): void {
 
-		let anchorBlockNode = this.getBlockByPath(selectionState.anchorPath.get()) as BlockNode;
+		let anchorPath = selectionState.anchorPath
+		let focusPath = selectionState.focusPath
+
+		let anchorBlockNode = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
 		let focusBlockNode
 
-		let anchorNodeData = anchorBlockNode.NodeData !== undefined ? anchorBlockNode.getNodeByIndex(selectionState.anchorNodeKey) : undefined;
+		let anchorNodeData = anchorBlockNode.NodeData !== undefined ? anchorBlockNode.getNodeByIndex(anchorPath.getLastIndex()) : undefined;
 		let focusNodeData
 
 		let isBlockPathEqual = false
 		
 		if(selectionState.isCollapsed === false){
 			isBlockPathEqual = selectionState.isBlockPathEqual()
-			if(selectionState.anchorNodeKey !== selectionState.focusNodeKey || isBlockPathEqual === false){
-				focusBlockNode = this.getBlockByPath(selectionState.focusPath.get()) as BlockNode;
-				focusNodeData = focusBlockNode.NodeData !== undefined ? focusBlockNode.getNodeByIndex(selectionState.focusNodeKey) : undefined;
+			if(anchorPath.getBlockIndex() !== focusPath.getBlockIndex() || isBlockPathEqual === false){
+				focusBlockNode = this.getBlockByPath(selectionState.focusPath.getBlockPath()) as BlockNode;
+				focusNodeData = focusBlockNode.NodeData !== undefined ? focusBlockNode.getNodeByIndex(focusPath.getLastIndex()) : undefined;
 			}
 			else{
 				focusBlockNode = anchorBlockNode
-				focusNodeData = anchorBlockNode.getNodeByIndex(selectionState.focusNodeKey);
+				focusNodeData = anchorBlockNode.getNodeByIndex(focusPath.getLastIndex());
 			}
 			} 
 		else {
@@ -655,27 +642,32 @@ class ContentNode {
 			focusNodeData = anchorNodeData
 		}
 
+
+
 		if (anchorNodeData === undefined && focusNodeData === undefined) return;
 		else if (selectionState.isCollapsed) {
 			if (selectionState.isOffsetOnStart()) {
 
+
 				let currentContentNode: ContentNode | undefined = undefined;
 				if (selectionState.anchorPath.length() === 1) currentContentNode = this;
-				else currentContentNode = this.getBlockByPath(selectionState.anchorPath.getPathBeforeLast());
+				else currentContentNode = this.getBlockByPath(anchorPath.getContentNode());
 
 				currentContentNode = (currentContentNode as any).ContentNode ?? currentContentNode;
 
 
-				if (selectionState.anchorPath.getLastIndex() !== 0 && currentContentNode instanceof ContentNode) {
-					let previousBlockPath = new BlockPath([...selectionState.anchorPath.get()]);
-					previousBlockPath.decrementLastPathIndex(1);
+				if (focusPath.getBlockIndex() !== 0 && currentContentNode instanceof ContentNode) {
+					let previousBlockPath = new NodePath([...selectionState.anchorPath.get()]);
+					previousBlockPath.addOrRemoveToBlock('dec', 1);
 
-					let previousBlock = currentContentNode.BlockNodes[previousBlockPath.getLastIndex()];
+					let previousBlock = currentContentNode.BlockNodes[previousBlockPath.getBlockIndex()];
  
+
+
 					if(!(previousBlock instanceof BlockNode)){
-						currentContentNode.removeBlock(previousBlockPath.getLastIndex())
-						$$unmountNode(previousBlockPath.get())
-						selectionState.anchorPath.decrementLastPathIndex(1)
+						currentContentNode.removeBlock(previousBlockPath.getBlockIndex())
+						$$unmountNode(previousBlockPath.getBlockPath())
+						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
 						selectionState.toggleCollapse()
 					}
 					else if(
@@ -683,18 +675,18 @@ class ContentNode {
 						(anchorBlockNode.isBreakLine() === false && previousBlock.isBreakLine())
 						)
 					{
-						currentContentNode.removeBlock(previousBlockPath.getLastIndex())
-						$$unmountNode(previousBlockPath.get())
-						selectionState.anchorPath.decrementLastPathIndex(1)
+						currentContentNode.removeBlock(previousBlockPath.getBlockIndex())
+						$$unmountNode(previousBlockPath.getBlockPath())
+						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
 						selectionState.toggleCollapse()
 					}
 					else if(anchorBlockNode.isBreakLine() && previousBlock.isBreakLine() === false){
-						currentContentNode.removeBlock(selectionState.anchorPath.getLastIndex())
-						$$unmountNode(selectionState.anchorPath.get())
+						currentContentNode.removeBlock(selectionState.anchorPath.getBlockIndex())
+						$$unmountNode(selectionState.anchorPath.getBlockPath())
 						selectionState.moveSelectionToPreviousBlock(this)
 					}
 					else {
-						selectionState.anchorPath.decrementLastPathIndex(1);
+						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
 						this.MergeWithUpdate(currentContentNode.BlockNodes, selectionState, 'up', 'backward');
 					}
 				}
@@ -703,12 +695,15 @@ class ContentNode {
 				let textSliceAnchor = selectionState.anchorOffset - 1;
 				let SliceFocus = selectionState.focusOffset;
 
+
 				if (selectionState.anchorOffset === 0) {
 
-					if (anchorBlockNode.previousSibling(selectionState.anchorNodeKey)?.returnType() === ELEMENT_NODE_TYPE) {
-						anchorBlockNode.removeNode(selectionState.anchorNodeKey - 1);
-						$$unmountNode([...selectionState.anchorPath.get(), selectionState.anchorNodeKey - 1])
-						selectionState.anchorNodeKey -= 1;
+					if (anchorBlockNode.previousSibling(anchorPath.getLastIndex())?.getType() === ELEMENT_NODE_TYPE) {
+						anchorBlockNode.removeNode(anchorPath.getLastIndex() - 1);
+						let previousNodePath = anchorPath.get()
+						previousNodePath[previousNodePath.length - 1] -= 1
+						$$unmountNode(previousNodePath)
+						selectionState.anchorPath.addOrRemoveToNode('dec', 1);
 						selectionState.toggleCollapse().enableDirty();
 					}
 
@@ -716,21 +711,21 @@ class ContentNode {
 
 					this.TextNodeSlice(anchorNodeData, '', textSliceAnchor, SliceFocus);
 
-					if (anchorNodeData.returnContent() === '') {
+					if (anchorNodeData.getContent() === '') {
 
 						if(anchorBlockNode.isBreakLine()){
-							anchorBlockNode.replaceNode(selectionState.anchorNodeKey, new BreakLine())
+							anchorBlockNode.replaceNode(anchorPath.getLastIndex(), new BreakLine())
 							$$remountNode(anchorBlockNode, selectionState.anchorPath.get(), true)
 							selectionState.moveBlockOffsetToZero()	
 						}
 						else{
-							anchorBlockNode.removeNode(selectionState.anchorNodeKey)
-							$$unmountNode([...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+							anchorBlockNode.removeNode(anchorPath.getLastIndex())
+							$$unmountNode(anchorPath.get())
 							selectionState.moveSelectionToPreviousSibling(this);
 						}
 
 					} else {
-						$$updateNodeTextContent(anchorNodeData, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+						$$updateNodeTextContent(anchorNodeData, anchorPath.get())
 						selectionState.moveSelectionBackward();
 					}
 				}
@@ -745,53 +740,52 @@ class ContentNode {
 
 						this.TextNodeSlice(anchorNodeData, '', textSliceAnchor, textSliceFocus);
 
-						if (anchorNodeData.returnContent() === '') {
+						if (anchorNodeData.getContent() === '') {
 
 							if(anchorBlockNode.isBreakLine()){
-								anchorBlockNode.replaceNode(selectionState.anchorNodeKey, new BreakLine())
+								anchorBlockNode.replaceNode(anchorPath.getLastIndex(), new BreakLine())
 								$$remountNode(anchorBlockNode, selectionState.anchorPath.get(), true)
 								selectionState.moveBlockOffsetToZero()	
 							}
 							else{
-								anchorBlockNode.removeNode(selectionState.anchorNodeKey)
-								$$unmountNode([...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+								anchorBlockNode.removeNode(anchorPath.getLastIndex())
+								$$unmountNode(anchorPath.get())
 								selectionState.moveSelectionToPreviousSibling(this);
 							}
 	
 						} else {
-							$$updateNodeTextContent(anchorNodeData, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
-							selectionState.moveSelectionBackward().toggleCollapse();
+							$$updateNodeTextContent(anchorNodeData, anchorPath.get())
+							selectionState.toggleCollapse();
 						}
 					} else {
-						anchorBlockNode.removeNode(selectionState.anchorNodeKey); 
-						$$unmountNode([...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+						anchorBlockNode.removeNode(anchorPath.getLastIndex()); 
+						$$unmountNode(anchorPath.get())
 						selectionState.moveSelectionToPreviousSibling(this);
 					}
 
-				} else if (selectionState.anchorNodeKey !== selectionState.focusNodeKey) {
+				} else if (anchorPath.getLastIndex() !== focusPath.getLastIndex()) {
 
 					let textSliceAnchor = selectionState.anchorOffset;
 					let textSliceFocus = selectionState.focusOffset;
 
-					let nodeSliceAnchor = selectionState.anchorNodeKey + 1;
-					let nodeSliceFocus = selectionState.focusNodeKey;
+					let nodeSliceAnchor = anchorPath.getLastIndex() + 1;
+					let nodeSliceFocus = focusPath.getLastIndex();
 
 					if (anchorNodeData instanceof TextNode) {
 						this.TextNodeSlice(anchorNodeData, '', textSliceAnchor);
 
-						if (anchorNodeData?.returnContent() === '') nodeSliceAnchor -= 1;
+						if (anchorNodeData?.getContent() === '') nodeSliceAnchor -= 1;
 						else if(anchorNodeData !== undefined) {
-							$$updateNodeTextContent(anchorNodeData, [...selectionState.anchorPath.get(), selectionState.anchorNodeKey])
+							$$updateNodeTextContent(anchorNodeData, anchorPath.get())
 						}
 					} else nodeSliceFocus -= 1;
 
 					if (focusNodeData instanceof TextNode) {
-						
-						focusNodeData = focusNodeData;
+				
 						this.TextNodeSlice(focusNodeData, '', textSliceFocus, -1);
 
-						if (focusNodeData.returnContent() === '') nodeSliceFocus += 1;
-						else $$updateNodeTextContent(focusNodeData, [...selectionState.focusPath.get(), selectionState.focusNodeKey])
+						if (focusNodeData.getContent() === '') nodeSliceFocus += 1;
+						else $$updateNodeTextContent(focusNodeData, focusPath.get())
 
 					} else nodeSliceFocus += 1;
 
@@ -806,7 +800,7 @@ class ContentNode {
 						}
 						else {
 							$$bulkUnmountNodes([...selectionState.anchorPath.get()], nodeSliceFocus - nodeSliceAnchor, nodeSliceAnchor)
-							if (anchorNodeData instanceof TextNode && anchorNodeData?.returnContent() === '') {
+							if (anchorNodeData instanceof TextNode && anchorNodeData?.getContent() === '') {
 								selectionState.moveSelectionToPreviousSibling(this);
 							}
 							else if(anchorNodeData !== undefined) selectionState.toggleCollapse().enableDirty();
@@ -815,7 +809,7 @@ class ContentNode {
 					else if(anchorBlockNode.isBreakLine()){
 						let breakLineNode = new BreakLine()
 						anchorBlockNode.replaceNode(0, breakLineNode)
-						$$remountNode(anchorBlockNode, selectionState.anchorPath.get())
+						$$remountNode(anchorBlockNode, anchorPath.get())
 						selectionState.moveBlockOffsetToZero()
 					}
 				}
@@ -824,18 +818,18 @@ class ContentNode {
 				let textSliceAnchor = selectionState.anchorOffset;
 				let textSliceFocus = selectionState.focusOffset;
 
-				let BlockSliceAnchor = selectionState.anchorPath.getLastIndex() + 1;
-				let BlockSliceFocus = selectionState.focusPath.getLastIndex();
+				let BlockSliceAnchor = selectionState.anchorPath.getBlockIndex() + 1;
+				let BlockSliceFocus = selectionState.focusPath.getBlockIndex();
 
-				let nodeSliceAnchor = selectionState.anchorNodeKey + 1;
-				let nodeSliceFocus = selectionState.focusNodeKey;
+				let nodeSliceAnchor = anchorPath.getLastIndex() + 1;
+				let nodeSliceFocus = focusPath.getLastIndex();
 
-				let anchorBlockPath =  [...selectionState.anchorPath.get()]
+				let anchorBlockPath =  [...selectionState.anchorPath.getBlockPath()]
 	
 
 				if (anchorNodeData instanceof TextNode) {
 					this.TextNodeSlice(anchorNodeData, '', textSliceAnchor);
-					if (anchorNodeData.returnContent() === '') {
+					if (anchorNodeData.getContent() === '') {
 						nodeSliceAnchor -= 1;
 					} 
 			
@@ -844,16 +838,21 @@ class ContentNode {
 
 				if (focusNodeData instanceof TextNode) {
 					this.TextNodeSlice(focusNodeData, '', textSliceFocus, -1);
-					if (focusNodeData.returnContent() === '') nodeSliceFocus += 1;
+					if (focusNodeData.getContent() === '') nodeSliceFocus += 1;
 				} else nodeSliceFocus += 1;
 				if(nodeSliceFocus > 0) focusBlockNode.removeNodes(false, nodeSliceFocus);
 
-				let ParentNode = this.getBlockByPath(selectionState.anchorPath.getPathBeforeLast());
+
+				let ParentNode = this.getBlockByPath(anchorPath.getContentNode());
 				let ParentContentNode = ParentNode.ContentNode ? ParentNode.ContentNode : ParentNode 
+				
 				if (ParentContentNode instanceof ContentNode) {
-					ParentContentNode.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus);
 					let blockToRemove = BlockSliceFocus - BlockSliceAnchor
-					$$bulkUnmountNodes(selectionState.anchorPath.getPathBeforeLast(), blockToRemove, BlockSliceAnchor)
+					if(blockToRemove > 0){
+						console.log(blockToRemove)
+						ParentContentNode.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus);
+						$$bulkUnmountNodes(anchorPath.getContentNode(), blockToRemove, BlockSliceAnchor)
+					}
 					if(anchorBlockNode.isBreakLine() && focusBlockNode.isBreakLine()) {
 						let breakLine = new BreakLine()
 						anchorBlockNode.replaceNode(0, breakLine)
@@ -862,7 +861,7 @@ class ContentNode {
 					}
 					else {
 						this.MergeWithUpdate(ParentContentNode, selectionState, 'up', 'backward');
-						if ((anchorNodeData as TextNode).returnContent() === '') {
+						if ((anchorNodeData as TextNode).getContent() === '') {
 							selectionState.moveSelectionToPreviousSibling(this);
 						} 
 						else selectionState.toggleCollapse();
@@ -872,27 +871,27 @@ class ContentNode {
 		}
 	}
 	handleEnter(selectionState: SelectionState): void {
-		let anchorBlockPath = selectionState.anchorPath;
+		let anchorPath = selectionState.anchorPath;
 
 		if (selectionState.isOffsetOnStart()) {
 			let newBlockNode = new BlockNode({NodeData: [new BreakLine()]})
-			this.getCurrentContentNode(anchorBlockPath).insertBlockNodeBetween(
+			this.getCurrentContentNode(anchorPath).insertBlockNodeBetween(
 				newBlockNode,
-				anchorBlockPath.getLastIndex(),
-				anchorBlockPath.getLastIndex(),
+				anchorPath.getBlockIndex(),
+				anchorPath.getBlockIndex(),
 			);
-			$$mountNode(newBlockNode, anchorBlockPath.get(), 'before')
-			selectionState.anchorPath.incrementLastPathIndex(1)
+			$$mountNode(newBlockNode, anchorPath.getBlockPath(), 'before')
+			selectionState.anchorPath.addOrRemoveToBlock('inc', 1)
 			selectionState.toggleCollapse()
 
 		} else if (selectionState.isCollapsed) {
 
-			let CurrentBlock = this.getBlockByPath(anchorBlockPath.get());
-			let anchorNode = CurrentBlock.findCharByIndex(selectionState.anchorNodeKey);
+			let CurrentBlock = this.getBlockByPath(anchorPath.getBlockPath());
+			let anchorNode = CurrentBlock.getNodeByIndex(anchorPath.getLastIndex());
 
-			let anchorNodeSlice = selectionState.anchorNodeKey;
+			let anchorNodeSlice = anchorPath.getLastIndex();
 			let SlicedNodes = undefined;
-			let currentContentNode: ContentNode = this.getCurrentContentNode(anchorBlockPath);
+			let currentContentNode: ContentNode = this.getCurrentContentNode(anchorPath);
 
 			if (selectionState.anchorOffset !== 0) {
 				if (anchorNode instanceof TextNode) {
@@ -900,7 +899,7 @@ class ContentNode {
 					this.TextNodeSlice(anchorNode, '', selectionState.anchorOffset);
 					anchorNodeSlice += 1;
 					if(SliceContent !== ''){
-						SlicedNodes = anchorNode.createSelfNode({plainText: SliceContent, stylesArr: anchorNode.returnNodeStyle()});
+						SlicedNodes = anchorNode.createSelfNode({plainText: SliceContent, stylesArr: anchorNode.getNodeStyle()});
 					}
 				} else {
 					anchorNodeSlice += 1;
@@ -911,14 +910,13 @@ class ContentNode {
 			let blockLength = CurrentBlock.getLength() - 1
 			if(SliceCharNodes.length > 0) CurrentBlock.splitNodes(true, anchorNodeSlice);
 
-			if(blockLength === selectionState.anchorNodeKey){
-				$$updateNodeTextContent(anchorNode, [...anchorBlockPath.get(), selectionState.anchorNodeKey])
+			if(blockLength === anchorPath.getLastIndex()){
+				$$updateNodeTextContent(anchorNode, anchorPath.get())
 			}
-			else if(blockLength - 1 !== selectionState.anchorNodeKey){
-				$$remountNode(CurrentBlock, anchorBlockPath.get(), true)
+			else if(blockLength - 1 !== anchorPath.getLastIndex()){
+				$$remountNode(CurrentBlock, anchorPath.getBlockPath(), true)
 			}
 		
-
 			if(SlicedNodes !== undefined) SliceCharNodes = [SlicedNodes ?? [], ...SliceCharNodes];
 			else if(SlicedNodes === undefined && SliceCharNodes.length === 0) SliceCharNodes = [new BreakLine()]
 
@@ -928,21 +926,22 @@ class ContentNode {
 			});
 
 
-			currentContentNode.insertBlockNodeBetween(newBlockNode, anchorBlockPath.getLastIndex() + 1, anchorBlockPath.getLastIndex() + 1);
-			$$mountNode(newBlockNode, anchorBlockPath.get(), 'after')
+			currentContentNode.insertBlockNodeBetween(newBlockNode, anchorPath.getBlockIndex() + 1, anchorPath.getBlockIndex() + 1);
+			$$mountNode(newBlockNode, anchorPath.getBlockPath(), 'after')
 
 			selectionState.moveSelectionToNextSibling(this);
 		} else {
 
 			if (selectionState.isBlockPathEqual()) {
-				let AnchorBlock = this.getBlockByPath(anchorBlockPath.get()) as BlockNode;
-				let currentContentNode: ContentNode = this.getCurrentContentNode(anchorBlockPath);
+				let focusPath = selectionState.focusPath
+				let AnchorBlock = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
+				let currentContentNode: ContentNode = this.getCurrentContentNode(anchorPath);
 
-				let anchorNodeData = AnchorBlock.getNodeByIndex(selectionState.anchorNodeKey);
-				let focusNodeData = AnchorBlock.getNodeByIndex(selectionState.focusNodeKey);
+				let anchorNodeData = AnchorBlock.getNodeByIndex(anchorPath.getLastIndex());
+				let focusNodeData = AnchorBlock.getNodeByIndex(focusPath.getLastIndex());
 
-				let anchorNodeSlice = selectionState.anchorNodeKey + 1;
-				let focusNodeSlice = selectionState.focusNodeKey + 1;
+				let anchorNodeSlice = anchorPath.getLastIndex() + 1;
+				let focusNodeSlice = focusPath.getLastIndex() + 1;
 				let SlicedTextNode: undefined | TextNode = undefined;
 
 				if (anchorNodeSlice !== focusNodeSlice) {
@@ -953,7 +952,7 @@ class ContentNode {
 					if (focusNodeData instanceof TextNode) {
 						SlicedTextNode = focusNodeData.createSelfNode({
 							plainText: focusNodeData.getSlicedContent(false, selectionState.focusOffset),
-							stylesArr: focusNodeData.returnNodeStyle(),
+							stylesArr: focusNodeData.getNodeStyle(),
 						});
 						this.TextNodeSlice(focusNodeData, '', selectionState.focusOffset, -1);
 					} else focusNodeSlice += 1;
@@ -961,7 +960,7 @@ class ContentNode {
 					if (focusNodeData instanceof TextNode) {
 						SlicedTextNode = focusNodeData.createSelfNode({
 							plainText: focusNodeData.getSlicedContent(false, selectionState.focusOffset),
-							stylesArr: focusNodeData.returnNodeStyle(),
+							stylesArr: focusNodeData.getNodeStyle(),
 						});
 						this.TextNodeSlice(focusNodeData, '', selectionState.anchorOffset);
 					} else focusNodeSlice += 1;
@@ -974,11 +973,11 @@ class ContentNode {
 
 				if(SliceCharNodes.length > 0){
 					AnchorBlock.splitNodes(true, anchorNodeSlice);
-					$$remountNode(AnchorBlock, selectionState.anchorPath.get(), true)
+					$$remountNode(AnchorBlock, selectionState.anchorPath.getBlockPath(), true)
 				}
 				else if(anchorNodeData instanceof TextNode){
 					this.TextNodeSlice(anchorNodeData, '', selectionState.anchorOffset);
-					$$updateNodeTextContent(anchorNodeData, [...anchorBlockPath.get(), selectionState.anchorNodeKey])
+					$$updateNodeTextContent(anchorNodeData, anchorPath.get())
 					SliceCharNodes = [new BreakLine()];
 				}
 
@@ -987,8 +986,8 @@ class ContentNode {
 					blockType: AnchorBlock.blockType,
 				});
 
-				currentContentNode.insertBlockNodeBetween(newBlockNode, anchorBlockPath.getLastIndex() + 1, anchorBlockPath.getLastIndex() + 1);
-				$$mountNode(newBlockNode, anchorBlockPath.get(), 'after')
+				currentContentNode.insertBlockNodeBetween(newBlockNode, anchorPath.getBlockIndex() + 1, anchorPath.getBlockIndex() + 1);
+				$$mountNode(newBlockNode, anchorPath.getBlockPath(), 'after')
 
 				selectionState.moveSelectionToNextSibling(this);
 			} else if (selectionState.isBlockPathEqual() === false) {

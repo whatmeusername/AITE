@@ -1,6 +1,5 @@
-import {BaseNode, DOMattr, DOMhtml} from './index';
+import {BaseNode, DOMhtml} from './index';
 import {findStyle} from '../EditorUtils';
-import React from 'react';
 
 import {createAiteNode} from '../index';
 import type {AiteNode, AiteNodeOptions} from '../index'
@@ -47,10 +46,7 @@ class TextNode extends BaseNode{
 		});
 		return classString
 	}
-	
-	$updateNodeKey(){
-		this.__key = `AITE_TEXT_NODE_${this.__content.length}_${this.__styles.length}`
-	}
+
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode{
 		let className = this.__prepareStyles()
@@ -63,32 +59,22 @@ class TextNode extends BaseNode{
 			'span',
 			props,
 			[this.__content],
-			{...options, key: this.__key, isAiteWrapper: false}
+			{...options, key: this.$getNodeKey(), isAiteWrapper: false}
 		)
 	}
 
-    createDOM(attr?: DOMattr){
-        let styles = this.__prepareStyles();
-		let s: DOMTextAttr = {
-			...attr?.html,
-			'data-aite-node': true
-		};
-		if (styles !== '') s.className = styles
-		return React.createElement('span', s, [this.returnContent()]);
-    }
-
-	returnContent(): string {
+	getContent(): string {
 		return this.__content;
 	}
 
 	appendContent(string: string): void {
 		this.__content += string;
 	}
-	returnContentLength(): number {
+	getContentLength(): number {
 		return this.__content.length;
 	}
 
-	returnNodeStyle(): Array<string> {
+	getNodeStyle(): Array<string> {
 		return this.__styles;
 	}
 
@@ -100,6 +86,17 @@ class TextNode extends BaseNode{
 
 	createSelfNode(data: textNodeConf){
 		return new TextNode(data)
+	}
+
+	getData(asCreation?: boolean){
+		if(asCreation){
+			return {
+			...this,
+			plaintText: this.__content,
+			stylesArr: this.__styles
+			}
+		}
+		return {...this}
 	}
 }
 

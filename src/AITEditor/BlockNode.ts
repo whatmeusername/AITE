@@ -1,14 +1,14 @@
-import React from 'react';
 
 import defaultBlocks from './defaultStyles/defaultBlocks';
-import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE} from './ConstVariables';
+import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, BREAK_LINE_TYPE} from './ConstVariables';
 import {ClassVariables} from './Interfaces';
 
-import {TextNode, DOMattr, LinkNode, BreakLine} from './AITE_nodes/index'
+import {TextNode, LinkNode, BreakLine, createTextNode} from './AITE_nodes/index'
 import type {imageNode} from './packages/AITE_Image/imageNode';
 
 import {createAiteNode} from './index';
 import type {AiteNode, AiteNodeOptions} from './index'
+import {isDefined} from './EditorUtils'
 
 type NodeTypes = TextNode | imageNode | BreakLine;
 type BlockNodeData = Array<NodeTypes>;
@@ -43,6 +43,10 @@ class BaseBlockNode {
 		this.__key = undefined
 	}
 
+	$updateNodeKey(){
+		this.__key = Math.random().toString(36).slice(5)
+	}
+
 	$getNodeKey(){
 		return this.__key
 	}
@@ -71,16 +75,12 @@ class BlockNode extends BaseBlockNode{
 			(
 				this.NodeData.length === 1 &&
 				(
-					this.NodeData[0].returnType() === BREAK_LINE_TYPE || 
-					(this.NodeData[0].returnType() === TEXT_NODE_TYPE && this.NodeData[0].returnContentLength() === 0)
+					this.NodeData[0].getType() === BREAK_LINE_TYPE || 
+					(this.NodeData[0].getType() === TEXT_NODE_TYPE && this.NodeData[0].getContentLength() === 0)
 				)
 			)
 			) return true
 		return false
-	}
-
-	$updateNodeKey(){
-		this.__key = `AITE_BLOCK_${this.blockWrapper}_${this.blockInlineStyles.length}_${this.NodeData.length}`
 	}
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode{
@@ -92,6 +92,7 @@ class BlockNode extends BaseBlockNode{
 		}
 
 		this.$updateNodeKey()
+
 		let children: Array<AiteNode> = []
 		this.NodeData.forEach((node, index) => {
 			let $node = node.$getNodeState({...options})
@@ -131,6 +132,63 @@ class BlockNode extends BaseBlockNode{
 		this.NodeData.splice(indexChar, 1);
 	}
 
+	removeNodeByKey(key: string): void {
+		let index = this.NodeData.findIndex(node => node.__key === key);
+		if(index !== -1){
+			this.NodeData.splice(index, 1);
+		}
+	}
+
+
+	insertNodeBefore(nodeIndex: number, node: NodeTypes){
+		node = (node as imageNode).createSelfNode((node as imageNode).getData()) as imageNode
+		if(this.isBreakLine()){
+			this.replaceNode(0, node)
+		}
+		else{
+			let insertOffset = nodeIndex > 0 ? nodeIndex - 1 : nodeIndex
+			this.splitNodes(true, insertOffset, insertOffset,  node)
+		}
+	}
+
+	insertNodeAfter(nodeIndex: number, node: NodeTypes){
+		node = (node as imageNode).createSelfNode((node as imageNode).getData()) as imageNode
+		if(this.isBreakLine()){
+			this.replaceNode(0, node)
+		}
+		else{
+			let insertOffset = nodeIndex + 1
+			this.splitNodes(true, insertOffset, insertOffset,  node)
+		}
+	}
+
+	insertNodeBetweenText(nodeIndex: number, offset: number, node: NodeTypes){
+		nodeIndex = nodeIndex >= 0 ? nodeIndex : 0
+		let textNode = this.NodeData[nodeIndex]
+		if(textNode instanceof TextNode && !(node instanceof BreakLine)){
+			let textContentLength = textNode.getContentLength()
+			if(offset !== 0 && offset !== textContentLength){
+
+				let TextNodeData = textNode.getData(true)
+				node = (node as imageNode).createSelfNode((node as imageNode).getData()) as imageNode
+				
+				let leftSideTextNode = createTextNode({...TextNodeData, plainText: textNode.getSlicedContent(true, offset)})
+				let rightSideTextNode = createTextNode({...TextNodeData, plainText: textNode.getSlicedContent(false, offset)})
+
+				this.splitNodes(true, nodeIndex, nodeIndex + 1,  [leftSideTextNode, node, rightSideTextNode])
+			}
+			else if(offset === 0){
+				this.insertNodeBefore(nodeIndex, node)
+			}
+			else if(offset === textContentLength){
+				this.insertNodeAfter(nodeIndex, node)
+			}
+		}
+		else if(this.isBreakLine()){
+			this.replaceNode(0, node)
+		}
+	}
+
 	// DEPREACATED METHOD / TODO: REPLACE WITH splitNodes
 	removeNodes(startFromZero: boolean = true, start: number, end?: number): void {
 		if (end === undefined) {
@@ -141,78 +199,80 @@ class BlockNode extends BaseBlockNode{
 		}
 	}
 
-	splitNodes(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes): void {
-		let StartSlice = startFromZero === true ? this.NodeData.slice(0, start) : this.NodeData.slice(start);
-		let EndSlice = end ? this.NodeData.slice(end) : [];
+	splitNodes(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes | Array<NodeTypes>): void {
+		let StartSlice = startFromZero === true ? 
+			this.NodeData.slice(0, start) 
+			: 
+			this.NodeData.slice(start);
+
+		let EndSlice = isDefined(end) ? this.NodeData.slice(end) : [];
+
 		if (node === undefined) this.NodeData = [...StartSlice, ...EndSlice];
-		else this.NodeData = [...StartSlice, node, ...EndSlice];
-	}
-
-	NodeStylesEqual(C1: TextNode, C2: TextNode): boolean {
-
-		let C1Styles = C1.returnNodeStyle()
-		let C2Styles = C2.returnNodeStyle()
-
-		let mismatch = false
-
-		if (C1Styles.length === 0 && C2Styles.length === 0) return true;
-		else if(C1Styles.length === 0 && C2Styles.length !== 0) return false;
 		else {
-			for (let style of C1Styles) {
-				if (C2Styles.includes(style) === false) {
-					mismatch = true;
-				}
+			if(Array.isArray(node)){
+				this.NodeData = [...StartSlice, ...node, ...EndSlice];
 			}
-			if(mismatch === true) return false;
-			else return true;
+			else this.NodeData = [...StartSlice, node, ...EndSlice];
 		}
 	}
 
-	blockUpdate(): void {
-		let NewData: BlockNodeData = this.NodeData;
-		let previousBlockLength = NewData.length;
+	collectSameNodes(): void{
 
-		const ConcatIfEqual = (NodeData: BlockNodeData): BlockNodeData => {
-			let NewData: BlockNodeData = [];
-			for (let CharIndex = 0; CharIndex < NodeData.length; CharIndex++) {
-				let currentNode = NodeData[CharIndex] as TextNode;
-				let nextNode = NodeData[CharIndex + 1] as TextNode;
-				if(
-					nextNode !== undefined &&
-					currentNode.returnActualType() === LINK_NODE_TYPE && 
-					nextNode.returnActualType() === LINK_NODE_TYPE &&
-					this.NodeStylesEqual(currentNode, nextNode) &&
-					(currentNode as LinkNode).getURL() === (nextNode as LinkNode).getURL()
-					){
-						currentNode.appendContent(nextNode.returnContent());
-						NewData.push(currentNode);
-						NodeData.splice(CharIndex, 1);
+		const NodeStylesEqual = (C1: TextNode, C2: TextNode): boolean => {
+
+			let C1Styles = C1.getNodeStyle()
+			let C2Styles = C2.getNodeStyle()
+	
+			let mismatch = false
+	
+			if (C1Styles.length === 0 && C2Styles.length === 0) return true;
+			else if(C1Styles.length === 0 && C2Styles.length !== 0) return false;
+			else {
+				for (let style of C1Styles) {
+					if (C2Styles.includes(style) === false) {
+						mismatch = true;
+					}
 				}
-				else if(
-					nextNode !== undefined &&
-					currentNode.returnActualType() === TEXT_NODE_TYPE &&
-					nextNode.returnActualType() === TEXT_NODE_TYPE &&
-					this.NodeStylesEqual(currentNode, nextNode)
-				) {
-					currentNode.appendContent(nextNode.returnContent());
-					NewData.push(currentNode);
-					NodeData.splice(CharIndex, 1);
-				}
-				else {
-					NewData.push(currentNode);
-				}
-			}
-			return NewData;
-		};
-		while (true) {
-			NewData = ConcatIfEqual(NewData);
-			if (NewData.length !== previousBlockLength) {
-				previousBlockLength = NewData.length;
-			} else {
-				this.NodeData = NewData;
-				break;
+				if(mismatch === true) return false;
+				else return true;
 			}
 		}
+
+		const isSameTextNode = (C: NodeTypes, N: NodeTypes): boolean => {
+			return(
+				(C instanceof TextNode && N instanceof TextNode) &&
+				NodeStylesEqual(C, N)
+			)
+		}
+
+		const isSameLinkNode = (C: NodeTypes, N: NodeTypes): boolean => {
+			return(
+				(C instanceof LinkNode && N instanceof LinkNode) &&
+				C.getURL() === N.getURL() &&
+				NodeStylesEqual(C, N)
+			)
+		}
+
+		let newNodeData: BlockNodeData = []
+		let currentNode = this.NodeData[0]
+		newNodeData.push(currentNode)
+
+		for(let i = 1 ; i < this.NodeData.length; i++){
+			let nextNode = this.NodeData[i]
+			if(
+				isSameTextNode(currentNode, nextNode) ||
+				isSameLinkNode(currentNode, nextNode)
+				){
+					(currentNode as TextNode).appendContent((nextNode as TextNode).getContent())
+				}
+			else{
+				currentNode = this.NodeData[i]
+				newNodeData.push(currentNode)
+			}
+		}
+		this.NodeData = newNodeData
+
+
 	}
 
 	countToIndex(index: number): number {
@@ -223,18 +283,17 @@ class BlockNode extends BaseBlockNode{
 		for (let CharIndex = 0; CharIndex < this.NodeData.length; CharIndex++) {
 			if (CharIndex <= index) {
 				let CurrentElement = this.NodeData[CharIndex];
-				Count += CurrentElement.returnContentLength();
+				Count += CurrentElement.getContentLength();
 			};
 		}
 		return Count;
 	}
 
-
 	findNodeByOffset(offset: number): findNodeOffsetData {
 		let data: findNodeOffsetData = {offsetKey: 0, letterIndex: 0};
 		let letterCount = 0;
 		for (let i = 0; i < this.NodeData.length; i++) {
-			let currentLetterCount = this.NodeData[i].returnContentLength();
+			let currentLetterCount = this.NodeData[i].getContentLength();
 			letterCount += currentLetterCount;
 			if (letterCount >= offset) {
 				data.offsetKey = i;
@@ -254,6 +313,7 @@ class BlockNode extends BaseBlockNode{
 		if (nextSibling !== undefined) return nextSibling;
 		else return undefined;
 	}
+
 	previousSibling(index: number): NodeTypes | undefined {
 		let previousSibling = this.NodeData[index - 1];
 		if (previousSibling !== undefined) return previousSibling;
@@ -267,6 +327,7 @@ class BlockNode extends BaseBlockNode{
 	getType(): string {
 		return this.blockType;
 	}
+
 	getWrapper(): string{
 		return this.blockWrapper;
 	}
@@ -274,11 +335,7 @@ class BlockNode extends BaseBlockNode{
 	getLength(): number {
 		return this.NodeData.length;
 	}
-	
-	findCharByIndex(index: number): NodeTypes {
-		return this.NodeData[index];
-	}
-	
+
 }
 
 class HorizontalRuleNode extends BaseBlockNode{
@@ -291,27 +348,18 @@ class HorizontalRuleNode extends BaseBlockNode{
 		return this.blockType;
 	}
 
-	createDOM(attr?: DOMattr){
-		let className = 'AITE_editor_horizontal-rule';
-		let HorizontalRuleElement = React.createElement('hr', {className: className}, null);
-		const a = {
-			key: attr?.html?.key ?? 'AITE_editor_horizontal-rule',
-			contentEditable: false,
-		};
-		return React.createElement('div', a, HorizontalRuleElement);
-	}
-
 	$getNodeState(options?: AiteNodeOptions): AiteNode{
 		let className = 'AITE_editor_horizontal-rule'
 		let props = {
 			class: className,
 		}
-		this.__key = `AITE_HORIZONTAL_${this.blockInlineStyles.length}`
+		this.$updateNodeKey()
+
 		return createAiteNode(
 			'div',
 			{contenteditable: false,},
 			[createAiteNode('hr', props, [])],
-			{...options, key: this.__key, isAiteWrapper: false}
+			{...options, key: this.$getNodeKey(), isAiteWrapper: false}
 		)
 	} 
 }

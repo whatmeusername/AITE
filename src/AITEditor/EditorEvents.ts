@@ -79,6 +79,8 @@ function onKeyUpEvent(event: KeyboardEvent){
 
 
 export {
+    onBlurDecorator,
+    onFocusDecorator,
 
     onKeyDownEvent,
     onKeyUpEvent

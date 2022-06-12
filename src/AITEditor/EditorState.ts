@@ -30,6 +30,11 @@ function getEditorState(){
 function getSelectionState(){
 	return  ActiveEditorState.selectionState
 }
+
+function getEditorDOM(){
+	return  ActiveEditorState.__editorDOMState.__rootDOMElement
+}
+
 function updateActiveEditor(EditorState: EditorState){
 	ActiveEditorState = EditorState
 }
@@ -106,6 +111,8 @@ function createEmptyEditorState(initData?: editorConf){
 		ActiveEditorState.EditorActiveElementState?.handleElementClick(event),
 	);
 
+	ActiveEditorState.EditorCommands.listenRootEvent()
+
 	return ActiveEditorState
 }
 
@@ -168,7 +175,8 @@ export{
 	createEmptyEditorState,
 	getEditorState,
 	getSelectionState,
-	updateActiveEditor
+	updateActiveEditor,
+	getEditorDOM,
 }
 
 export type

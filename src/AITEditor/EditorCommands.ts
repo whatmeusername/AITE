@@ -4,6 +4,10 @@ import {
 import {editorWarning, keyCodeValidator} from './EditorUtils'
 import {
 	getEditorState,
+	getEditorDOM,
+
+	onBlurDecorator,
+    onFocusDecorator,
 } from './index'
 
 import type{
@@ -27,6 +31,9 @@ import type{
 	KEYDOWN_COMMAND,
     KEYUP_COMMAND,
 
+	DRAGSTART_COMMAND,
+    DRAG_COMMAND,
+
 
 } from './editorCommandsTypes'
 
@@ -45,6 +52,8 @@ type commandTypes =
     | 'FORWARD_LINE_REMOVE_COMMAND'
 	| 'KEYDOWN_COMMAND'
 	| 'KEYUP_COMMAND'
+
+	| 'DRAGSTART_COMMAND'
 
 
 
@@ -67,13 +76,16 @@ interface rootCommandStorage{
 	FOCUS_COMMAND?: MOUSE_COMMAND
 	BLUR_COMMAND?: MOUSE_COMMAND
 
-	// DRAG_START_COMANND?: any
+	DRAGSTART_COMANND?: any
 	// DRAG_OVER_COMMAND?: any
 	// DRAG_END_COMMAND?: any
 	// DROP_COMMAND?: any
 }
 
 interface commandStorage {
+
+	DRAGSTART_COMMAND?: DRAGSTART_COMMAND;
+
 	KEYBOARD_COMMAND?: KEYBOARD_COMMAND;
 
 	KEYDOWN_COMMAND?: KEYDOWN_COMMAND;
@@ -135,7 +147,7 @@ const DecoratorStorage: decoratorStorage<commandStorage> = {
 class EditorCommands {
 
 	commandStorage: commandStorage;
-	removeHandles: Array<any>;
+	removeHandles: {[K: string]: (...args: any) => void};
 	rootCommands: rootCommandStorage
 
 	constructor() {
@@ -145,7 +157,45 @@ class EditorCommands {
 			'FOCUS_COMMAND': undefined,
 			'BLUR_COMMAND': undefined,
 		}
-		this.removeHandles = []
+		this.removeHandles = {}
+	}
+
+
+	listenRootEvent(): void{
+		if(this.removeHandles.SELECTION_COMMAND === undefined){
+			let SelectionEvent = (event: any) => this.dispatchCommand('SELECTION_COMMAND', event)
+			document.addEventListener('selectionchange', SelectionEvent)
+			this.removeHandles['selectionchange'] = () => document.removeEventListener('selectionchange', SelectionEvent)
+		}
+
+		let EditorDOM = getEditorDOM()
+		Object.entries(this.rootCommands).map(([eventname, event]) => {
+			if(event !== undefined){
+
+				let eventData = {eventname: undefined, event: undefined} as {eventname: undefined | string, event: undefined | ((...args: any) => void)}
+				eventData = (() => {
+					switch(eventname){
+						case 'COPY_COMMAND':
+							return {eventname: 'copy', event: event}
+						case 'PASTE_COMMAND':
+							return {eventname: 'paste', event: event}
+						case 'DRAGSTART_COMANND':
+							return {eventname: 'dragstart', event: event}
+						case 'DRAGEND_COMANND':
+							return {eventname: 'dragend', event: event}
+						case 'DRAGOVER_COMMAND':
+							return {eventname: 'dragover', event: event}
+						case 'DRAG_COMANND':
+							return {eventname: 'drag', event: event}
+						default: 
+							return {eventname: undefined, event: undefined}
+				}})()
+				if(eventData.eventname && eventData.event){
+					EditorDOM.addEventListener(eventData.eventname, eventData.event)
+					this.removeHandles[eventData.eventname] = () => EditorDOM.removeEventListener(eventData.eventname!, eventData.event!)
+				}
+			}
+		})
 	}
 
 	registerCommand(

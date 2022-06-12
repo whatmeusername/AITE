@@ -1,5 +1,4 @@
-import React from 'react'
-import {TextNode, DOMattr, DOMTextAttr, textNodeConf} from './index'
+import {TextNode, textNodeConf} from './index'
 
 import {createAiteNode} from '../index';
 import type {AiteNode, AiteNodeOptions} from '../index'
@@ -10,9 +9,6 @@ interface linkConf extends textNodeConf{
     url: stringURL
 }
 
-interface DOMLinkAttr extends DOMTextAttr{
-    href: stringURL
-}
 
 class LinkNode extends TextNode {
     __url: stringURL
@@ -21,23 +17,6 @@ class LinkNode extends TextNode {
         super({...nodeConf, nodeType: 'link'})
         this.__url = nodeConf.url
     }
-
-    createDOM(attr?: DOMattr){
-        let styles = this.__prepareStyles();
-		let s: DOMLinkAttr = {
-			...attr?.html,
-            href: this.__url,
-		};
-		if (styles !== '') s.className = styles
-        let textNode = this.createSelfTextNode(attr)
-		return React.createElement('a', s, [textNode]);
-    }
-
-
-    $updateNodeKey(){
-        this.__key = `AITE_LINK_${this.__content.length}_${this.__styles.length}`
-    }
-
 
     $getNodeState(options?: AiteNodeOptions): AiteNode{
 		let className = this.__prepareStyles()
@@ -51,7 +30,7 @@ class LinkNode extends TextNode {
 			'a',
 			props,
 			[this.__content],
-            {...options, key: this.__key, isAiteWrapper: false}
+            {...options, key: this.$getNodeKey(), isAiteWrapper: false}
 		)
 	}
 
@@ -59,11 +38,6 @@ class LinkNode extends TextNode {
         data.url = data.url ? data.url : this.__url
 		return new LinkNode(data)
 	}
-
-    createSelfTextNode(attr?: DOMattr){
-        const textNodeKey = attr?.html?.key ? attr.html.key + '-text' : 'link-text-node'
-        return super.createDOM({html: {key: textNodeKey}})
-    }
 
     getURL(){
         return this.__url
@@ -93,5 +67,6 @@ function createLinkNode(nodeConf: linkConf): LinkNode | undefined{
 }
 
 export{
-    LinkNode
+    LinkNode,
+    createLinkNode
 }

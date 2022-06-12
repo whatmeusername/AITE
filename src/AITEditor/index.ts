@@ -4,7 +4,8 @@
         createEmptyEditorState,
         getEditorState,
         getSelectionState,
-        updateActiveEditor
+        updateActiveEditor,
+        getEditorDOM
     } from './EditorState'
 
     import type {EditorState} from './EditorState'
@@ -33,8 +34,11 @@
 
     import type{
         AiteHTMLNode,
+        AiteHTMLTextNode,
+        AiteTextNode,
         AiteNodes,
         AiteNodeOptions,
+        AiteNodeTypes
     } from './AITEreconciliation'
 
 
@@ -77,6 +81,9 @@
 
     import {
 
+        onBlurDecorator,
+        onFocusDecorator,
+
         onKeyDownEvent,
         onKeyUpEvent
     } from './EditorEvents'
@@ -85,7 +92,7 @@
 
     import {
         SelectionState,
-        BlockPath,
+        NodePath,
         isSelectionBackward,
         getSelection,
         getMutatedSelection
@@ -101,6 +108,7 @@ export {
     getEditorState,
     getSelectionState,
     updateActiveEditor,
+    getEditorDOM,
 
     editorDOMState,
     AiteNode,
@@ -130,8 +138,11 @@ export {
     onKeyDownEvent,
     onKeyUpEvent,
 
+    onBlurDecorator,
+    onFocusDecorator,
+
     SelectionState,
-    BlockPath,
+    NodePath,
     isSelectionBackward,
     getSelection,
     getMutatedSelection
@@ -141,8 +152,11 @@ export type{
     EditorState,
 
     AiteHTMLNode,
+    AiteHTMLTextNode,
+    AiteTextNode,
     AiteNodes,
     AiteNodeOptions,
+    AiteNodeTypes,
 
     NodeTypes,
     BlockNodeData,

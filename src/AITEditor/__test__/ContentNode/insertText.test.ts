@@ -1,6 +1,5 @@
 import {nodeToString} from '../../testingUtils/index'
 import {createTestEditor} from './utils'
-import {CreateReactEditor} from '../../rootElement'
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
 

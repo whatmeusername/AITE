@@ -29,18 +29,25 @@ abstract class BaseNode{
         this.__type = type;
         this.__display = displayType;
         this.__key = undefined;
+        
+        this.$updateNodeKey()
     }
+
+
+    $updateNodeKey(){
+         this.__key = Math.random().toString(36).slice(5)
+        }
 
     $getNodeKey(){
 		return this.__key
 	}
-    returnElementDisplay(){
+    getElementDisplay(){
         return this.__display
     }
-    returnActualType(): string {
+    getActualType(): string {
 		return this.__type;
 	}
-	returnType(): string {
+	getType(): string {
 		if(this.__type === TEXT_NODE_TYPE || this.__type === LINK_NODE_TYPE){
             return TEXT_NODE_TYPE
         }

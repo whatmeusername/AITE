@@ -3,6 +3,9 @@ import{
 	KeyboardEventCommand
 } from './editorCommandsTypes'
 
+import {getEditorState, BlockNode, NodeTypes, BlockType, NodePath, AiteHTMLNode} from './index'
+
+
 import defaultInlineStyles from './defaultStyles/defaultInlineStyles';
 
 
@@ -21,6 +24,37 @@ function getChildrenNodes(blockNode: HTMLElement): Array<HTMLElement> {
 		}
 	}
 	return childrens
+}
+
+function getBlockNodeWithNode(
+	forcedPath: NodePath | undefined, 
+	from: 'anchor' | 'focus' | undefined
+	): {
+		block: {node: BlockType, path: Array<number>},
+		node: {node: NodeTypes, path: Array<number>} | undefined
+		} | undefined{
+	let editorState = getEditorState()
+	let ContentNode = editorState.contentNode
+	let nodePath = forcedPath ??  editorState.selectionState[`${from ?? 'anchor'}Path`]
+
+	if(nodePath instanceof NodePath){
+		let blockNode: BlockType = ContentNode.getBlockByPath(nodePath.getBlockPath())
+		let Node
+		if(blockNode instanceof BlockNode){
+			Node = blockNode.getNodeByIndex(nodePath.getLastIndex())
+		}
+		return {block: {
+				node: blockNode,
+				path: nodePath.getBlockPath()
+			}, 
+			node: Node === undefined ? undefined : {
+				node: Node,
+				path: nodePath.get(),
+			}
+			}
+	}
+	return undefined
+	
 }
 
 function findEditorBlockIndex(node: HTMLElement): {node: HTMLElement, index: number} | undefined {
@@ -124,6 +158,7 @@ function editorWarning(shoudThrow: boolean, message: string){
 }
 }
 
+// eslint-disable-next-line 
 function editorError(shoudThrow: boolean, message: string){
 	if(shoudThrow) throw new Error(
 		`AITE internal error: ${message}`
@@ -135,7 +170,7 @@ function isDefined(obj: any): boolean{
 	return (obj !== undefined && obj !== null)
 }
 
-
+// eslint-disable-next-line 
 function isSafari(): boolean{
 	let userAgent = navigator.userAgent
 	return (/safari/i.test(userAgent) && !/chromium|edg|ucbrowser|chrome|crios|opr|opera|fxios|firefox/i.test(userAgent))
@@ -200,8 +235,26 @@ function findStyle (StyleKey: string) {
 }
 
 
+function getDecoratorNode(node: AiteHTMLNode){
+	let nodeDataset = node.dataset
+	if(!nodeDataset.aite_decorator_node){
+		nodeDataset = node.dataset
+		while((node.parentNode as AiteHTMLNode)?.dataset?.aite_editor_root === undefined){
+			node = node.parentNode as AiteHTMLNode;
+			if(node.dataset.aite_decorator_node){
+				return node
+			}
+		}
+	}
+	return node
+}
+
+
 export {
 	getChildrenNodes,
+	getBlockNodeWithNode,
+	getDecoratorNode,
+
 	keyCodeValidator,
 	
 	editorWarning,

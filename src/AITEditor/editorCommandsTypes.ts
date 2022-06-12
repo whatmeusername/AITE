@@ -3,6 +3,7 @@ import type {commandPriority} from './EditorCommands'
 type SelectionEventCommand = React.SyntheticEvent;
 type KeyboardEventCommand = React.KeyboardEvent | KeyboardEvent;
 type MouseEventCommand = React.MouseEvent | MouseEvent;
+type DragEventCommand = DragEvent
 
 type EventCommands = SelectionEventCommand | KeyboardEventCommand | MouseEventCommand;
 
@@ -33,6 +34,9 @@ type FORWARD_LINE_REMOVE_COMMAND = BaseCommand<KeyboardEventCommand>
 type FOCUS_COMMAND = BaseCommand<MouseEventCommand>
 type BLUR_COMMAND = BaseCommand<MouseEventCommand>
 
+type DRAGSTART_COMMAND = BaseCommand<DragEventCommand>
+type DRAG_COMMAND = BaseCommand<DragEventCommand>
+
 
 export type{
     SelectionEventCommand,
@@ -44,6 +48,9 @@ export type{
 
     FOCUS_COMMAND,
     BLUR_COMMAND,
+
+    DRAGSTART_COMMAND,
+    DRAG_COMMAND,
 
     LETTER_REMOVE_COMMAND,
     WORD_REMOVE_COMMAND,

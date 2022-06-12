@@ -1,7 +1,9 @@
 import React from 'react';
 import type {imageNode} from './imageNode';
 
-export default function CreateBlockResizeElements(node: imageNode, key: string) {
+import {createAiteNode, AiteNode} from '../../index'
+
+export default function CreateBlockResizeElements(node: imageNode) {
 	let StartX = 0;
 	let StartY = 0;
 
@@ -12,6 +14,7 @@ export default function CreateBlockResizeElements(node: imageNode, key: string) 
 	let CurrentDragButtonClass: null | DOMTokenList = null;
 	let CurrentImageNode: null | HTMLImageElement = null;
 	let imageWrapperNode: null | HTMLSpanElement = null;
+
 	const events = {
 		onMouseDown: DragStart,
 	};
@@ -94,65 +97,56 @@ export default function CreateBlockResizeElements(node: imageNode, key: string) 
 					} else if (CurrentDragButtonClass.contains('image-resize-e')) {
 						CurrentImageNode.style.width = `${event.clientX - Rect.left}px`;
 					} else if (CurrentDragButtonClass.contains('image-resize-w')) {
-						CurrentImageNode.style.width = `${
-							start_width - (event.clientX - StartX)
-						}px`;
+						CurrentImageNode.style.width = `${start_width - (event.clientX - StartX)}px`;
 					} else if (CurrentDragButtonClass.contains('image-resize-s')) {
-						CurrentImageNode.style.height = `${
-							start_height + (event.clientY - StartY)
-						}px`;
+						CurrentImageNode.style.height = `${start_height + (event.clientY - StartY)}px`;
 					} else if (CurrentDragButtonClass.contains('image-resize-n')) {
-						CurrentImageNode.style.height = `${
-							start_height - (event.clientY - StartY)
-						}px`;
+						CurrentImageNode.style.height = `${start_height - (event.clientY - StartY)}px`;
 					}
 					setWrapperSize()
 				}
-
-				// StartX = event.clientX
-				// StartY = event.clientY
 			}
 		}
 	};
 
-	const image_resize_n = (): JSX.Element => {
-		const data = {className: 'image-resize image-resize-n', key: key + '-n'};
-		return React.createElement('div', {...data, ...events}, null);
+	const image_resize_n = (): AiteNode => {
+		const data = {className: 'image-resize image-resize-n'};
+		return createAiteNode('div', {...data, ...events}, null, {isAiteWrapper: true});
 	};
 
-	const image_resize_ne = (): JSX.Element => {
-		const data = {className: 'image-resize image-resize-ne', key: key + '-ne'};
-		return React.createElement('div', {...data, ...events}, null);
+	const image_resize_ne = (): AiteNode => {
+		const data = {className: 'image-resize image-resize-ne'};
+		return createAiteNode('div', {...data, ...events}, null, {isAiteWrapper: true});
 	};
 
-	const image_resize_e = (): JSX.Element => {
-		const data = {className: 'image-resize image-resize-e', key: key + '-e'};
-		return React.createElement('div', {...data, ...events}, null);
+	const image_resize_e = (): AiteNode => {
+		const data = {className: 'image-resize image-resize-e'};
+		return createAiteNode('div', {...data, ...events}, null, {isAiteWrapper: true});
 	};
 
-	const image_resize_se = (): JSX.Element => {
-		const data = {className: 'image-resize image-resize-se', key: key + '-se'};
-		return React.createElement('div', {...data, ...events}, null);
+	const image_resize_se = (): AiteNode => {
+		const data = {className: 'image-resize image-resize-se'};
+		return createAiteNode('div', {...data, ...events}, null, {isAiteWrapper: true});
 	};
 
-	const image_resize_s = (): JSX.Element => {
-		const data = {className: 'image-resize image-resize-s', key: key + '-s'};
-		return React.createElement('div', {...data, ...events}, null);
+	const image_resize_s = (): AiteNode => {
+		const data = {className: 'image-resize image-resize-s'};
+		return createAiteNode('div', {...data, ...events}, null, {isAiteWrapper: true});
 	};
 
-	const image_resize_sw = (): JSX.Element => {
-		const data = {className: 'image-resize image-resize-sw', key: key + '-sw'};
-		return React.createElement('div', {...data, ...events}, null);
+	const image_resize_sw = (): AiteNode => {
+		const data = {className: 'image-resize image-resize-sw'};
+		return createAiteNode('div', {...data, ...events}, null, {isAiteWrapper: true});
 	};
 
-	const image_resize_w = (): JSX.Element => {
-		const data = {className: 'image-resize image-resize-w', key: key + '-w'};
-		return React.createElement('div', {...data, ...events}, null);
+	const image_resize_w = (): AiteNode => {
+		const data = {className: 'image-resize image-resize-w'};
+		return createAiteNode('div', {...data, ...events}, null, {isAiteWrapper: true});
 	};
 
-	const image_resize_nw = (): JSX.Element => {
-		const data = {className: 'image-resize image-resize-nw', key: key + '-nw'};
-		return React.createElement('div', {...data, ...events}, null);
+	const image_resize_nw = (): AiteNode => {
+		const data = {className: 'image-resize image-resize-nw'};
+		return createAiteNode('div', {...data, ...events}, null, {isAiteWrapper: true});
 	};
 
 	return [
