@@ -3,9 +3,11 @@
     import{
         createEmptyEditorState,
         getEditorState,
+        isNodeActive,
         getSelectionState,
         updateActiveEditor,
-        getEditorDOM
+        getEditorDOM,
+        getEditorEventStatus
     } from './EditorState'
 
     import type {EditorState} from './EditorState'
@@ -106,9 +108,11 @@
 export {
     createEmptyEditorState,
     getEditorState,
+    isNodeActive,
     getSelectionState,
     updateActiveEditor,
     getEditorDOM,
+    getEditorEventStatus,
 
     editorDOMState,
     AiteNode,

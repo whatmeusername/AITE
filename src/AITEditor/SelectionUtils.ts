@@ -24,6 +24,7 @@ interface blockNodeDataExtended {
 }
 
 interface selectionData {
+	nodeKey: string | undefined;
 	node: AiteHTMLNode;
 	nodePath: Array<number>;
 }
@@ -37,8 +38,8 @@ interface insertSelection extends Omit<ClassVariables<SelectionState>, 'anchorPa
 }
 
 /**
- * Проверяет навраления каретки на backward
- * @returns boolean - возращает ответ от условия
+ * Checks if selection is backward direction
+ * @returns boolean
  */
 const isSelectionBackward = (rangeOrSelection: Selection | Range) => {
 	if(rangeOrSelection instanceof Selection){
@@ -52,8 +53,16 @@ const isSelectionBackward = (rangeOrSelection: Selection | Range) => {
 		return false;
 	}
 }
-
+/**
+ * Returns window getSelection()
+ * @returns Selection
+ */
 const getSelection = (): Selection => window.getSelection() as Selection;
+
+/**
+ * Returns window getSelection() with applied modifications to selection
+ * @returns Selection
+ */
 const getMutatedSelection = (
 	alter: "move" | 'extend', 
 	granularity: granularity,
@@ -242,16 +251,16 @@ class SelectionState {
 	}
 
 	/**
-	 * Проверяет якорь ли фокус каретки в начале
-	 * @returns boolean - возращает ответ от условия
+	 * Checks if selection anchor is on begging of block
+	 * @returns boolean
 	 */
 	isAnchorOnStart(): boolean {
 		return this.anchorPath.getLastIndex() === 0 && this.anchorOffset === 0
 	}
 
 	/**
-	 * Проверяет стоит ли фокус каретки в начале
-	 * @returns boolean - возращает ответ от условия
+	 * Checks if selection focus is on begging of block
+	 * @returns boolean
 	 */
 	isFocusOnStart(): boolean {
 		return this.focusPath.getLastIndex() === 0 && this.focusOffset === 0
@@ -259,8 +268,8 @@ class SelectionState {
 
 	
 	/**
-	 * Проверяет стоит ли якори и фокус  каретки в начале
-	 * @returns boolean - возращает ответ от условия
+	 * Checks if selection focus and anchor is on begging of block
+	 * @returns boolean
 	 */
 	isOffsetOnStart(): boolean {
 		return (
@@ -294,7 +303,7 @@ class SelectionState {
 	}
 
 	/**
-	 * Обнуляет полностью весь SelectionState
+	 * Resets SelectionState to it initial state
 	 * @returns SelectionState - собственный возрат
 	 */
 	resetSelection(): SelectionState {
@@ -315,14 +324,18 @@ class SelectionState {
 		return this;
 	}
 	
-
-	offsetToZero(){
+	/**
+	 * Settings anchor and focus offsets to zero
+	 * @returns SelectionState - returning self
+	 */
+	offsetToZero(): SelectionState{
 		this.anchorOffset = 0;
 		this.focusOffset = 0;
+		return this
 	}
 	/**
-	 * Обнуляет позицию каретки в блоке до начала
-	 * @returns SelectionState - собственный возрат
+	 * Moving selection to begging of block
+	 * @returns SelectionState - returning self
 	 */
 	moveBlockOffsetToZero(): SelectionState{
 		this.offsetToZero()
@@ -332,9 +345,9 @@ class SelectionState {
 	}
 
 	/**
-	 * Выстраивает путь до узла соблюдая объектную структуру редактора 
-	 * @param  {AiteHTMLNode} node  - узел для нахождения пути
-	 * @returns selectionData - собственный возрат
+	 * Finding path to node, that can used in Object Nodes
+	 * @param  {AiteHTMLNode} node  - Node which requires path
+	 * @returns selectionData - self return
 	 */
 	getPathToNodeByNode(node: AiteHTMLNode): selectionData | undefined{
 
@@ -358,6 +371,7 @@ class SelectionState {
 			}
 		
 			let data: selectionData = {
+				nodeKey: node.$$AiteNodeKey,
 				node: node,
 				nodePath: [],
 			};
@@ -386,10 +400,10 @@ class SelectionState {
 	}
 
 	/**
-	 * Сдвигает позицию каретки на следущией узел или блок
-	 * @param  {ContentNode} ContentNode - ContentNode в котором будет искаться узла
-	 * @param  {number} step - оступ для от начала узла
-	 * @returns SelectionState - собственный возрат
+	 * Moving selection to next node or block
+	 * @param  {ContentNode} ContentNode - ContentNode where next node will be searched
+	 * @param  {number} step - How much nodes should be skipped
+	 * @returns SelectionState - Self return
 	 */
 	moveSelectionToNextSibling(ContentNode: ContentNode, step?: number): SelectionState {
 		let blockIndex = this.focusPath;
@@ -434,9 +448,9 @@ class SelectionState {
 	}
 
 	/**
-	 * Сдвигает позицию каретки на предыдущий блок
-	 * @param  {ContentNode} ContentNode - ContentNode в котором будет искаться узла
-	 * @returns SelectionState - собственный возрат
+	 * Moving selection to previous node or block
+	 * @param  {ContentNode} ContentNode - ContentNode where previous node will be searched
+	 * @returns SelectionState - Self return
 	 */
 	moveSelectionToPreviousBlock(ContentNode: ContentNode): SelectionState{
 		this.anchorPath.addOrRemoveToBlock('dec', 1)
@@ -476,9 +490,9 @@ class SelectionState {
 	}
 
 	/**
-	 * Сдвигает позицию каретки на следущией блок
-	 * @param  {ContentNode} ContentNode - ContentNode в котором будет искаться узла
-	 * @returns SelectionState - собственный возрат
+	 * Moving selection to next block
+	 * @param  {ContentNode} ContentNode -  ContentNode where next block will be searched
+	 * @returns SelectionState - Self return
 	 */
 	moveSelectionToNextBlock(ContentNode: ContentNode): SelectionState{
 		this.anchorPath.addOrRemoveToBlock('dec', 1)
@@ -516,9 +530,9 @@ class SelectionState {
 
 	
 	/**
-	 * Сдвигает позицию каретки на предыдущий узел или блок
-	 * @param  {ContentNode} ContentNode - ContentNode в котором будет искаться узла
-	 * @returns SelectionState - собственный возрат
+	 * Moving selection to previous block
+	 * @param  {ContentNode} ContentNode -  ContentNode where previous block will be searched
+	 * @returns SelectionState - Self return
 	 */
 	moveSelectionToPreviousSibling(ContentNode: ContentNode): SelectionState {
 		let blockIndex = this.anchorPath;
@@ -562,8 +576,8 @@ class SelectionState {
 	}
 
 	/**
-	 * Двигает offset каретки на один
-	 * @returns SelectionState - собственный возрат
+	 * Moving selection offset forward by 1
+	 * @returns SelectionState - Self return
 	 */
 	moveSelectionForward(): SelectionState {
 		this.anchorOffset += 1;
@@ -572,8 +586,8 @@ class SelectionState {
 	}
 
 	/**
-	 * Сдвигает offset каретки на один
-	 * @returns SelectionState - собственный возрат
+	 * Moving selection offset backward by 1
+	 * @returns SelectionState - Self return
 	 */
 	moveSelectionBackward(): SelectionState {
 		this.anchorOffset -= 1;
@@ -582,8 +596,8 @@ class SelectionState {
 	}
 
 	/**
-	 * Проверяет ли одинаковые пути фокуса и якоря
-	 * @returns SelectionState - собственный возрат
+	 * Checks if andhor and focus NodePaths is same
+	 * @returns SelectionState - Self return
 	 */
 	isBlockPathEqual(): boolean {
 		let focusPathArr = this.focusPath.getBlockPath();
@@ -610,9 +624,9 @@ class SelectionState {
 	}
 
 	/**
-	 * Установавливает collapse каретки
-	 * @param  {boolean=false} focus - установить collapse каретки по фокусу
-	 * @returns SelectionState - собственный возрат
+	 * Collapsing selection
+	 * @param  {boolean=false} focus - Collapse using focus data
+	 * @returns SelectionState - Self return
 	 */
 	toggleCollapse(focus: boolean = false): SelectionState {
 		this.isCollapsed = true;
@@ -633,9 +647,9 @@ class SelectionState {
 	}
 
 	/**
-	 * Определяет тип узла
-	 * @param  {Node|HTMLElement|AiteHTMLNode} node - узел тип которого надо определить
-	 * @returns string - возращает текущей тип узла
+	 * Defines node type
+	 * @param  {Node|HTMLElement|AiteHTMLNode} node - Node which type shoul be defined
+	 * @returns string - Node type
 	 */
 	$getNodeType(node: Node | HTMLElement | AiteHTMLNode): string | null {
 
@@ -655,10 +669,10 @@ class SelectionState {
 	}
 
 	/**
-	 * Разварачивает направление каретки с backwarf на forward
+	 * Unfolds current selection data 
 	 * @returns void
 	 */
-	__reverseBackwardSelection(): void {
+	__reverseSelection(): void {
 		let selectionCopy = {...this};
 
 		this.focusNode = selectionCopy.anchorNode; 
@@ -678,9 +692,9 @@ class SelectionState {
 	}
 
 	/**
-	 * Получает текущее данные по выбранному узлу
-	 * @param  {Node} node - узел по которому надо получить данные
-	 * @returns blockNodeDataExtended - возращает путь, тип и сам узел
+	 * Gets data from selected node
+	 * @param  {Node} node - node which data should be getted
+	 * @returns blockNodeDataExtended
 	 */
 	__getBlockNode(node: AiteHTMLNode | AiteHTMLTextNode): blockNodeDataExtended {
 		let currentBlockData = this.getPathToNodeByNode(node as AiteHTMLNode);
@@ -777,10 +791,16 @@ class SelectionState {
 		}
 	}
 
-	
+	removeSelection(): void {
+		let selection = getSelection();
+		if(selection){
+			selection.removeAllRanges()
+		}
+	}
+
 	/**
-	 * Получает текущее положение каретки используя
-	 * @param  {Range|undefined} forceRange - устанавливает карертку по внесенной Range
+	 * Get current caret data by selection
+	 * @param  {Range|undefined} forceRange - forced Range which data will be used to set selectionState data
 	 * @returns void
 	 */
 	getCaretPosition(forceRange?: Range ): void {
@@ -836,7 +856,7 @@ class SelectionState {
 	}
 	
 	/**
-	 * Устанавливает текущее положение каретки используя собственные данные
+	 * Set caret position using 
 	 * @returns void
 	 */
 	setCaretPosition(): void {
@@ -862,8 +882,6 @@ class SelectionState {
 				if(focusNode === undefined) return;
 				focusType = this.$getNodeType(focusNode)
 			}
-
-
 
 			if (anchorType === TEXT_NODE_TYPE) {
 				let anchorNodeText = (anchorNode as Node).textContent;
@@ -896,8 +914,8 @@ class SelectionState {
 
 	
 	/**
-	 * Возращает текущее данные о каретки
-	 * @returns insertSelection
+	 * Get current selectionState data
+	 * @returns insertSelection - selectionState Data
 	 */
 	get(): insertSelection{
 		return({
@@ -917,8 +935,8 @@ class SelectionState {
 	}
 
 	/**
-	 * Ручное внесение данных для каретки
-	 * @param  {insertSelection} SelectionData - все доступные параметры каретки 
+	 * Inserting given data to selectionState 
+	 * @param  {insertSelection} SelectionData - available parameters ofr inserting data
 	 * @returns void
 	 */
 	insertSelectionData(SelectionData: insertSelection): void{

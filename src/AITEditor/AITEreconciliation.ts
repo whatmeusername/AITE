@@ -4,6 +4,7 @@ import type {TextNode} from './AITE_nodes/index'
 import type {NodeTypes, BlockType, ContentNode} from './index'
 import {getEditorState, EditorState} from './index'
 import {HTML_TEXT_NODE} from './ConstVariables'
+import {isDefined} from './EditorUtils'
 
 type NullUndefined = null | undefined
 type StringNumberBool = string | number | boolean
@@ -13,12 +14,14 @@ type CSSStyles = {[K: string]: string}
 
 interface AiteHTMLNode extends HTMLElement {
     $$AiteNodeType: string;
+    $$AiteNodeKey: string | undefined;
     $$isAiteNode: true;
     $$isAiteWrapper: boolean;
 }
 
 interface AiteHTMLTextNode extends Text {
     $$AiteNodeType: string;
+    $$AiteNodeKey: string | undefined;
     $$isAiteNode: true;
     $$isAiteTextNode: true;
 }
@@ -27,12 +30,14 @@ type AiteNodeTypes = 'text' | 'breakline' | 'element' | 'unsigned' | 'image/gif'
 
 
 interface AiteNodeOptions{
-    key?: StringNumberBool,
+    key?: string,
     isAiteTextNode?: boolean
     isAiteWrapper?: boolean;
     AiteNodeType?: AiteNodeTypes;
 }
 
+
+const __nodeMap: Map<string | undefined, AiteHTMLNode> = new Map()
 
 
 function $$bulkUnmountNodes(
@@ -161,7 +166,6 @@ function $$updateNodeTextContent(
         let currentDOMElement: AiteHTMLNode | AiteHTMLTextNode | undefined = EditorStateDOMState?.getDOMNode(nodePath)
         if(currentDOMElement?.$$isAiteNode){
             let currentDOMObject: AiteNodes | undefined = EditorStateDOMState.__editorObjectState.getObjectNode(getParentPath(nodePath))
-            console.log(currentDOMElement, currentDOMObject, EditorStateDOMState.__editorObjectState)
             if(currentDOMObject !== undefined){
                 if(currentDOMElement.nodeType !== HTML_TEXT_NODE && currentDOMObject instanceof AiteNode){
                     currentDOMElement = currentDOMElement.firstChild as AiteHTMLTextNode
@@ -198,10 +202,10 @@ function isEventProp(name: string) {
     return name.startsWith('on');
   }
 //eslint-disable-next-line
-function addEventListeners($target: AiteHTMLNode, eventName: string, listener: (...args: any[]) => void) {
-      if (isEventProp(eventName)) {
+function addEventListeners($target: AiteHTMLNode, type: string, listener: (...args: any[]) => void) {
+      if (isEventProp(type)) {
         $target.addEventListener(
-            eventName.slice(2).toLowerCase(),
+            type.slice(2).toLowerCase(),
             listener
         )
       }
@@ -210,6 +214,7 @@ function addEventListeners($target: AiteHTMLNode, eventName: string, listener: (
 function createAiteDomNode(node: AiteNode): AiteHTMLNode{
     let DOMnode = document.createElement(node.type) as AiteHTMLNode
     DOMnode.$$isAiteNode = true
+    DOMnode.$$AiteNodeKey = node.__key
     DOMnode.$$AiteNodeType = node.AiteNodeType
     DOMnode.$$isAiteWrapper = node.isAiteWrapper ?? false
     return DOMnode
@@ -298,7 +303,12 @@ function appendChildrens(node: AiteNodes): AiteHTMLNode | Text{
     if(node instanceof AiteNode){
         let currentDOMNode = createDOMElementWithoutChildren(node)
         if(node.children && node.children.length > 0){
-            node.children.map(appendChildrens).forEach(currentDOMNode.appendChild.bind(currentDOMNode))
+            node.children.map(appendChildrens).forEach(
+                currentDOMNode.appendChild.bind(currentDOMNode)
+            )
+        }
+        if(currentDOMNode instanceof HTMLElement){
+            __nodeMap.set(node.__key, currentDOMNode)
         }
         return currentDOMNode
     } else return createAiteText(node.children);
@@ -361,7 +371,6 @@ class editorObjectState{
             return this.__editorObjectState?.children ? this.__editorObjectState?.children[path[0]] as AiteNode: undefined 
         }
         else if(path.length > 1){
-            console.log(path)
             let node: AiteNodes | undefined = this.__editorObjectState?.children ? this.__editorObjectState?.children[path[0]] as AiteNode: undefined 
             if(node){
                 let pathLength = path.length
@@ -402,13 +411,23 @@ class editorObjectState{
 class editorDOMState{
     __editorObjectState: editorObjectState;
 	__rootDOMElement: AiteHTMLNode;
-
+    __nodeMap: Map<string | undefined, AiteHTMLNode>;
+    
     constructor(EditorState: EditorState){
         this.__editorObjectState = createNewObjectState(EditorState)
+        this.__nodeMap = __nodeMap
 		this.__rootDOMElement = createDOMElement(this.__editorObjectState.get()) as AiteHTMLNode
+
     }
 
 
+
+    getNodeByKey(key: string | undefined): AiteHTMLNode | undefined{
+        if(isDefined(key)){
+            return this.__nodeMap.get(key) ?? undefined
+        }
+        return undefined
+    }
 
 
     __setDOMElement(node: AiteHTMLNode){
@@ -434,7 +453,7 @@ class editorDOMState{
                     let currentIndex = path[i]
                     let nodeChildrens = node.childNodes as NodeListOf<AiteHTMLNode>
                     let nextNode = nodeChildrens[currentIndex]
-                    if(nextNode?.dataset?.aite_decorator_node){
+                    if(i !== pathLength - 1 && nextNode?.dataset?.aite_decorator_node){
                         nodeChildrens = nextNode.childNodes as NodeListOf<AiteHTMLNode>
                         for(let i = currentIndex + 1; i < nodeChildrens.length; i++){
                             if(nodeChildrens[i]?.dataset?.aite_content_node){
@@ -442,8 +461,11 @@ class editorDOMState{
                             }
                         }
                     }
-                    else if(nextNode?.dataset.aite_content_node === 'true') node = nextNode.childNodes[currentIndex] as AiteHTMLNode
-                    else if(nextNode !== undefined && nextNode.$$isAiteWrapper === false) node = nextNode;
+                    else if(i === pathLength - 1 && nextNode?.dataset?.aite_decorator_node){
+                        return nextNode
+                    }
+                    else if(nextNode?.dataset?.aite_content_node === 'true') node = nextNode.childNodes[currentIndex] as AiteHTMLNode
+                    else if(nextNode !== undefined && nextNode?.$$isAiteWrapper === false) node = nextNode;
                     else return undefined
                 }
             }
@@ -492,7 +514,7 @@ class AiteNode{
     props: {[K: string]: any} | NullUndefined
     children: Array<AiteNodes> | NullUndefined
     childrenLength: number
-    __key: StringNumberBool | NullUndefined
+    __key: string | undefined
     isAiteWrapper: boolean
     AiteNodeType: AiteNodeTypes
 
@@ -504,7 +526,7 @@ class AiteNode{
         this.children = children
         this.childrenLength = this.children?.length ?? 0
         this.isAiteWrapper = options?.isAiteWrapper ?? false
-        this.__key = options?.key ?? generateNewRandomKey()
+        this.__key = options?.key ?? undefined
         this.AiteNodeType = options?.AiteNodeType ?? 'unsigned'
     }
 

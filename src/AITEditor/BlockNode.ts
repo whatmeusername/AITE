@@ -140,7 +140,7 @@ class BlockNode extends BaseBlockNode{
 	}
 
 
-	insertNodeBefore(nodeIndex: number, node: NodeTypes){
+	insertNodeBefore(nodeIndex: number, node: NodeTypes): NodeTypes{
 		node = (node as imageNode).createSelfNode((node as imageNode).getData()) as imageNode
 		if(this.isBreakLine()){
 			this.replaceNode(0, node)
@@ -149,9 +149,10 @@ class BlockNode extends BaseBlockNode{
 			let insertOffset = nodeIndex > 0 ? nodeIndex - 1 : nodeIndex
 			this.splitNodes(true, insertOffset, insertOffset,  node)
 		}
+		return node
 	}
 
-	insertNodeAfter(nodeIndex: number, node: NodeTypes){
+	insertNodeAfter(nodeIndex: number, node: NodeTypes): NodeTypes{
 		node = (node as imageNode).createSelfNode((node as imageNode).getData()) as imageNode
 		if(this.isBreakLine()){
 			this.replaceNode(0, node)
@@ -160,9 +161,10 @@ class BlockNode extends BaseBlockNode{
 			let insertOffset = nodeIndex + 1
 			this.splitNodes(true, insertOffset, insertOffset,  node)
 		}
+		return node
 	}
 
-	insertNodeBetweenText(nodeIndex: number, offset: number, node: NodeTypes){
+	insertNodeBetweenText(nodeIndex: number, offset: number, node: NodeTypes): NodeTypes | undefined {
 		nodeIndex = nodeIndex >= 0 ? nodeIndex : 0
 		let textNode = this.NodeData[nodeIndex]
 		if(textNode instanceof TextNode && !(node instanceof BreakLine)){
@@ -176,17 +178,19 @@ class BlockNode extends BaseBlockNode{
 				let rightSideTextNode = createTextNode({...TextNodeData, plainText: textNode.getSlicedContent(false, offset)})
 
 				this.splitNodes(true, nodeIndex, nodeIndex + 1,  [leftSideTextNode, node, rightSideTextNode])
+				return node
 			}
 			else if(offset === 0){
-				this.insertNodeBefore(nodeIndex, node)
+				return this.insertNodeBefore(nodeIndex, node)
 			}
 			else if(offset === textContentLength){
-				this.insertNodeAfter(nodeIndex, node)
+				return this.insertNodeAfter(nodeIndex, node)
 			}
 		}
 		else if(this.isBreakLine()){
 			this.replaceNode(0, node)
 		}
+		return;
 	}
 
 	// DEPREACATED METHOD / TODO: REPLACE WITH splitNodes
@@ -322,6 +326,14 @@ class BlockNode extends BaseBlockNode{
 
 	getNodeByIndex(index: number): NodeTypes {
 		return this.NodeData[index];
+	}
+
+	getNodeIndexByKey(key: string): number {
+		return this.NodeData.findIndex(node => node.__key === key)
+	}
+
+	getNodeByKey(key: string): NodeTypes | undefined{
+		return this.NodeData.find(node => node.__key === key);
 	}
 
 	getType(): string {

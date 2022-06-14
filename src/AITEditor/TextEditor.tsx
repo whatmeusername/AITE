@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 
 import defaultBlocks from './defaultStyles/defaultBlocks';
 import type {EditorState} from './index';
-import {NodePath, BlockNode, $$remountNode} from './index';
+import {NodePath, BlockNode, $$remountNode, getEditorEventStatus} from './index';
 
 import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
 
@@ -92,6 +92,10 @@ function AITEditor(): JSX.Element {
 			let EditorNodes = returnSingleDOMNode(createAITEContentNode(EditorState.contentNode)) as AiteHTMLNode[];
 			EditorRef.current.replaceChildren(...EditorNodes);
 
+			EditorRef.current.addEventListener('mousedown', (e) => {
+				if (getEditorEventStatus() === false) e.preventDefault();
+			});
+
 			EditorRef.current.addEventListener('dragstart', (event: any) => {
 				let EditorState = getEditorState();
 
@@ -107,6 +111,10 @@ function AITEditor(): JSX.Element {
 				dataTransfer.setData('text/plain', '');
 
 				let nodeData = EditorState.selectionState.__getBlockNode(getDecoratorNode(event.target));
+				console.time('get from map');
+				const b = EditorState.__editorDOMState.__nodeMap.get(nodeData.node.$$AiteNodeKey);
+				console.timeEnd('get from map');
+				console.log(b?.$$AiteNodeKey);
 				dataTransfer.setData(
 					'application/aite-drag-event',
 					JSON.stringify({
@@ -116,20 +124,6 @@ function AITEditor(): JSX.Element {
 						},
 					}),
 				);
-			});
-
-			EditorRef.current.addEventListener('click', (event: MouseEvent) => {
-				let target = event.target as AiteHTMLNode;
-				if (target && target.$$isAiteNode) {
-					let selectionState = getSelectionState();
-					let decoratorNode = getDecoratorNode(target);
-					let targetNodeData;
-
-					if (decoratorNode.dataset?.aite_decorator_node) {
-						targetNodeData = selectionState.__getBlockNode(decoratorNode);
-					}
-					targetNodeData = selectionState.__getBlockNode(target);
-				}
 			});
 
 			EditorRef.current.addEventListener('drop', (event) => {
@@ -157,7 +151,7 @@ function AITEditor(): JSX.Element {
 								let movedNodeKey = DragElementData?.node?.node.$getNodeKey() ?? '';
 								let isSameBlock = DragElementBlock.$getNodeKey() === CaretBlockNode.$getNodeKey();
 
-								CaretBlockNode.insertNodeBetweenText(
+								let newNode = CaretBlockNode.insertNodeBetweenText(
 									SelectionState.anchorPath.getLastIndex(),
 									SelectionState.anchorOffset,
 									DragElementData.node.node,
@@ -229,15 +223,14 @@ function AITEditor(): JSX.Element {
 				contentEditable={true}
 				suppressContentEditableWarning={true}
 				spellCheck={false}
-				//onPaste={(e) => console.log(e.clipboardData.getData('text/html'))}
-				// onClick={(event) => {
-				// 	EditorState.EditorCommands?.dispatchCommand('CLICK_COMMAND', event);
-				// }}
+				onClick={(event) => {
+					EditorState.EditorCommands.dispatchCommand('CLICK_COMMAND', event);
+				}}
 				onKeyDown={(event) => {
-					EditorState?.EditorCommands?.dispatchCommand('KEYDOWN_COMMAND', event);
+					EditorState?.EditorCommands.dispatchCommand('KEYDOWN_COMMAND', event);
 				}}
 				onKeyUp={(event) => {
-					EditorState?.EditorCommands?.dispatchCommand('KEYUP_COMMAND', event);
+					EditorState?.EditorCommands.dispatchCommand('KEYUP_COMMAND', event);
 				}}
 				onDrop={(event) => event.preventDefault()}
 			></div>

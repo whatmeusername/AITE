@@ -7,7 +7,7 @@ import {BaseNode} from '../../AITE_nodes/index';
 import BlockResizeElemets from './imageResizeElements'
 import {validateImageURL} from './imageUtils'
 
-import {BlockNode, ContentNode, AiteNode} from '../../index';
+import {BlockNode, ContentNode, AiteNode, isNodeActive} from '../../index';
 
 export type floatType = 'right' | 'left' | 'none';
 
@@ -201,14 +201,15 @@ class imageNode extends BaseNode{
 
 	$getNodeState(options?: {path?: Array<number>}): AiteNode{
 
-		this.$updateNodeKey()
 		let key = this.$getNodeKey()
+		let isActive = isNodeActive(this.$getNodeKey())
+
 		let imageNode = new AiteNode(
 			'img',
 			{
 				alt: this.imageConf.alt,
 				className: this.imageConf.className,
-				draggable: true,
+				draggable: isActive ? true : false,
 				src: this.imageConf.src,
 				style: this.imageStyle.s,
 			},
@@ -229,11 +230,12 @@ class imageNode extends BaseNode{
 				{
 					className: 'AITE_image_caption_wrapper',
 					spellCheck: false,
+					draggable: isActive ? true : false,
 					contentEditable: true,
 					'data-aite_content_node': true,
 				},
 				captionBlockNodes,
-				{AiteNodeType: 'image/gif', key: key, isAiteWrapper: false}
+				{AiteNodeType: 'image/gif', isAiteWrapper: false}
 			);
 			imageElements = [...imageElements, captionWrapper];
 		}
@@ -242,7 +244,7 @@ class imageNode extends BaseNode{
 			className: 'image-wrapper',
 			'data-aite_decorator_node': true,
 			contentEditable: false,
-			draggable: true,
+			draggable: isActive ? true : false,
 			style: {
 				width: this.imageStyle.s.width,
 				minHeight: this.imageStyle.s.height,
@@ -251,10 +253,11 @@ class imageNode extends BaseNode{
 		};
 
 
-		if(true){
+		if(isActive){
 			ImageWrapperAttr.className += ' AITE__image__active'
 			imageElements = [...imageElements, ...BlockResizeElemets(this)]
 		}
+
 		if (this.imageStyle.float.dir !== 'none') {
 			ImageWrapperAttr.style = {
 				...ImageWrapperAttr.style,

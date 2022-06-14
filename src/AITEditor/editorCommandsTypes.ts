@@ -36,6 +36,7 @@ type BLUR_COMMAND = BaseCommand<MouseEventCommand>
 
 type DRAGSTART_COMMAND = BaseCommand<DragEventCommand>
 type DRAG_COMMAND = BaseCommand<DragEventCommand>
+type DRAGEND_COMMAND = BaseCommand<DragEventCommand>
 
 
 export type{
@@ -51,6 +52,7 @@ export type{
 
     DRAGSTART_COMMAND,
     DRAG_COMMAND,
+    DRAGEND_COMMAND,
 
     LETTER_REMOVE_COMMAND,
     WORD_REMOVE_COMMAND,

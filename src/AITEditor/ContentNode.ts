@@ -16,6 +16,7 @@ import {
 	NodePath,
 	BlockNode, 
 	HorizontalRuleNode,
+	getSelectionState,
 } from './index'
 import {isDefined} from './EditorUtils'
 
@@ -176,7 +177,7 @@ class ContentNode {
 				NodeData: [
 					new TextNode(
 						{plainText: `Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.`}
-					),
+					)
 				],
 				
 			}),
@@ -268,6 +269,10 @@ class ContentNode {
 					new TextNode(
 						{plainText: `предмет листа 4`},
 					),
+					createImageNode({
+						src: 'https://i.gifer.com/2GU.gif',
+						captionEnabled: true,
+					}) as imageNode
 				],
 			}),
 			new BlockNode({
@@ -289,16 +294,23 @@ class ContentNode {
 		];
 	}
 
-
-	getCurrentContentNode(selectionKey: NodePath): ContentNode {
-		if (selectionKey.length() !== 1) {
-			let currentContentNode = this.getBlockByPath(selectionKey.getContentNode()) as any;
+	/**
+	 * Searching for ContentNode using NodePath in main ContentNode or returning self
+	 * @param  {NodePath} NodePath
+	 * @returns ContentNode
+	 */
+	getCurrentContentNode(NodePath: NodePath): ContentNode {
+		if (NodePath.length() !== 1) {
+			let currentContentNode = this.getBlockByPath(NodePath.getContentNode()) as any;
 			if (currentContentNode instanceof ContentNode) return currentContentNode;
 			else if (currentContentNode.ContentNode !== undefined) return currentContentNode.ContentNode;
 		}
 		return this;
 	}
-
+	/**
+	 * Searching BlockNode using NodePath 
+	 * @param  {Array<number>} path
+	 */
 	getBlockByPath(path: Array<number>) {
 		if(path.length === 0){
 			return this
@@ -319,6 +331,7 @@ class ContentNode {
 		}
 	}
 
+	// TODO: MOVE TO TextNode
 	TextNodeSlice(char: TextNode, CharToInsert: string = '', start: number, end?: number): void {
 		if (start === -1) {
 			char.__content = char.__content + CharToInsert;
@@ -446,12 +459,19 @@ class ContentNode {
 		}
 		return offset;
 	}
-
-	insertLetterIntoTextNode(KeyBoardEvent: React.KeyboardEvent, selectionState: SelectionState): void {
+	/**
+	 * Adding letters to nodes and then updating them
+	 * @param  {KeyboardEvent} KeyBoardEvent
+	 * @param  {SelectionState} selectionState
+	 * @returns void
+	 */
+	insertLetterIntoTextNode(KeyBoardEvent: KeyboardEvent): void {
+		let selectionState = getSelectionState()
 		let Key = KeyBoardEvent.key;
 		
 		let anchorPath = selectionState.anchorPath
 		let focusPath = selectionState.focusPath
+
 		let anchorBlockNode = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
 		let focusBlockNode
 
@@ -460,6 +480,8 @@ class ContentNode {
 
 		let isBlockPathEqual = false
 
+
+		// DOING SOME WORK TO OPTIMIZE FUNCTION AND REPLACING BREAK LINES IF SELECTED
 		if(anchorNodeData?.getType() === BREAK_LINE_TYPE){
 			let newNode = new TextNode();
 			anchorNodeData = newNode
@@ -495,14 +517,13 @@ class ContentNode {
 				let SliceTo = selectionState.focusOffset;
 
 				if (Key === ' ' && KeyBoardEvent.which === 229) {
-					Key = '. ';
+					Key = '.';
 					SliceFrom -= 1;
 				}
+				else selectionState.moveSelectionForward();
 
 				this.TextNodeSlice(anchorNodeData, Key, SliceFrom, SliceTo);
 				$$updateNodeTextContent(anchorNodeData, anchorPath.get())
-
-				selectionState.moveSelectionForward();
 				
 			}
 		} else if (isBlockPathEqual === true) {
@@ -613,7 +634,14 @@ class ContentNode {
 			}
 		}
 	}
-	removeLetterFromBlock(selectionState: SelectionState): void {
+	/**
+	 * Removing letters from nodes and updates them
+	 * @param  {SelectionState} selectionState
+	 * @returns void
+	 */
+	removeLetterFromBlock(): void {
+
+		let selectionState = getSelectionState()
 
 		let anchorPath = selectionState.anchorPath
 		let focusPath = selectionState.focusPath
@@ -849,7 +877,6 @@ class ContentNode {
 				if (ParentContentNode instanceof ContentNode) {
 					let blockToRemove = BlockSliceFocus - BlockSliceAnchor
 					if(blockToRemove > 0){
-						console.log(blockToRemove)
 						ParentContentNode.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus);
 						$$bulkUnmountNodes(anchorPath.getContentNode(), blockToRemove, BlockSliceAnchor)
 					}
@@ -870,7 +897,14 @@ class ContentNode {
 			}
 		}
 	}
-	handleEnter(selectionState: SelectionState): void {
+	
+	/**
+	 * Handling enter event, slicing nodes to BlockNodes and then mount them
+	 * @param  {SelectionState} selectionState
+	 * @returns void
+	 */
+	handleEnter(): void {
+		let selectionState = getSelectionState()
 		let anchorPath = selectionState.anchorPath;
 
 		if (selectionState.isOffsetOnStart()) {
@@ -913,7 +947,7 @@ class ContentNode {
 			if(blockLength === anchorPath.getLastIndex()){
 				$$updateNodeTextContent(anchorNode, anchorPath.get())
 			}
-			else if(blockLength - 1 !== anchorPath.getLastIndex()){
+			else{
 				$$remountNode(CurrentBlock, anchorPath.getBlockPath(), true)
 			}
 		
@@ -991,7 +1025,7 @@ class ContentNode {
 
 				selectionState.moveSelectionToNextSibling(this);
 			} else if (selectionState.isBlockPathEqual() === false) {
-				this.removeLetterFromBlock(selectionState);
+				this.removeLetterFromBlock();
 			}
 		}
 	}

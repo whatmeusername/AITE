@@ -1,5 +1,5 @@
 import {getEditorState} from './index'
-import {isArrow, isBackwardRemoveWord, isBackwardRemoveLine, isForwardBackspace, isForwardRemoveLine, isForwardRemoveWord} from './EditorUtils';
+import {isArrow, isBackwardRemoveWord, isBackwardRemoveLine, isForwardBackspace, isForwardRemoveLine, isForwardRemoveWord, isApple} from './EditorUtils';
 
 
 
@@ -21,14 +21,23 @@ function onFocusDecorator(callback?: (...args: any) => void): void {
 }
 
 
-function onKeyDownEvent(event: KeyboardEvent){
+function onKeyDownEvent(event: KeyboardEvent): void{
     let EditorState = getEditorState()
     if(EditorState !== undefined){
         let Key = event.key
         let isArrowKey = isArrow(event);
          //TODO : REPLACE ACTIVE ELEMENT CONDITION AFTER REDESIGN
-        if (EditorState.EditorActiveElementState === undefined && isArrowKey === false) {
+        if (EditorState.EditorActiveElementState.isActive === false && isArrowKey === false) {
             let EDC = EditorState.EditorCommands
+
+            /* 
+                HERE WE CHECK FOR AUTO DOT THAT PLACES AFTER DOUBLE SPACE FOR APPLE DEVICES 
+            */
+            if(event.code === 'Space' && event.which === 229 && isApple()){
+                event.preventDefault();
+                EDC?.dispatchCommand('LETTER_INSERT_COMMAND', event);
+            }
+
             if (Key === 'Backspace' || Key === 'Delete') {
                 event.preventDefault();
 
@@ -58,14 +67,15 @@ function onKeyDownEvent(event: KeyboardEvent){
     else event.preventDefault();
 }
 
-function onKeyUpEvent(event: KeyboardEvent){
+function onKeyUpEvent(event: KeyboardEvent): void{
     let EditorState = getEditorState();
     if(EditorState !== undefined){
         let Key = event.key
         let isArrowKey = isArrow(event);
 
+
         //TODO : REPLACE ACTIVE ELEMENT CONDITION AFTER REDESIGN
-        if (EditorState.EditorActiveElementState === undefined && isArrowKey === false) {
+        if (EditorState.EditorActiveElementState.isActive === false && isArrowKey === false) {
             if (isArrowKey === false){
                 event.preventDefault();
                 EditorState.EditorCommands?.dispatchCommand('LETTER_INSERT_COMMAND', event);

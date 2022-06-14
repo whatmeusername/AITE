@@ -26,6 +26,25 @@ function getChildrenNodes(blockNode: HTMLElement): Array<HTMLElement> {
 	return childrens
 }
 
+function isNodesPathEqual(P1: NodePath | Array<number>, P2: NodePath | Array<number>): boolean {
+	if(P1 instanceof NodePath){
+		P1 = P1.get()
+	}
+	if(P2 instanceof NodePath){
+		P2 = P2.get()
+	}
+
+	if(P1.length !== P2.length){
+		return false
+	}
+	else{
+		for (let i = 0; i < P1.length; i++) {
+			if (P1[i] !== P2[i]) return false;
+		}
+	}
+	return true
+}
+
 function getBlockNodeWithNode(
 	forcedPath: NodePath | undefined, 
 	from: 'anchor' | 'focus' | undefined
@@ -124,7 +143,7 @@ function isTextNode(node: HTMLElement): boolean {
 	return false;
 }
 
-function isArrow(event: KeyboardEventCommand){
+function isArrow(event: KeyboardEventCommand): boolean{
 	return(
 		event.code === 'ArrowLeft'  ||
 		event.code === 'ArrowRight' ||
@@ -133,24 +152,24 @@ function isArrow(event: KeyboardEventCommand){
 	)
 }
 
-function isArrowLeft(event: KeyboardEventCommand){
+function isArrowLeft(event: KeyboardEventCommand): boolean{
 	return event.code === 'ArrowLeft'
 }
 
-function isArrowRight(event: KeyboardEventCommand){
+function isArrowRight(event: KeyboardEventCommand): boolean{
 	return event.code === 'ArrowRight'
 }
 
-function isArrowUp(event: KeyboardEventCommand){
+function isArrowUp(event: KeyboardEventCommand): boolean{
 	return event.code === 'ArrowUp'
 }
 
-function isArrowDown(event: KeyboardEventCommand){
+function isArrowDown(event: KeyboardEventCommand): boolean{
 	return event.code === 'ArrowDown'
 }
 
 
-function editorWarning(shoudThrow: boolean, message: string){
+function editorWarning(shoudThrow: boolean, message: string): void{
 	if(shoudThrow) {
 		console.warn(
 		`AITE internal warning: ${message}`
@@ -159,7 +178,7 @@ function editorWarning(shoudThrow: boolean, message: string){
 }
 
 // eslint-disable-next-line 
-function editorError(shoudThrow: boolean, message: string){
+function editorError(shoudThrow: boolean, message: string): void{
 	if(shoudThrow) throw new Error(
 		`AITE internal error: ${message}`
 	)
@@ -179,18 +198,18 @@ function isApple(): boolean{
 	return /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
 }
 
-function isMeta(event: KeyboardEventCommand){
+function isMeta(event: KeyboardEventCommand): boolean{
 	if(isApple()){
 		return event.metaKey
 	}
 	return false
 }
 
-function isAlt(event: KeyboardEventCommand){
+function isAlt(event: KeyboardEventCommand): boolean{
 	return event.altKey
 }
 
-function isCtrl(event: KeyboardEventCommand){
+function isCtrl(event: KeyboardEventCommand): boolean{
 	return event.ctrlKey
 }
 
@@ -235,7 +254,7 @@ function findStyle (StyleKey: string) {
 }
 
 
-function getDecoratorNode(node: AiteHTMLNode){
+function getDecoratorNode(node: AiteHTMLNode): AiteHTMLNode{
 	let nodeDataset = node.dataset
 	if(!nodeDataset.aite_decorator_node){
 		nodeDataset = node.dataset
@@ -280,6 +299,7 @@ export {
 	isArrowDown,
 
 	isTextNode,
+	isNodesPathEqual,
 	isDefined
 	
 }

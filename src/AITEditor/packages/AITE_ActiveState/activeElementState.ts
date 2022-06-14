@@ -1,32 +1,24 @@
-import {findEditorCharIndex, isTextNode} from '../../EditorUtils';
+import {getDecoratorNode, isNodesPathEqual} from '../../EditorUtils';
 
-import type {NodeTypes} from '../../BlockNode';
-import type {BlockNode} from '../../BlockNode';
-import type {EditorState} from '../../EditorState';
-import {NodePath} from '../../SelectionUtils'
-
-import type {selectionData} from '../../SelectionUtils'
+import {NodePath, getSelection} from '../../SelectionUtils'
+import {getEditorState, getSelectionState} from '../../index'
+import {AiteHTMLNode, $$remountNode} from '../../index'
 
 type mouseEvent = React.MouseEvent | MouseEvent;
 type EditorNodeSelectedData = {node: Node | HTMLElement; index: number} | undefined;
 
 export default class ActiveElementState {
-	EditorStateFunction: () => void;
-	EditorState: EditorState;
 	allowedAllements: Array<string>;
 	isActive: boolean;
-	activeNode: HTMLElement | null;
-	charNode: number | null;
-	blockNode: NodePath;
+	pathToActiveNode: NodePath;
+	activeNodeKey: string | undefined;
 
-	constructor(EditorStateManager: () => void, editorState: EditorState) {
-		this.EditorStateFunction = EditorStateManager;
-		this.EditorState = editorState;
-		this.allowedAllements = ['IMG'];
+
+	constructor() {
+		this.allowedAllements = ['image/gif'];
 		this.isActive = false;
-		this.activeNode = null;
-		this.charNode = null;
-		this.blockNode = new NodePath();
+		this.pathToActiveNode = new NodePath();
+		this.activeNodeKey = undefined;
 	}
 
 	addElementToAllowed(element: string): void {
@@ -43,84 +35,81 @@ export default class ActiveElementState {
 	}
 	resetActiveData(): void {
 		this.isActive = false;
-		this.activeNode = null;
-		this.charNode = null;
-		this.blockNode.set([]);
+		this.pathToActiveNode.set([]);
+		this.activeNodeKey = undefined;
+	}
+
+	handleActiveClick(target: AiteHTMLNode): void{
+
+		let EditorState = getEditorState()
+		let selectionState = EditorState.selectionState;
+		let nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target)
+
+		if(nodeType && this.allowedAllements.includes(nodeType)){
+
+			let decoratorNode = getDecoratorNode(target);
+			let targetNodeDOMData = selectionState.__getBlockNode(decoratorNode);
+
+			if(!isNodesPathEqual(this.pathToActiveNode, targetNodeDOMData.nodePath)){
+
+				let nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target)
+				if(nodeType && this.allowedAllements.includes(nodeType)){
+
+					let previousActivePath = this.pathToActiveNode.get()
+					this.resetActiveData()
+
+					let targetNodeData = getEditorState().contentNode.getBlockByPath(previousActivePath)
+					$$remountNode(targetNodeData, previousActivePath)
+
+					this.setActiveElement(target)
+				}
+			}
+		}
+		else{
+
+			let previousActivePath = this.pathToActiveNode.get()
+			this.resetActiveData()
+
+			let targetNodeData = getEditorState().contentNode.getBlockByPath(previousActivePath)
+			$$remountNode(targetNodeData, previousActivePath)
+		}
+	}
+
+	setActiveElement(target: AiteHTMLNode): void{
+
+		let EditorState = getEditorState()
+		let selectionState = EditorState.selectionState;
+		let contentNode = EditorState.contentNode
+
+		let decoratorNode = getDecoratorNode(target);
+		let targetNodeDOMData;
+
+		if (decoratorNode.dataset?.aite_decorator_node) {
+			targetNodeDOMData = selectionState.__getBlockNode(decoratorNode);
+		}
+		targetNodeDOMData = selectionState.__getBlockNode(target);
+		let targetNodeData = contentNode.getBlockByPath(targetNodeDOMData.nodePath)
+		if(targetNodeData){
+			this.isActive = true
+			this.activeNodeKey = targetNodeData.$getNodeKey()
+			this.pathToActiveNode.set(targetNodeDOMData.nodePath)
+			$$remountNode(targetNodeData, targetNodeDOMData.nodePath)
+		}
 	}
 
 
 	handleElementClick(event: MouseEvent): void {
-		let nodeTag = (event.target as HTMLElement).tagName;
-		let currentBlockData: selectionData | undefined = undefined;
-
-		
-		// const removeClickEvent = (): void => {
-		// 	this.resetActiveData();
-		// 	document.removeEventListener('click', editorClickEvent);
-		// 	document.removeEventListener('keyup', backspaceEventHandler);
-		// 	this.EditorStateFunction();
-		// }
-
-		// const editorClickEvent = (event: MouseEvent): void => {
-		// 	if (event.target === null || event.defaultPrevented === true) return;
-		// 	else if(isTextNode(event.target as HTMLElement)) {
-		// 		removeClickEvent()
-		// 	}
-		// 	else if (this.allowedAllements.includes((event.target as HTMLElement).tagName)) {
-		// 		let newBlockData = this.EditorState.selectionState.getPathToNodeByNode(event.target as HTMLElement);
-		// 		if (newBlockData?.blockNode !== currentBlockData?.blockNode) {
-		// 			currentBlockData = newBlockData;
-		// 			if (currentBlockData !== undefined){
-		// 				this.blockNode?.set(newBlockData!.NodePath);
-		// 				this.charNode = newBlockData!.charIndex;
-		// 				this.EditorStateFunction();
-		// 			}
-		// 		}
-		// 	} 
-		// 	else if (!(currentBlockData!.blockNode as HTMLElement).contains(event.target as HTMLElement)) {
-		// 		removeClickEvent()
-		// 	}
-		// };
-
-		// const backspaceEventHandler = (event: KeyboardEvent): void => {
-		// 	if (event.key === 'Backspace' && this.blockNode !== null && this.charNode !== null) {
-		// 		let currentBlock = this.EditorState.contentNode.getBlockByPath(this.blockNode.get());
-		// 		if (currentBlock.getType() === 'standart') {
-		// 			(currentBlock as BlockNode).removeCharNode(this.charNode);
-		// 			this.resetActiveData();
-		// 			document.removeEventListener('click', editorClickEvent);
-		// 			document.removeEventListener('keyup', backspaceEventHandler);
-		// 			this.EditorStateFunction();
-		// 		}
-		// 	}
-		// };
-
-		// if (this.allowedAllements.includes(nodeTag) && event.target !== null) {
-		// 	currentBlockData = this.EditorState.selectionState.getPathToNodeByNode(event.target as HTMLElement);
-
-		// 	if (currentBlockData !== undefined && currentBlockData !== undefined && this.isActive === false) {
-
-		// 		this.blockNode.set(currentBlockData.NodePath);
-		// 		this.charNode = currentBlockData.charIndex;
-		// 		this.isActive = true;
-		// 		this.EditorStateFunction();
-
-		// 		let selection = window.getSelection();
-		// 		if (selection !== null) selection.removeAllRanges();
-		// 		this.EditorState.selectionState.resetSelection()
-				
-		// 		document.addEventListener('mousedown', editorClickEvent);
-		// 		document.addEventListener('keyup', backspaceEventHandler);
-		// 	}
-		// }
-	}
-
-	getActiveNodes(): {block: BlockNode, char: NodeTypes} | undefined {
-		if (this.blockNode !== null && this.charNode !== null) {
-			let currentBlock = this.EditorState.contentNode.getBlockByPath(this.blockNode.getBlockPath()) as BlockNode;
-			let currentChar = currentBlock.getNodeByIndex(this.charNode);
-			return {block: currentBlock, char: currentChar};
+		let target = event.target as AiteHTMLNode;
+		if(this.isActive){
+			this.handleActiveClick(target);
 		}
-		return undefined;
+		else if (target && target.$$isAiteNode) {
+			let selectionState = getSelectionState();
+			let nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target)
+			if(nodeType && this.allowedAllements.includes(nodeType)){
+				this.setActiveElement(target)
+				getSelection().removeAllRanges()
+			}	
+		}	
 	}
 }

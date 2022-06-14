@@ -5,6 +5,7 @@ import {editorWarning, keyCodeValidator} from './EditorUtils'
 import {
 	getEditorState,
 	getEditorDOM,
+	getEditorEventStatus,
 
 	onBlurDecorator,
     onFocusDecorator,
@@ -33,11 +34,13 @@ import type{
 
 	DRAGSTART_COMMAND,
     DRAG_COMMAND,
+	DRAGEND_COMMAND,
 
 
 } from './editorCommandsTypes'
 
 type commandPriority = keyof typeof EDITOR_PRIORITY;
+
 type commandTypes =
 	| 'KEYBOARD_COMMAND'
 	| 'SELECTION_COMMAND'
@@ -54,6 +57,7 @@ type commandTypes =
 	| 'KEYUP_COMMAND'
 
 	| 'DRAGSTART_COMMAND'
+	| 'DRAGEND_COMMAND'
 
 
 
@@ -85,6 +89,7 @@ interface rootCommandStorage{
 interface commandStorage {
 
 	DRAGSTART_COMMAND?: DRAGSTART_COMMAND;
+	DRAGEND_COMMAND?: DRAGEND_COMMAND;
 
 	KEYBOARD_COMMAND?: KEYBOARD_COMMAND;
 
@@ -144,11 +149,13 @@ const DecoratorStorage: decoratorStorage<commandStorage> = {
 	},
 };
 
+
 class EditorCommands {
 
 	commandStorage: commandStorage;
 	removeHandles: {[K: string]: (...args: any) => void};
 	rootCommands: rootCommandStorage
+	currentEventPriority: null | number
 
 	constructor() {
 		this.commandStorage = {};
@@ -158,12 +165,13 @@ class EditorCommands {
 			'BLUR_COMMAND': undefined,
 		}
 		this.removeHandles = {}
+		this.currentEventPriority = null
 	}
 
 
 	listenRootEvent(): void{
 		if(this.removeHandles.SELECTION_COMMAND === undefined){
-			let SelectionEvent = (event: any) => this.dispatchCommand('SELECTION_COMMAND', event)
+			let SelectionEvent = (event: any) => getEditorState().selectionState.getCaretPosition();
 			document.addEventListener('selectionchange', SelectionEvent)
 			this.removeHandles['selectionchange'] = () => document.removeEventListener('selectionchange', SelectionEvent)
 		}
@@ -206,8 +214,8 @@ class EditorCommands {
 	): void {
 		let actionDecorator = DecoratorStorage[commandType];
 		let commandAction;
-
 		if(this.commandStorage[commandType] === undefined || reassign === true) {
+
 			if (actionDecorator !== undefined) {
 				commandAction = function <C extends typeof commandType>(
 					event: GetCommandEventType<C>,
@@ -231,37 +239,52 @@ class EditorCommands {
 				action: commandAction as ActionType,
 			};
 		}
-		else editorWarning(true, `tried to reassign command of ${commandType}. If you sure to apply changes to command, then pass 'reassign' as true.`)
+		else editorWarning(true, `tried to reassign ${commandType} command. If you are sure to apply changes to command, then pass 'reassign' as true.`)
 	}
 
-	dispatchCommand(commandType: commandTypes, event: EventCommands, ...rest: any): void {
+	dispatchCommand(commandType: commandTypes, event: EventCommands, ...rest: any) {
+
 		const Command = this.commandStorage[commandType];
+		if(!Command) return;
+
+		let EventPriority = EDITOR_PRIORITY[Command.commandPriority]
 
 		if (Command !== undefined) {
 			let editorState = getEditorState()
-			if(editorState !== undefined){
-				editorState?.setPreviousSelection()
-				if (Command.commandPriority === 'IMMEDIATELY_EDITOR_COMMAND') {
-					Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
+			if(
+				(this.currentEventPriority === null || EventPriority <= this.currentEventPriority) && 
+				editorState !== undefined && 
+				editorState.editorEventsActive === true
+				){
+
+				let passCaretSet = Command.commandPriority === 'HIGH_IGNORECARET_COMMAND' || Command.commandPriority === 'LOW_IGNORECARET_COMMAND'
+				this.currentEventPriority = EventPriority
+
+				if(passCaretSet === false){
+					editorState?.setPreviousSelection()
+				}
+
+				Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
+
+				if (passCaretSet === false){
 					if(editorState !== undefined) {
 						editorState.selectionState.setCaretPosition();
 					}
-				} else {
-					new Promise((res) => {
-						Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
-						res('');
-					}).then((res) => {
-						if (Command.commandPriority !== 'IGNOREMANAGER_EDITOR_COMMAND'){
-							if(editorState !== undefined) {
-								editorState.selectionState.setCaretPosition();
-							}
-						}
-					});
 				}
+				this.currentEventPriority = null
+			
 			}
+			else event.preventDefault();
 		}
+		//console.log([...arr])
+
 	}
 }
+
+
+
+
+
 
 export{
 	EditorCommands
