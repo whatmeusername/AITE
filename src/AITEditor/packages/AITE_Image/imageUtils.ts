@@ -1,14 +1,19 @@
-import type {EditorState} from '../../index';
+import {$$remountNode, getEditorState} from '../../index';
 import type {floatType, imageNode} from './imageNode';
+import {IMAGE_NODE_TYPE} from '../../ConstVariables'
+import {getBlockNodeWithNode} from '../../EditorUtils'
 
-export function setImageFloatDirection(EditorState: EditorState, direction: floatType): void {
-	// let activeNodes = EditorState.EditorActiveElementState?.getActiveNodes();
-	// let EditorActiveState = EditorState.EditorActiveElementState;
-	// if (EditorActiveState === undefined) return;
-	// let charIndex = EditorActiveState?.nodeNode;
+export function setImageFloatDirection(direction: floatType): void {
+	let EditorState = getEditorState()
+	let activeEditorState = EditorState.EditorActiveElementState
 
-	// if (activeNodes !== undefined && (charIndex !== undefined || charIndex !== null)) {
-	// 	if (activeNodes.char.getActualType() === 'image') {
+	let CurrentNodeData = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)
+	let BlockNode = CurrentNodeData?.block
+	let ImageNode = CurrentNodeData?.node
+
+
+	// if (BlockNode?.node !== undefined) {
+	// 	if (ImageNode.node.getActualType() === 'image/gif') {
 	// 		if ((activeNodes.char as imageNode).imageConf.canFloat === true) {
 	// 			(activeNodes.char as imageNode).$setDirection(direction);
 	// 			if (direction !== 'none') {
@@ -41,11 +46,15 @@ export function setImageFloatDirection(EditorState: EditorState, direction: floa
 	// }
 }
 
-export function toggleImageCaption(EditorState: EditorState): void {
-	// let activeNodes = EditorState.EditorActiveElementState?.getActiveNodes();
-	// if(activeNodes?.char.getActualType() === 'image'){
-	// 	(activeNodes.char as imageNode).toggleCaptition()
-	// }
+export function toggleImageCaption(): void {
+	let activeEditorState = getEditorState().EditorActiveElementState
+	if(activeEditorState.activeNodeType === IMAGE_NODE_TYPE) {
+		let CurrentNode = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)?.node
+		if(CurrentNode && CurrentNode.node.getActualType() === IMAGE_NODE_TYPE){
+			(CurrentNode.node as imageNode).toggleCaptition()
+			CurrentNode.node.remount()
+		}
+	}
 }
 
 

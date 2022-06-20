@@ -1,24 +1,23 @@
 
 import {BREAK_LINE_TYPE, ELEMENT_NODE_TYPE} from './ConstVariables';
-import {TextNode, LinkNode, BreakLine} from './AITE_nodes/index'
+import {TextNode, createLinkNode, createTextNode, BreakLine, LinkNode} from './AITE_nodes/index'
 import {createImageNode} from './packages/AITE_Image/imageNode';
 import type {imageNode} from './packages/AITE_Image/imageNode'
 
+import {NodeTypes} from './BlockNode'
+
 
 import {
-	$$mountNode, 
-	$$unmountNode, 
-	$$updateNodeTextContent, 
-	$$bulkUnmountNodes, 
-	$$remountNode,
+	unmountNode,
 	BlockType,
 	SelectionState,
 	NodePath,
 	BlockNode, 
 	HorizontalRuleNode,
 	getSelectionState,
+	mountNode,
 } from './index'
-import {isDefined} from './EditorUtils'
+import {isDefined, isDecoratorNode} from './EditorUtils'
 
 
 interface contentNodeConf {
@@ -26,131 +25,6 @@ interface contentNodeConf {
 }
 
 //eslint-disable-next-line
-let test = [
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC', 'BOLD']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-	new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}), new TextNode({plainText: 'Тестовый', stylesArr: ['BOLD']}), new TextNode({plainText: 'текст', stylesArr: ['ITALIC']}), new TextNode({plainText: 'для теста ', stylesArr: ['STRIKETHROUGH']}),
-
-]
-
-
 
 
 
@@ -168,107 +42,86 @@ class ContentNode {
 		};
 		this.BlockNodes = initData?.BlockNodes ?? [
 			new BlockNode({
-				NodeData: [new TextNode({plainText: 'Тестовый текст для редактора', stylesArr: ['ITALIC']})],
+				_children: [createTextNode('Тестовый текст для редактора', [])],
 				blockWrapper: 'header-two',
 			}),
 			new HorizontalRuleNode(),
 			new BlockNode({
 				blockWrapper: 'standart',
-				NodeData: [
+				_children: [
 					new TextNode(
 						{plainText: `Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.`}
-					)
+					),
 				],
 				
 			}),
 			new BlockNode({
 				blockWrapper: 'header-one',
-				NodeData: [
-					new TextNode({plainText: `Языки программирования`, stylesArr: ['STRIKETHROUGH', 'UNDERLINE']}),
+				_children: [
+					createTextNode(`Языки программирования`, ['STRIKETHROUGH', 'UNDERLINE']),
+					createLinkNode('https://yandex.ru').append(
+						createTextNode(` часть ссылки`, ['ITALIC', 'UNDERLINE']),
+						createTextNode(` вторая часть ссылки`, []),
+					),
+					createTextNode(` текст после ссылки`, ['ITALIC', 'UNDERLINE']),
 				],
 			}),
 			new BlockNode({
 				blockWrapper: 'header-six',
-				NodeData: [
-					new TextNode({plainText: `совсем `}),
-					new TextNode({plainText: `не видимый `, stylesArr: ['ITALIC']}),
-					new TextNode({plainText: `текст`}),
+				_children: [
+					createTextNode(`совсем `),
+					createTextNode(`не видимый `, ['ITALIC']),
+					createTextNode(`текст`),
 				],
 			}),
 			new BlockNode({
 				blockWrapper: 'standart',
-				NodeData: [new BreakLine() as any]
+				_children: [new BreakLine() as any]
 			}),
 			new BlockNode({
-				NodeData: [
+				_children: [
 					createImageNode({
 						src: 'https://i.gifer.com/2GU.gif',
 						captionEnabled: true,
 					}) as imageNode,
-					new TextNode(
-						{plainText: `Большая часть работы программистов связана с написанием исходного кода, тестированием и отладкой программ на одном из языков программирования. Исходные тексты и исполняемые файлы программ являются объектами авторского права и являются интеллектуальной собственностью их авторов и правообладателей.
+					createTextNode(
+						`Большая часть работы программистов связана с написанием исходного кода, тестированием и отладкой программ на одном из языков программирования. Исходные тексты и исполняемые файлы программ являются объектами авторского права и являются интеллектуальной собственностью их авторов и правообладателей.
 		Различные языки программирования поддерживают различные стили программирования (парадигмы программирования). Выбор нужного языка программирования для некоторых частей алгоритма позволяет сократить время написания программы и решить задачу описания алгоритма наиболее эффективно. Разные языки требуют от программиста различного уровня внимания к деталям при реализации алгоритма, результатом чего часто бывает компромисс между простотой и производительностью (или между «временем программиста» и «временем пользователя»).
 		Единственный язык, напрямую выполняемый ЭВМ — это машинный язык (также называемый машинным кодом и языком машинных команд). Изначально все программы писались в машинном коде, но сейчас этого практически уже не делается. Вместо этого программисты пишут исходный код на том или ином языке программирования, затем, используя компилятор, транслируют его в один или несколько этапов в машинный код, готовый к исполнению на целевом процессоре, или в промежуточное представление, которое может быть исполнено специальным интерпретатором — виртуальной машиной. Но это справедливо только для языков высокого уровня. Если требуется полный низкоуровневый контроль над системой на уровне машинных команд и отдельных ячеек памяти, программы пишут на языке ассемблера, мнемонические инструкции которого преобразуются один к одному в соответствующие инструкции машинного языка целевого процессора ЭВМ (по этой причине трансляторы с языков ассемблера получаются алгоритмически простейшими трансляторами).
-		`,
-						stylesArr: ['ITALIC']},
+		`
 					),
-					new LinkNode({
-						plainText: 'wikipedia2',
-						url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
-					}),
-					new LinkNode({
-						plainText: ' wikipedia',
-						stylesArr: ['BOLD'],
-						url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
-					}),
-					new TextNode({
-						plainText: 'wikipedia2',
-					}),
-					new LinkNode({
-						plainText: ' wikipedia',
-						url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
-					}),
-				],
-			}),
+				]}),
 			new BlockNode({
 				blockWrapper: 'blockquote',
-				NodeData: [
-					new TextNode(
-						{plainText: `В некоторых языках вместо машинного кода генерируется интерпретируемый двоичный код «виртуальной машины», также называемый байт-кодом (byte-code). Такой подход применяется в Forth, некоторых реализациях Lisp, Java, Perl, Python, языках для .NET Framework.`},
+				_children: [
+					createTextNode(
+						`В некоторых языках вместо машинного кода генерируется интерпретируемый двоичный код «виртуальной машины», также называемый байт-кодом (byte-code). Такой подход применяется в Forth, некоторых реализациях Lisp, Java, Perl, Python, языках для .NET Framework.`,
 					),
 				],
 			}),
 			new HorizontalRuleNode(),
 			new BlockNode({
 				blockWrapper: 'list-ordered-item',
-				NodeData: [
-					new TextNode(
-						{plainText: `предмет листа 1`},
-					),
+				_children: [
+					createTextNode(`предмет листа 1`),
 				],
 			}),
 			new BlockNode({
 				blockWrapper: 'list-ordered-item',
-				NodeData: [
-					new TextNode(
-						{plainText: `предмет листа 2`},
-					),
+				_children: [
+					createTextNode(`предмет листа 2`),
 				],
 			}),
 			new BlockNode({
 				blockWrapper: 'list-ordered-item',
-				NodeData: [
-					new TextNode(
-						{plainText: `предмет листа 3`},
-					),
+				_children: [
+					createTextNode(`предмет листа 3`),
 				],
 			}),
 			new BlockNode({
 				blockWrapper: 'header-five',
-				NodeData: [
-					new TextNode(
-						{plainText: `предмет листа 4`},
-					),
+				_children: [
+					createTextNode(`предмет листа 4`),
 					createImageNode({
 						src: 'https://i.gifer.com/2GU.gif',
 						captionEnabled: true,
@@ -277,21 +130,80 @@ class ContentNode {
 			}),
 			new BlockNode({
 				blockWrapper: 'list-unordered-item',
-				NodeData: [
-					new TextNode(
-						{plainText: `предмет листа 5`},
-					),
+				_children: [
+					createTextNode(`предмет листа 5`),
 				],
 			}),
 			new BlockNode({
 				blockWrapper: 'list-ordered-item',
-				NodeData: [
-					new TextNode(
-						{plainText: `предмет листа 5`},
-					),
+				_children: [
+					createTextNode(`предмет листа 5`),
 				],
 			}),
 		];
+	}
+
+
+	removeDomNodes(startFromZero: boolean = true, start: number, end?: number): void{
+		let slicedNodes: Array<BlockType> = []
+		if (end === undefined) {
+			if (startFromZero === false) {
+				slicedNodes = this.BlockNodes.slice(0, start);
+				this.BlockNodes = this.BlockNodes.slice(start);
+			}
+			else if (startFromZero === true){
+				slicedNodes = this.BlockNodes.slice(start);
+				this.BlockNodes = this.BlockNodes.slice(0, start);
+			}
+		} else if (end !== undefined) {
+			if(startFromZero === false){
+				slicedNodes = [...this.BlockNodes.slice(0, start), ...this.BlockNodes.slice(end)];
+				this.BlockNodes = this.BlockNodes.slice(start, end);
+			}
+			else{
+				slicedNodes = this.BlockNodes.slice(start, end);
+				this.BlockNodes = [...this.BlockNodes.slice(0, start), ...this.BlockNodes.slice(end)];
+			}
+		}
+		if(slicedNodes.length > 0){
+			slicedNodes.forEach((node: BlockType) => {
+				unmountNode(node)
+			})
+		}
+	}
+
+	insertNodeBefore(index: number, node: BlockType): BlockType{
+		let insertOffset = index > 0 ? index - 1 : index
+		let previousSibling = this.BlockNodes[index]
+		this.insertBlockNodeBetween(node, insertOffset, insertOffset)
+
+		if(previousSibling) mountNode(previousSibling, node, 'before')
+		return node
+	}
+
+	insertNodeAfter(index: number, node: BlockType): BlockType{
+		let insertOffset = index + 1
+		let previousSibling = this.BlockNodes[index]
+
+		this.insertBlockNodeBetween(node, insertOffset, insertOffset)
+		if(previousSibling) mountNode(previousSibling, node, 'before')
+		return node
+	}
+
+	insertNode(node: BlockType, index: number | 'last' | 'first', direction: 'before' | 'after'){
+		index = index >= 0 ? index : 0
+		let blocksLength = this.BlockNodes.length - 1
+		if(index === 0 || index === 'first'){
+			this.insertNodeBefore(0, node)
+		}
+		else if(index === blocksLength || index === 'last'){
+			this.insertNodeAfter(blocksLength, node)
+		}
+		else{
+			let previousSibling = this.BlockNodes[index + 1]
+			this.insertBlockNodeBetween(node, index, index + 1)
+			if(previousSibling) mountNode(previousSibling, node, direction)
+		}
 	}
 
 	/**
@@ -312,6 +224,8 @@ class ContentNode {
 	 * @param  {Array<number>} path
 	 */
 	getBlockByPath(path: Array<number>) {
+		
+			
 		if(path.length === 0){
 			return this
 		}
@@ -321,13 +235,51 @@ class ContentNode {
 		else{
 			let currentBlock: any = this.BlockNodes[path[0]];
 			for (let i = 1; i < path.length; i++) {
-				if (currentBlock instanceof BlockNode || currentBlock?.NodeData !== undefined) {
-					currentBlock = currentBlock.NodeData[path[i]];
+				if (currentBlock instanceof BlockNode || currentBlock?._children !== undefined) {
+					currentBlock = currentBlock._children[path[i]];
 				} else if (!(currentBlock instanceof BlockNode)) {
-					currentBlock = currentBlock.ContentNode !== undefined ? currentBlock.ContentNode.BlockNodes[path[i]] : currentBlock?.NodeData[path[i]];
+					currentBlock = currentBlock.ContentNode !== undefined ? currentBlock.ContentNode.BlockNodes[path[i]] : currentBlock?._children[path[i]];
 				}
 			}
 			return currentBlock;
+		}
+	}
+
+	getBlockByKeyPath(keyPath: Array<string>): ContentNode | BlockType | undefined {
+		
+		if(keyPath.length === 0){
+			return this
+		}
+		else if(keyPath.length === 1){
+			return this.BlockNodes[this.BlockNodes.findIndex(obj => obj.$getNodeKey() === keyPath[0])]
+		}
+		else{
+			let index = this.BlockNodes.findIndex(obj => obj.$getNodeKey() === keyPath[0])
+			let currentNode: any = this.BlockNodes[index];
+
+			for (let i = 1; i < keyPath.length; i++) {
+				if(currentNode instanceof BlockNode){
+					let index = currentNode._children.findIndex(obj => obj.$getNodeKey() === keyPath[i])
+					currentNode = currentNode._children[index];
+				}
+				else if(currentNode instanceof ContentNode){
+					let index = currentNode.BlockNodes.findIndex(obj => obj.$getNodeKey() === keyPath[i])
+					currentNode = currentNode.BlockNodes[index];
+				}
+				else if(currentNode && !(currentNode instanceof BlockNode) && !(currentNode instanceof ContentNode)){
+					if(currentNode.ContentNode){
+						let index = currentNode.ContentNode.BlockNodes.findIndex((obj: BlockNode) => obj.$getNodeKey() === keyPath[i])
+						currentNode = currentNode.ContentNode.BlockNodes[index];
+					}
+					else if(currentNode.getChildren){
+						let index = currentNode.getChildren().findIndex((obj: BlockNode) => obj.$getNodeKey() === keyPath[i])
+						currentNode = currentNode.getChildren()[index];
+					}
+				}
+				else return undefined
+				
+			}
+			return currentNode
 		}
 	}
 
@@ -344,85 +296,110 @@ class ContentNode {
 		}
 	}
 
-	MergeWithUpdate(
+	MergeBlocks(
 		BlockNodes: Array<BlockType> | ContentNode,
-		selectionState: SelectionState,
 		joiningBlockDirection: 'up' | 'down',
 		joiningSideDirection: 'backward' | 'forward',
 	): void {
+		const selectionState = getSelectionState()
 		let AnchorIndex = new NodePath([...selectionState.anchorPath.get()]);
 		let lastConnectingNode = undefined;
-		let anchorNodeKey = 0;
-		let newAnchorOffset = 0;
+
+		let anchorNodeIndex = 0;
+		let anchorNodeKey = undefined;
+
+		let newAnchorOffset = selectionState.anchorOffset;
 		let connectingBlockLength = 0;
 
-		if (joiningSideDirection === 'backward') {
-			joiningBlockDirection === 'down' ? AnchorIndex.addOrRemoveToBlock('dec', 1) : AnchorIndex.addOrRemoveToBlock('inc', 1);
-			let connectingBlock = this.getBlockByPath([...selectionState.anchorPath.getBlockPath()]) as BlockNode;
 
+
+		if (joiningSideDirection === 'backward') {
+
+			let connectingBlock = this.getBlockByPath(selectionState.anchorPath.getBlockPath()) as BlockNode;
+
+			if(isDecoratorNode(connectingBlock)){
+				connectingBlock = this.getBlockByPath(selectionState.anchorPath.getContentNode()) as BlockNode;
+				AnchorIndex = new NodePath([...selectionState.anchorPath.getBlockPath()]);
+			}
+
+			joiningBlockDirection === 'down' ? AnchorIndex.addOrRemoveToBlock('dec', 1) : AnchorIndex.addOrRemoveToBlock('inc', 1);
+			const joiningBlock = this.getBlockByPath(AnchorIndex.getBlockPath()) as BlockNode;
+
+			if(isDecoratorNode(joiningBlock)){
+				connectingBlock = this.getBlockByPath(AnchorIndex.getContentNode()) as BlockNode;
+				AnchorIndex = new NodePath(AnchorIndex.getBlockPath());
+
+				joiningBlockDirection === 'down' ? AnchorIndex.addOrRemoveToBlock('inc', 1) : AnchorIndex.addOrRemoveToBlock('dec', 1);
+				joiningBlockDirection === 'down' ? AnchorIndex.addOrRemoveToNode('dec', 1) : AnchorIndex.addOrRemoveToNode('inc', 1);
+			}
 
 			connectingBlockLength = connectingBlock.lastNodeIndex() + 1;
-			lastConnectingNode = connectingBlock.NodeData[connectingBlockLength - 1];
-			let lastConnectingNodeLength = connectingBlock.NodeData[connectingBlockLength - 1].getContentLength();
+			lastConnectingNode = connectingBlock.getLastChild()
+			const lastConnectingNodeLength = lastConnectingNode.getContentLength();
+			const connectingMaxSize = connectingBlock.countToIndex(connectingBlockLength - 1);
 
-			let connectingMaxSize = connectingBlock.countToIndex(connectingBlockLength - 1);
 
-			let joiningBlock = this.getBlockByPath(AnchorIndex.getBlockPath()) as BlockNode;
-
-			connectingBlock.NodeData = [...connectingBlock.NodeData, ...joiningBlock.NodeData];
-
-			connectingBlock.collectSameNodes();
-
+			connectingBlock._children = [...connectingBlock._children, ...joiningBlock._children];
 
 			if (BlockNodes instanceof ContentNode) BlockNodes.BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
 			else BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
 
-			$$unmountNode(AnchorIndex.getBlockPath())
-			$$remountNode(connectingBlock, selectionState.anchorPath.getBlockPath(), true)
+			joiningBlock.remove()
+			connectingBlock.remount()
 
-			if (connectingBlock.NodeData.length <= connectingBlockLength) {
-				let updateAnchorChar = connectingBlock.findNodeByOffset(connectingMaxSize);
-				anchorNodeKey = updateAnchorChar.offsetKey;
-				newAnchorOffset = updateAnchorChar.letterIndex;
+			if (connectingBlock._children.length <= connectingBlockLength) {
+				let updatexAnchorNode = connectingBlock.findNodeByOffset(connectingMaxSize);
+
+				anchorNodeIndex = updatexAnchorNode.offsetKey;
+				newAnchorOffset = updatexAnchorNode.letterIndex;
+				anchorNodeKey = updatexAnchorNode.key
 			} else {
-				anchorNodeKey = connectingBlockLength - 1;
+				anchorNodeIndex = connectingBlockLength - 1;
 				newAnchorOffset = lastConnectingNodeLength;
+				anchorNodeKey = connectingBlock.getChildrenByIndex(anchorNodeIndex).$getNodeKey()
 			}
-		} else {
+		} 
+		else {
+
+			let connectingBlock = this.getBlockByPath(selectionState.anchorPath.getBlockPath()) as BlockNode;
+			const isDecoratNode = isDecoratorNode(connectingBlock)
+
+			if(isDecoratNode){
+				anchorNodeKey = connectingBlock.getLastChild().$getNodeKey()
+				connectingBlock = this.getBlockByPath(selectionState.anchorPath.getContentNode()) as BlockNode;
+				AnchorIndex = new NodePath([...selectionState.anchorPath.getBlockPath()]);
+			}
+
 			joiningBlockDirection === 'down' ? AnchorIndex.addOrRemoveToBlock('dec', 1) : AnchorIndex.addOrRemoveToBlock('inc', 1);
+			const joiningBlock = this.getBlockByPath(AnchorIndex.getBlockPath()) as BlockNode;
 
+			lastConnectingNode = connectingBlock.getLastChild()
+			connectingBlock._children = [...connectingBlock._children, ...joiningBlock._children];
 
-			let connectingBlock = this.getBlockByPath([...selectionState.anchorPath.getBlockPath()]) as BlockNode;
-			let joiningBlock = this.getBlockByPath(AnchorIndex.getBlockPath()) as BlockNode;
-
-			connectingBlockLength = connectingBlock.lastNodeIndex() + 1;
-
-			lastConnectingNode = connectingBlock.NodeData[connectingBlockLength - 1];
-
-			connectingBlock.NodeData = [...connectingBlock.NodeData, ...joiningBlock.NodeData];
-
-			connectingBlock.collectSameNodes();
 			if (BlockNodes instanceof ContentNode){
-				BlockNodes.BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
+				BlockNodes.removeBlock(AnchorIndex.getBlockIndex());
 			}
 			else BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
 
 
-			
-			$$unmountNode(AnchorIndex.getBlockPath())
-			$$remountNode(connectingBlock, selectionState.anchorPath.getBlockPath(), true)
+			joiningBlock.remove()
+			connectingBlock.remount()
 
+			anchorNodeIndex = selectionState.anchorPath.getLastIndex();
+			anchorNodeKey = isDecoratNode ? anchorNodeKey : connectingBlock.getChildrenByIndex(anchorNodeIndex).$getNodeKey()
 
-			newAnchorOffset = selectionState.anchorOffset;
-			anchorNodeKey = selectionState.anchorPath.getLastIndex();
 			AnchorIndex.addOrRemoveToBlock('dec', 1);
 		}
+
+
+		selectionState.setAnchorKey(anchorNodeKey)
+		selectionState.setFocusKey(anchorNodeKey)
 
 		selectionState.focusPath = joiningSideDirection !== 'backward' ? AnchorIndex : selectionState.anchorPath;
 		selectionState.anchorPath = joiningSideDirection !== 'backward' ? AnchorIndex : selectionState.anchorPath;
 
-		selectionState.anchorPath.setLastPathIndex(anchorNodeKey)
-		selectionState.focusPath.setLastPathIndex(anchorNodeKey)
+		selectionState.anchorPath.setLastPathIndex(anchorNodeIndex)
+		selectionState.focusPath.setLastPathIndex(anchorNodeIndex)
 
 		selectionState.anchorOffset = newAnchorOffset;
 		selectionState.focusOffset = newAnchorOffset;
@@ -430,8 +407,13 @@ class ContentNode {
 		selectionState.anchorType = lastConnectingNode.getType();
 		selectionState.focusType = lastConnectingNode.getType();
 
-		selectionState.isDirty = true;
+		selectionState.sameBlock = true;
 		selectionState.isCollapsed = true;
+	}
+
+	removeNodeByKey(key: string){
+		let index = this.BlockNodes.findIndex(block => block.$getNodeKey() === key)
+		if(index !== -1) this.BlockNodes.splice(index, 1)
 	}
 
 	removeBlock(blockIndex: number): void {
@@ -442,7 +424,7 @@ class ContentNode {
 		this.BlockNodes = [...this.BlockNodes.slice(0, start), ...this.BlockNodes.slice(end ?? start)];
 	}
 
-	insertBlockNodeBetween(block: BlockNode, start: number, end?: number): void {
+	insertBlockNodeBetween(block: BlockType, start: number, end?: number): void {
 		if (end !== undefined) {
 			this.BlockNodes = [...this.BlockNodes.slice(0, start), block, ...this.BlockNodes.slice(end ?? start)];
 		} else {
@@ -465,121 +447,211 @@ class ContentNode {
 	 * @param  {SelectionState} selectionState
 	 * @returns void
 	 */
-	insertLetterIntoTextNode(KeyBoardEvent: KeyboardEvent): void {
-		let selectionState = getSelectionState()
-		let Key = KeyBoardEvent.key;
+	insertLetterIntoTextNode(KeyBoardEvent?: KeyboardEvent): void {
+
+		const remove = KeyBoardEvent === undefined ? true : false
+		let Key = remove ? '' : KeyBoardEvent ? KeyBoardEvent.key : '';
 		
-		let anchorPath = selectionState.anchorPath
-		let focusPath = selectionState.focusPath
+		const selectionState = getSelectionState()
+		const anchorPath = selectionState.anchorPath
+		const focusPath = selectionState.focusPath
 
 		let anchorBlockNode = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
 		let focusBlockNode
 
-		let anchorNodeData = anchorBlockNode.NodeData !== undefined ? anchorBlockNode.getNodeByIndex(anchorPath.getLastIndex()) : undefined;
-		let focusNodeData
+		let anchorNodeData = anchorBlockNode.getChildrenByIndex ? anchorBlockNode.getChildrenByIndex(anchorPath.getLastIndex()) : undefined;
+		let focusNodeData: NodeTypes | undefined
 
-		let isBlockPathEqual = false
+		const handleOffsetStart = () => {
+			if (selectionState.isOffsetOnStart()) {
+				let isDecoratorAnchor = isDecoratorNode(anchorBlockNode)
+				if (focusPath.getBlockIndex() !== 0 || (isDecoratorAnchor && focusPath.getContentNodeIndex() !== 0.)) {
+
+					if(isDecoratorAnchor){
+						anchorPath.set(selectionState.anchorPath.getBlockPath())
+						anchorBlockNode = this.getBlockByPath(anchorPath.getBlockPath())
+					}
+
+					let previousBlockPath = new NodePath([...selectionState.anchorPath.get()]);
+					previousBlockPath.addOrRemoveToBlock('dec', 1);
+
+					let previousBlock = this.getBlockByPath(previousBlockPath.getBlockPath());
+	
+					if(!(previousBlock instanceof BlockNode)){
+						previousBlock.remove()
+						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
+						selectionState.setAnchorKey(anchorBlockNode.getFirstChild().$getNodeKey()).offsetToZero()
+					}
+					else if(
+						(anchorBlockNode.isBreakLine() && previousBlock.isBreakLine()) || 
+						(anchorBlockNode.isBreakLine() === false && previousBlock.isBreakLine())
+						)
+					{
+						previousBlock.remove()
+						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
+						selectionState.setAnchorKey(anchorBlockNode.getFirstChild().$getNodeKey()).toggleCollapse()
+					}
+					else if(anchorBlockNode.isBreakLine() && previousBlock.isBreakLine() === false){
+						selectionState.moveSelectionToPreviousBlock(this)
+						anchorBlockNode.remove()
+					}
+					else {
+						let currentContentNode: ContentNode | undefined = undefined;
+						if (selectionState.anchorPath.length() === 1) currentContentNode = this;
+						else currentContentNode = this.getBlockByPath(anchorPath.getContentNode());
+		
+						currentContentNode = (currentContentNode as any).ContentNode ?? currentContentNode;
+						
+						if(currentContentNode){
+							selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
+							this.MergeBlocks(currentContentNode.BlockNodes, 'up', 'backward');
+						}
+					}
+				}
+		}
+	}
 
 
 		// DOING SOME WORK TO OPTIMIZE FUNCTION AND REPLACING BREAK LINES IF SELECTED
-		if(anchorNodeData?.getType() === BREAK_LINE_TYPE){
-			let newNode = new TextNode();
-			anchorNodeData = newNode
-			anchorBlockNode.replaceNode(anchorPath.getLastIndex(), newNode)
-			$$remountNode(anchorNodeData, selectionState.anchorPath.get(), false)
+		if(anchorNodeData?.getType() === BREAK_LINE_TYPE && !remove){
+			anchorNodeData = createTextNode()
+			anchorBlockNode.replaceNode(0, anchorNodeData)
+			selectionState.setAnchorKey(anchorBlockNode.getFirstChild().$getNodeKey())
+			anchorBlockNode.remount()
 		}
 		if(selectionState.isCollapsed === false){
-			isBlockPathEqual = selectionState.isBlockPathEqual()
-			if(anchorPath.getLastIndex() !== focusPath.getLastIndex() || isBlockPathEqual === false){
-				focusBlockNode = this.getBlockByPath(selectionState.focusPath.getBlockPath()) as BlockNode;
-				focusNodeData = focusBlockNode.NodeData !== undefined ? focusBlockNode.getNodeByIndex(focusPath.getLastIndex()) : undefined;
+			if(selectionState.isNodesPathEqual() === false){
+				focusBlockNode = this.getBlockByPath(focusPath.getBlockPath()) as BlockNode;
+				focusNodeData = focusBlockNode.getChildrenByIndex ? focusBlockNode.getChildrenByIndex(focusPath.getLastIndex()) : undefined;
 			}
 			else{
 				focusBlockNode = anchorBlockNode
-				focusNodeData = anchorBlockNode.getNodeByIndex(focusPath.getLastIndex());
+				focusNodeData = anchorBlockNode.getChildrenByIndex(focusPath.getLastIndex());
 			}
-			if(focusNodeData && focusNodeData.getType() === BREAK_LINE_TYPE){
-				let newNode = new TextNode();
-				focusNodeData = newNode
-				focusBlockNode.replaceNode(anchorPath.getLastIndex(), newNode)
+			if(focusNodeData && focusNodeData.getType() === BREAK_LINE_TYPE && !remove){
+				focusNodeData = createTextNode()
+				selectionState.focusKey = focusNodeData.$getNodeKey()
+				focusBlockNode.replaceNode(anchorPath.getLastIndex(), focusNodeData)
 			}
 			} 
 		else {
 			focusBlockNode = anchorBlockNode
 			focusNodeData = anchorNodeData
 		}
+		if(anchorNodeData === undefined ) return;
 
 
 		if (selectionState.isCollapsed) {
 			if (anchorNodeData instanceof TextNode) {
-
-				let SliceFrom = selectionState.anchorOffset;
+				
+				let SliceFrom = remove ? selectionState.anchorOffset - 1 : selectionState.anchorOffset;
 				let SliceTo = selectionState.focusOffset;
 
-				if (Key === ' ' && KeyBoardEvent.which === 229) {
+				if (Key === ' ' && KeyBoardEvent?.which === 229) {
 					Key = '.';
 					SliceFrom -= 1;
-				}
-				else selectionState.moveSelectionForward();
+				} else if(!remove) selectionState.moveSelectionForward();
 
-				this.TextNodeSlice(anchorNodeData, Key, SliceFrom, SliceTo);
-				$$updateNodeTextContent(anchorNodeData, anchorPath.get())
+				anchorNodeData.update(() => {
+					this.TextNodeSlice(anchorNodeData as TextNode, Key, SliceFrom, SliceTo);
+				})
+
+				if(remove){
+					if(selectionState.isOffsetOnStart()){
+						handleOffsetStart()
+					}
+					else {
+						if(anchorBlockNode?.isBreakLine && anchorBlockNode?.isBreakLine()){
+							selectionState.offsetToZero().toggleCollapse().setNodeKey(anchorBlockNode.getFirstChild()?.$getNodeKey())
+						}
+						else if(anchorNodeData.getContent() === ''){
+							selectionState.moveSelectionToPreviousSibling(this)
+						}
+						else selectionState.moveSelectionBackward();
+					}
+				}
+
+
 				
+			} else if(selectionState.isOffsetOnStart() && remove){
+				handleOffsetStart()
 			}
-		} else if (isBlockPathEqual === true) {
+		} else if (selectionState.sameBlock) {
 			if (selectionState.isNodesSame() === false) {
+				
 
 				let NodeSplitStart = anchorPath.getLastIndex() + 1;
 				let NodeSplitEnd = focusPath.getLastIndex();
 
+
 				if (anchorNodeData instanceof TextNode) {
-
-					this.TextNodeSlice(anchorNodeData, Key, selectionState.anchorOffset);
-					$$updateNodeTextContent(anchorNodeData, anchorPath.get())
-
+					anchorNodeData.update(() => {
+						this.TextNodeSlice(anchorNodeData as TextNode, Key, selectionState.anchorOffset);
+					})
+					if(anchorNodeData.$getNodeStatus() === 0) NodeSplitStart += 1
 				} 
 				else {
 
 					let previousSibling = anchorBlockNode.previousSibling(anchorPath.getLastIndex());
 					if (previousSibling !== undefined && previousSibling instanceof TextNode) {
-						this.TextNodeSlice(previousSibling, Key, -1);
-						$$updateNodeTextContent(previousSibling, selectionState.anchorPath.get())
-					}
-					 else NodeSplitStart -= 1;
+
+						previousSibling.update(() => {
+							this.TextNodeSlice(previousSibling as TextNode, Key, -1);
+						})
+						if(previousSibling.$getNodeStatus() === 0) NodeSplitStart += 1
+
+					} 
+					else NodeSplitStart -= 1;
 				}
+
 
 				if (focusNodeData instanceof TextNode) {
-
-					this.TextNodeSlice(focusNodeData, '', selectionState.focusOffset, -1);
-					$$updateNodeTextContent(focusNodeData, focusPath.get())
-
+					focusNodeData.update(() => {
+						this.TextNodeSlice(focusNodeData as TextNode, '', selectionState.focusOffset, -1);
+					})
 				} else NodeSplitEnd += 1;
+				
 
-				let nodesToRemove = NodeSplitEnd - NodeSplitStart
-				if(nodesToRemove > 0){
-					anchorBlockNode.splitNodes(true, NodeSplitStart, NodeSplitEnd);
-					$$bulkUnmountNodes(selectionState.anchorPath.getBlockPath(), nodesToRemove, NodeSplitStart)
+				if(NodeSplitEnd - NodeSplitStart > 0 && anchorPath.length() === focusPath.length()){
+					anchorBlockNode.removeDomNodes(true, NodeSplitStart, NodeSplitEnd)
+				}
+				else{
+					const anchorIsDecorator = isDecoratorNode(anchorBlockNode) 
+					if(NodeSplitStart > 0){
+						if(anchorIsDecorator === false){
+							NodeSplitStart += isDecoratorNode(focusBlockNode) ? 1 : 0
+							anchorBlockNode.removeDomNodes(true, NodeSplitStart, NodeSplitStart)
+						}
+						else anchorBlockNode.removeDomNodes(true, NodeSplitStart)
+						
+					}
+					if(NodeSplitEnd > 0) focusBlockNode.removeDomNodes(anchorIsDecorator ? true : false, NodeSplitEnd)
+
 				}
 
-				selectionState.moveSelectionForward().toggleCollapse();
+				if(anchorBlockNode.isBreakLine()){
+					selectionState.setAnchorKey(anchorBlockNode.getFirstChild().$getNodeKey()).toggleCollapse()
+				}
+				else selectionState.moveSelectionForward().toggleCollapse();
 
-			} else {
+			} 
+			else {
 				if (anchorNodeData instanceof TextNode) {
-					this.TextNodeSlice(anchorNodeData, Key, selectionState.anchorOffset, selectionState.focusOffset);
-					if (anchorNodeData.getContent() === '') {
-						anchorBlockNode.splitNodes(true, anchorPath.getLastIndex());
-						$$unmountNode(anchorPath.get())
-						selectionState.moveSelectionToPreviousSibling(this);
-					} else {
-						$$updateNodeTextContent(anchorNodeData, selectionState.anchorPath.get())
-						selectionState.toggleCollapse().moveSelectionForward();
-					}	
-				} else {
-					anchorBlockNode.splitNodes(false, anchorPath.getBlockIndex(), anchorPath.getBlockIndex() + 1);
-					$$unmountNode(selectionState.anchorPath.get())
-				}
+
+					anchorNodeData.update(() => {
+						this.TextNodeSlice(anchorNodeData as TextNode, Key, selectionState.anchorOffset, selectionState.focusOffset);
+					})
+					if(remove){
+						if(anchorBlockNode.isBreakLine()){
+							selectionState.offsetToZero().setNodeKey(anchorBlockNode.getFirstChild()?.$getNodeKey())
+						}
+						else selectionState.toggleCollapse()
+					}
+					else selectionState.toggleCollapse().moveSelectionForward();
+
+				} else anchorNodeData.remove()
 			}
-		} else if (isBlockPathEqual === false) {
+		} else if (selectionState.sameBlock === false) {
 
 			let NodeSplitStart = anchorPath.getLastIndex() + 1;
 			let NodeSplitEnd = focusPath.getLastIndex();
@@ -591,16 +663,24 @@ class ContentNode {
 				} 
 				else {
 					let previousSibling = anchorBlockNode.previousSibling(anchorPath.getBlockIndex());
-					if (isDefined(previousSibling) && previousSibling instanceof TextNode) {
+					if (previousSibling instanceof TextNode) {
 						this.TextNodeSlice(previousSibling, Key, -1);
 					} 
-					else anchorBlockNode.splitNodes(false, NodeSplitStart, NodeSplitStart + 1, new TextNode());
+					else anchorBlockNode.splitChild(false, NodeSplitStart, NodeSplitStart + 1, createTextNode());
 					NodeSplitStart -= 1;
 				}
 
-				let nodesToRemove = anchorBlockNode.NodeData.length - NodeSplitStart
-				if(nodesToRemove > 0){
-					anchorBlockNode.removeNodes(true, NodeSplitStart);
+				if(NodeSplitStart > 0 && !isDecoratorNode(anchorBlockNode)) {
+					anchorBlockNode.splitChild(true, NodeSplitStart);
+				}
+				else{
+					if(isDecoratorNode(anchorBlockNode)){
+						if(NodeSplitStart > 0) anchorBlockNode.splitChild(true, NodeSplitStart);
+						if(anchorPath.getBlockIndex() > 0) {
+							this.getBlockByPath(anchorPath.getContentNode()).splitChild(true, anchorPath.getBlockIndex());
+						}
+						
+					}
 				}
 			}
 
@@ -608,30 +688,44 @@ class ContentNode {
 				if (focusNodeData instanceof TextNode) {
 					this.TextNodeSlice(focusNodeData, anchorNodeData === undefined ? Key : '', selectionState.focusOffset, -1);
 				} else NodeSplitEnd += 1;
-				if(NodeSplitEnd > 0) focusBlockNode.removeNodes(false, NodeSplitEnd, undefined);
-			}
 
+				if(NodeSplitEnd > 0 && !isDecoratorNode(focusBlockNode)) {
+					focusBlockNode.splitChild(false, NodeSplitEnd);
+				}
+				else{
+					if(isDecoratorNode(focusBlockNode)){
+						if(NodeSplitEnd > 0) focusBlockNode.splitChild(false, NodeSplitEnd);
+						if(focusPath.getBlockIndex() > 0 && NodeSplitEnd <= focusPath.getBlockIndex()){
+							this.getBlockByPath(focusPath.getContentNode()).splitChild(false, focusPath.getBlockIndex());
+						}
+					}
+				}
+			}
 			if(isDefined(anchorNodeData) && isDefined(focusNodeData)) {
 
-				let ParentNode = this.getBlockByPath(anchorPath.getContentNode());
-				let ParentContentNode = ParentNode.ContentNode ? ParentNode.ContentNode : ParentNode
-				let anchorBlockSlice = anchorPath.getBlockIndex() + 1
-				let focusBlockSlice = focusPath.getBlockIndex()
+				let ParentNode 
+				let anchorBlockSlice
+				let focusBlockSlice = isDecoratorNode(focusBlockNode) ? focusPath.getContentNodeIndex() : focusPath.getBlockIndex()
 
-				ParentContentNode.sliceBlockFromContent(anchorBlockSlice, focusBlockSlice)
-				
-				if(focusBlockSlice - anchorBlockSlice > 0){
-					$$bulkUnmountNodes(anchorPath.getContentNode(), focusBlockSlice - anchorBlockSlice, anchorBlockSlice)
+				if(isDecoratorNode(anchorBlockNode)){
+					ParentNode = this
+					anchorBlockSlice = anchorPath.getContentNodeIndex() + 1
+				}
+				else {
+					ParentNode = this.getBlockByPath(anchorPath.getContentNode());
+					anchorBlockSlice = anchorPath.getBlockIndex() + 1
 				}
 
-				this.MergeWithUpdate(ParentContentNode, selectionState, 'up', 'forward');
+				let ParentContentNode: ContentNode = ParentNode.ContentNode ? ParentNode.ContentNode : ParentNode
+				if(focusBlockSlice - anchorBlockSlice > 0){
+					ParentContentNode.removeDomNodes(true, anchorBlockSlice, focusBlockSlice)
+				}
+
+				this.MergeBlocks(ParentContentNode, 'up', 'forward');
 				selectionState.moveSelectionForward();
 			}
 			else if (anchorNodeData !== undefined) selectionState.moveSelectionForward();
-			else if (focusNodeData !== undefined) {
-				selectionState.focusOffset = 0;
-				selectionState.toggleCollapse(true);
-			}
+			else if (focusNodeData !== undefined) selectionState.offsetToZero().toggleCollapse(true);
 		}
 	}
 	/**
@@ -640,262 +734,7 @@ class ContentNode {
 	 * @returns void
 	 */
 	removeLetterFromBlock(): void {
-
-		let selectionState = getSelectionState()
-
-		let anchorPath = selectionState.anchorPath
-		let focusPath = selectionState.focusPath
-
-		let anchorBlockNode = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
-		let focusBlockNode
-
-		let anchorNodeData = anchorBlockNode.NodeData !== undefined ? anchorBlockNode.getNodeByIndex(anchorPath.getLastIndex()) : undefined;
-		let focusNodeData
-
-		let isBlockPathEqual = false
-		
-		if(selectionState.isCollapsed === false){
-			isBlockPathEqual = selectionState.isBlockPathEqual()
-			if(anchorPath.getBlockIndex() !== focusPath.getBlockIndex() || isBlockPathEqual === false){
-				focusBlockNode = this.getBlockByPath(selectionState.focusPath.getBlockPath()) as BlockNode;
-				focusNodeData = focusBlockNode.NodeData !== undefined ? focusBlockNode.getNodeByIndex(focusPath.getLastIndex()) : undefined;
-			}
-			else{
-				focusBlockNode = anchorBlockNode
-				focusNodeData = anchorBlockNode.getNodeByIndex(focusPath.getLastIndex());
-			}
-			} 
-		else {
-			focusBlockNode = anchorBlockNode
-			focusNodeData = anchorNodeData
-		}
-
-
-
-		if (anchorNodeData === undefined && focusNodeData === undefined) return;
-		else if (selectionState.isCollapsed) {
-			if (selectionState.isOffsetOnStart()) {
-
-
-				let currentContentNode: ContentNode | undefined = undefined;
-				if (selectionState.anchorPath.length() === 1) currentContentNode = this;
-				else currentContentNode = this.getBlockByPath(anchorPath.getContentNode());
-
-				currentContentNode = (currentContentNode as any).ContentNode ?? currentContentNode;
-
-
-				if (focusPath.getBlockIndex() !== 0 && currentContentNode instanceof ContentNode) {
-					let previousBlockPath = new NodePath([...selectionState.anchorPath.get()]);
-					previousBlockPath.addOrRemoveToBlock('dec', 1);
-
-					let previousBlock = currentContentNode.BlockNodes[previousBlockPath.getBlockIndex()];
- 
-
-
-					if(!(previousBlock instanceof BlockNode)){
-						currentContentNode.removeBlock(previousBlockPath.getBlockIndex())
-						$$unmountNode(previousBlockPath.getBlockPath())
-						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
-						selectionState.toggleCollapse()
-					}
-					else if(
-						(anchorBlockNode.isBreakLine() && previousBlock.isBreakLine()) || 
-						(anchorBlockNode.isBreakLine() === false && previousBlock.isBreakLine())
-						)
-					{
-						currentContentNode.removeBlock(previousBlockPath.getBlockIndex())
-						$$unmountNode(previousBlockPath.getBlockPath())
-						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
-						selectionState.toggleCollapse()
-					}
-					else if(anchorBlockNode.isBreakLine() && previousBlock.isBreakLine() === false){
-						currentContentNode.removeBlock(selectionState.anchorPath.getBlockIndex())
-						$$unmountNode(selectionState.anchorPath.getBlockPath())
-						selectionState.moveSelectionToPreviousBlock(this)
-					}
-					else {
-						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
-						this.MergeWithUpdate(currentContentNode.BlockNodes, selectionState, 'up', 'backward');
-					}
-				}
-			} else {
-
-				let textSliceAnchor = selectionState.anchorOffset - 1;
-				let SliceFocus = selectionState.focusOffset;
-
-
-				if (selectionState.anchorOffset === 0) {
-
-					if (anchorBlockNode.previousSibling(anchorPath.getLastIndex())?.getType() === ELEMENT_NODE_TYPE) {
-						anchorBlockNode.removeNode(anchorPath.getLastIndex() - 1);
-						let previousNodePath = anchorPath.get()
-						previousNodePath[previousNodePath.length - 1] -= 1
-						$$unmountNode(previousNodePath)
-						selectionState.anchorPath.addOrRemoveToNode('dec', 1);
-						selectionState.toggleCollapse().enableDirty();
-					}
-
-				} else if (anchorNodeData instanceof TextNode) {
-
-					this.TextNodeSlice(anchorNodeData, '', textSliceAnchor, SliceFocus);
-
-					if (anchorNodeData.getContent() === '') {
-
-						if(anchorBlockNode.isBreakLine()){
-							anchorBlockNode.replaceNode(anchorPath.getLastIndex(), new BreakLine())
-							$$remountNode(anchorBlockNode, selectionState.anchorPath.get(), true)
-							selectionState.moveBlockOffsetToZero()	
-						}
-						else{
-							anchorBlockNode.removeNode(anchorPath.getLastIndex())
-							$$unmountNode(anchorPath.get())
-							selectionState.moveSelectionToPreviousSibling(this);
-						}
-
-					} else {
-						$$updateNodeTextContent(anchorNodeData, anchorPath.get())
-						selectionState.moveSelectionBackward();
-					}
-				}
-			}
-		} else {
-			if (isBlockPathEqual) {
-				if (selectionState.isNodesSame()) {
-					if (anchorNodeData instanceof TextNode) {
-
-						let textSliceAnchor = selectionState.anchorOffset;
-						let textSliceFocus = selectionState.focusOffset;
-
-						this.TextNodeSlice(anchorNodeData, '', textSliceAnchor, textSliceFocus);
-
-						if (anchorNodeData.getContent() === '') {
-
-							if(anchorBlockNode.isBreakLine()){
-								anchorBlockNode.replaceNode(anchorPath.getLastIndex(), new BreakLine())
-								$$remountNode(anchorBlockNode, selectionState.anchorPath.get(), true)
-								selectionState.moveBlockOffsetToZero()	
-							}
-							else{
-								anchorBlockNode.removeNode(anchorPath.getLastIndex())
-								$$unmountNode(anchorPath.get())
-								selectionState.moveSelectionToPreviousSibling(this);
-							}
-	
-						} else {
-							$$updateNodeTextContent(anchorNodeData, anchorPath.get())
-							selectionState.toggleCollapse();
-						}
-					} else {
-						anchorBlockNode.removeNode(anchorPath.getLastIndex()); 
-						$$unmountNode(anchorPath.get())
-						selectionState.moveSelectionToPreviousSibling(this);
-					}
-
-				} else if (anchorPath.getLastIndex() !== focusPath.getLastIndex()) {
-
-					let textSliceAnchor = selectionState.anchorOffset;
-					let textSliceFocus = selectionState.focusOffset;
-
-					let nodeSliceAnchor = anchorPath.getLastIndex() + 1;
-					let nodeSliceFocus = focusPath.getLastIndex();
-
-					if (anchorNodeData instanceof TextNode) {
-						this.TextNodeSlice(anchorNodeData, '', textSliceAnchor);
-
-						if (anchorNodeData?.getContent() === '') nodeSliceAnchor -= 1;
-						else if(anchorNodeData !== undefined) {
-							$$updateNodeTextContent(anchorNodeData, anchorPath.get())
-						}
-					} else nodeSliceFocus -= 1;
-
-					if (focusNodeData instanceof TextNode) {
-				
-						this.TextNodeSlice(focusNodeData, '', textSliceFocus, -1);
-
-						if (focusNodeData.getContent() === '') nodeSliceFocus += 1;
-						else $$updateNodeTextContent(focusNodeData, focusPath.get())
-
-					} else nodeSliceFocus += 1;
-
-					let nodesToRemove = nodeSliceFocus - nodeSliceAnchor
-					if(nodesToRemove > 0){ 
-						anchorBlockNode.splitNodes(true, nodeSliceAnchor, nodeSliceFocus);
-						if(anchorBlockNode.isBreakLine()){
-							let breakLineNode = new BreakLine()
-							anchorBlockNode.replaceNode(0, breakLineNode)
-							$$remountNode(anchorBlockNode, selectionState.anchorPath.get())
-							selectionState.moveBlockOffsetToZero()
-						}
-						else {
-							$$bulkUnmountNodes([...selectionState.anchorPath.get()], nodeSliceFocus - nodeSliceAnchor, nodeSliceAnchor)
-							if (anchorNodeData instanceof TextNode && anchorNodeData?.getContent() === '') {
-								selectionState.moveSelectionToPreviousSibling(this);
-							}
-							else if(anchorNodeData !== undefined) selectionState.toggleCollapse().enableDirty();
-						}
-					}
-					else if(anchorBlockNode.isBreakLine()){
-						let breakLineNode = new BreakLine()
-						anchorBlockNode.replaceNode(0, breakLineNode)
-						$$remountNode(anchorBlockNode, anchorPath.get())
-						selectionState.moveBlockOffsetToZero()
-					}
-				}
-
-			} else if (isBlockPathEqual === false) {
-				let textSliceAnchor = selectionState.anchorOffset;
-				let textSliceFocus = selectionState.focusOffset;
-
-				let BlockSliceAnchor = selectionState.anchorPath.getBlockIndex() + 1;
-				let BlockSliceFocus = selectionState.focusPath.getBlockIndex();
-
-				let nodeSliceAnchor = anchorPath.getLastIndex() + 1;
-				let nodeSliceFocus = focusPath.getLastIndex();
-
-				let anchorBlockPath =  [...selectionState.anchorPath.getBlockPath()]
-	
-
-				if (anchorNodeData instanceof TextNode) {
-					this.TextNodeSlice(anchorNodeData, '', textSliceAnchor);
-					if (anchorNodeData.getContent() === '') {
-						nodeSliceAnchor -= 1;
-					} 
-			
-				} else nodeSliceAnchor -= 1;
-				if(nodeSliceAnchor > 0) anchorBlockNode.removeNodes(true, nodeSliceAnchor);
-
-				if (focusNodeData instanceof TextNode) {
-					this.TextNodeSlice(focusNodeData, '', textSliceFocus, -1);
-					if (focusNodeData.getContent() === '') nodeSliceFocus += 1;
-				} else nodeSliceFocus += 1;
-				if(nodeSliceFocus > 0) focusBlockNode.removeNodes(false, nodeSliceFocus);
-
-
-				let ParentNode = this.getBlockByPath(anchorPath.getContentNode());
-				let ParentContentNode = ParentNode.ContentNode ? ParentNode.ContentNode : ParentNode 
-				
-				if (ParentContentNode instanceof ContentNode) {
-					let blockToRemove = BlockSliceFocus - BlockSliceAnchor
-					if(blockToRemove > 0){
-						ParentContentNode.sliceBlockFromContent(BlockSliceAnchor, BlockSliceFocus);
-						$$bulkUnmountNodes(anchorPath.getContentNode(), blockToRemove, BlockSliceAnchor)
-					}
-					if(anchorBlockNode.isBreakLine() && focusBlockNode.isBreakLine()) {
-						let breakLine = new BreakLine()
-						anchorBlockNode.replaceNode(0, breakLine)
-						$$remountNode(anchorBlockNode, anchorBlockPath, true)
-						selectionState.moveBlockOffsetToZero().toggleCollapse();
-					}
-					else {
-						this.MergeWithUpdate(ParentContentNode, selectionState, 'up', 'backward');
-						if ((anchorNodeData as TextNode).getContent() === '') {
-							selectionState.moveSelectionToPreviousSibling(this);
-						} 
-						else selectionState.toggleCollapse();
-					}
-				}
-			}
-		}
+		this.insertLetterIntoTextNode(undefined)
 	}
 	
 	/**
@@ -908,20 +747,19 @@ class ContentNode {
 		let anchorPath = selectionState.anchorPath;
 
 		if (selectionState.isOffsetOnStart()) {
-			let newBlockNode = new BlockNode({NodeData: [new BreakLine()]})
+			let newBlockNode = new BlockNode({_children: [new BreakLine()]})
 			this.getCurrentContentNode(anchorPath).insertBlockNodeBetween(
 				newBlockNode,
 				anchorPath.getBlockIndex(),
 				anchorPath.getBlockIndex(),
 			);
-			$$mountNode(newBlockNode, anchorPath.getBlockPath(), 'before')
-			selectionState.anchorPath.addOrRemoveToBlock('inc', 1)
+			this.insertNode(newBlockNode, anchorPath.getBlockIndex(), 'before')
 			selectionState.toggleCollapse()
 
 		} else if (selectionState.isCollapsed) {
 
 			let CurrentBlock = this.getBlockByPath(anchorPath.getBlockPath());
-			let anchorNode = CurrentBlock.getNodeByIndex(anchorPath.getLastIndex());
+			let anchorNode = CurrentBlock.getChildrenByIndex(anchorPath.getLastIndex());
 
 			let anchorNodeSlice = anchorPath.getLastIndex();
 			let SlicedNodes = undefined;
@@ -933,46 +771,42 @@ class ContentNode {
 					this.TextNodeSlice(anchorNode, '', selectionState.anchorOffset);
 					anchorNodeSlice += 1;
 					if(SliceContent !== ''){
-						SlicedNodes = anchorNode.createSelfNode({plainText: SliceContent, stylesArr: anchorNode.getNodeStyle()});
+						SlicedNodes = anchorNode.createSelfNode({plainText: SliceContent, styles: anchorNode.getNodeStyle()});
 					}
 				} else {
 					anchorNodeSlice += 1;
 					SlicedNodes = undefined;
 				}
 			}
-			let SliceCharNodes = CurrentBlock.NodeData.slice(anchorNodeSlice);
-			let blockLength = CurrentBlock.getLength() - 1
+			let SliceCharNodes = CurrentBlock._children.slice(anchorNodeSlice);
 			if(SliceCharNodes.length > 0) CurrentBlock.splitNodes(true, anchorNodeSlice);
 
-			if(blockLength === anchorPath.getLastIndex()){
-				$$updateNodeTextContent(anchorNode, anchorPath.get())
-			}
-			else{
-				$$remountNode(CurrentBlock, anchorPath.getBlockPath(), true)
-			}
+			CurrentBlock.remount()
 		
 			if(SlicedNodes !== undefined) SliceCharNodes = [SlicedNodes ?? [], ...SliceCharNodes];
 			else if(SlicedNodes === undefined && SliceCharNodes.length === 0) SliceCharNodes = [new BreakLine()]
 
 			let newBlockNode = new BlockNode({
-				NodeData: SliceCharNodes,
+				_children: SliceCharNodes,
 				blockWrapper: CurrentBlock.blockWrapper,
 			});
 
+			currentContentNode.insertNode(newBlockNode, anchorPath.getBlockIndex(), 'before')
+			selectionState.setAnchorKey(newBlockNode.$getNodeKey()).offsetToZero().toggleCollapse()
 
-			currentContentNode.insertBlockNodeBetween(newBlockNode, anchorPath.getBlockIndex() + 1, anchorPath.getBlockIndex() + 1);
-			$$mountNode(newBlockNode, anchorPath.getBlockPath(), 'after')
-
-			selectionState.moveSelectionToNextSibling(this);
 		} else {
 
 			if (selectionState.isBlockPathEqual()) {
-				let focusPath = selectionState.focusPath
-				let AnchorBlock = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
+
+		
 				let currentContentNode: ContentNode = this.getCurrentContentNode(anchorPath);
 
-				let anchorNodeData = AnchorBlock.getNodeByIndex(anchorPath.getLastIndex());
-				let focusNodeData = AnchorBlock.getNodeByIndex(focusPath.getLastIndex());
+
+				let focusPath = selectionState.focusPath
+				let AnchorBlock = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
+
+				let anchorNodeData = AnchorBlock.getChildrenByIndex(anchorPath.getLastIndex());
+				let focusNodeData = AnchorBlock.getChildrenByIndex(focusPath.getLastIndex());
 
 				let anchorNodeSlice = anchorPath.getLastIndex() + 1;
 				let focusNodeSlice = focusPath.getLastIndex() + 1;
@@ -986,7 +820,7 @@ class ContentNode {
 					if (focusNodeData instanceof TextNode) {
 						SlicedTextNode = focusNodeData.createSelfNode({
 							plainText: focusNodeData.getSlicedContent(false, selectionState.focusOffset),
-							stylesArr: focusNodeData.getNodeStyle(),
+							styles: focusNodeData.getNodeStyle(),
 						});
 						this.TextNodeSlice(focusNodeData, '', selectionState.focusOffset, -1);
 					} else focusNodeSlice += 1;
@@ -994,36 +828,36 @@ class ContentNode {
 					if (focusNodeData instanceof TextNode) {
 						SlicedTextNode = focusNodeData.createSelfNode({
 							plainText: focusNodeData.getSlicedContent(false, selectionState.focusOffset),
-							stylesArr: focusNodeData.getNodeStyle(),
+							styles: focusNodeData.getNodeStyle(),
 						});
 						this.TextNodeSlice(focusNodeData, '', selectionState.anchorOffset);
 					} else focusNodeSlice += 1;
 				}
 
-				let SliceCharNodes = AnchorBlock.NodeData.slice(focusNodeSlice);
-				if (SlicedTextNode !== undefined) {
+				let SliceCharNodes = AnchorBlock._children.slice(focusNodeSlice);
+				if (SlicedTextNode !== undefined && SlicedTextNode.getContentLength() > 0) {
 					SliceCharNodes = [SlicedTextNode, ...SliceCharNodes];
 				}
 
 				if(SliceCharNodes.length > 0){
-					AnchorBlock.splitNodes(true, anchorNodeSlice);
-					$$remountNode(AnchorBlock, selectionState.anchorPath.getBlockPath(), true)
+					AnchorBlock.splitChild(true, anchorNodeSlice);
+					AnchorBlock.remount()
 				}
 				else if(anchorNodeData instanceof TextNode){
-					this.TextNodeSlice(anchorNodeData, '', selectionState.anchorOffset);
-					$$updateNodeTextContent(anchorNodeData, anchorPath.get())
+					anchorNodeData.update(() => {
+						this.TextNodeSlice((anchorNodeData as TextNode), '', selectionState.anchorOffset);
+					})
 					SliceCharNodes = [new BreakLine()];
 				}
 
 				let newBlockNode = new BlockNode({
-					NodeData: SliceCharNodes,
+					_children: SliceCharNodes,
 					blockType: AnchorBlock.blockType,
 				});
 
-				currentContentNode.insertBlockNodeBetween(newBlockNode, anchorPath.getBlockIndex() + 1, anchorPath.getBlockIndex() + 1);
-				$$mountNode(newBlockNode, anchorPath.getBlockPath(), 'after')
+				currentContentNode.insertNode(newBlockNode, anchorPath.getBlockIndex(), 'before')
+				selectionState.setAnchorKey(newBlockNode.$getNodeKey()).offsetToZero().toggleCollapse()
 
-				selectionState.moveSelectionToNextSibling(this);
 			} else if (selectionState.isBlockPathEqual() === false) {
 				this.removeLetterFromBlock();
 			}

@@ -12,6 +12,7 @@ export default class ActiveElementState {
 	isActive: boolean;
 	pathToActiveNode: NodePath;
 	activeNodeKey: string | undefined;
+	activeNodeType: string | undefined;
 
 
 	constructor() {
@@ -19,6 +20,7 @@ export default class ActiveElementState {
 		this.isActive = false;
 		this.pathToActiveNode = new NodePath();
 		this.activeNodeKey = undefined;
+		this.activeNodeType = undefined;
 	}
 
 	addElementToAllowed(element: string): void {
@@ -59,7 +61,7 @@ export default class ActiveElementState {
 					this.resetActiveData()
 
 					let targetNodeData = getEditorState().contentNode.getBlockByPath(previousActivePath)
-					$$remountNode(targetNodeData, previousActivePath)
+					targetNodeData.remount()
 
 					this.setActiveElement(target)
 				}
@@ -71,7 +73,7 @@ export default class ActiveElementState {
 			this.resetActiveData()
 
 			let targetNodeData = getEditorState().contentNode.getBlockByPath(previousActivePath)
-			$$remountNode(targetNodeData, previousActivePath)
+			targetNodeData.remount()
 		}
 	}
 
@@ -91,9 +93,10 @@ export default class ActiveElementState {
 		let targetNodeData = contentNode.getBlockByPath(targetNodeDOMData.nodePath)
 		if(targetNodeData){
 			this.isActive = true
+			this.activeNodeType = target.$$AiteNodeType ? target.$$AiteNodeType : (selectionState.$getNodeType(target) ?? undefined)
 			this.activeNodeKey = targetNodeData.$getNodeKey()
 			this.pathToActiveNode.set(targetNodeDOMData.nodePath)
-			$$remountNode(targetNodeData, targetNodeDOMData.nodePath)
+			targetNodeData.remount()
 		}
 	}
 

@@ -6,7 +6,7 @@ import type {AiteNode, AiteNodeOptions} from '../index'
 
 class BreakLine extends BaseNode {
     constructor(){
-        super(BREAK_LINE_TYPE, 'inline')
+        super(BREAK_LINE_TYPE)
     }
 
     $getNodeState(options?: AiteNodeOptions): AiteNode{
@@ -18,7 +18,6 @@ class BreakLine extends BaseNode {
         if(options) options.AiteNodeType = 'breakline'
         else options = {AiteNodeType: 'breakline'}
 
-        this.$updateNodeKey()
 		return createAiteNode(
 			'br',
 			props,

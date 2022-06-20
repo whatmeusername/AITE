@@ -3,7 +3,8 @@ import{
 	KeyboardEventCommand
 } from './editorCommandsTypes'
 
-import {getEditorState, BlockNode, NodeTypes, BlockType, NodePath, AiteHTMLNode} from './index'
+import {getEditorState, BlockNode, NodeTypes, BlockType, NodePath, AiteHTMLNode, ContentNode} from './index'
+import {HeadNode} from './AITE_nodes/index'
 
 
 import defaultInlineStyles from './defaultStyles/defaultInlineStyles';
@@ -60,7 +61,7 @@ function getBlockNodeWithNode(
 		let blockNode: BlockType = ContentNode.getBlockByPath(nodePath.getBlockPath())
 		let Node
 		if(blockNode instanceof BlockNode){
-			Node = blockNode.getNodeByIndex(nodePath.getLastIndex())
+			Node = blockNode.getChildrenByIndex(nodePath.getLastIndex())
 		}
 		return {block: {
 				node: blockNode,
@@ -76,24 +77,63 @@ function getBlockNodeWithNode(
 	
 }
 
-function findEditorBlockIndex(node: HTMLElement): {node: HTMLElement, index: number} | undefined {
-	while (true) {
-		let nodeDataSet = (node.parentNode as HTMLElement)?.dataset;
-		if (nodeDataSet.aite_editor_root !== undefined) {
-			return {
-				node: node,
-				index: Array.from(node.parentNode!.children).indexOf(node),
-			};
-		} else if (node.tagName === 'BODY') break;
-		node = node.parentNode as HTMLElement;
-	}
-	return undefined;
+function isDecoratorNode(node: HeadNode | undefined): boolean{
+	if(node  && (node as any).getActualType && (node as any).getActualType()?.includes('leaf')) return true
+	return false
 }
+
+
+function getIndexPathFromKeyPath(keyPath: Array<string>){
+	let contentNode = getEditorState().contentNode
+	let indexArray: Array<number> = []
+
+	if(keyPath.length === 0){
+		return []
+	}
+	else if(keyPath.length === 1){
+		return [contentNode.BlockNodes.findIndex(obj => obj.$getNodeKey() === keyPath[0])];
+	}
+	else{
+		let index = contentNode.BlockNodes.findIndex(obj => obj.$getNodeKey() === keyPath[0])
+		let currentNode: any = contentNode.BlockNodes[index];
+
+		indexArray.push(index) 
+
+		for (let i = 1; i < keyPath.length; i++) {
+			if(currentNode instanceof BlockNode){
+				let index = currentNode._children.findIndex(obj => obj.$getNodeKey() === keyPath[i])
+				currentNode = currentNode._children[index];
+				indexArray.push(index) 
+			}
+			else if(currentNode instanceof ContentNode){
+				let index = currentNode.BlockNodes.findIndex(obj => obj.$getNodeKey() === keyPath[i])
+				currentNode = currentNode.BlockNodes[index];
+				indexArray.push(index) 
+			}
+			else if(currentNode && !(currentNode instanceof BlockNode) && !(currentNode instanceof ContentNode)){
+				if(currentNode.ContentNode){
+					let index = currentNode.ContentNode.BlockNodes.findIndex((obj: BlockNode) => obj.$getNodeKey() === keyPath[i])
+					currentNode = currentNode.ContentNode.BlockNodes[index];
+					indexArray.push(index)
+				}
+				else if(currentNode.getChildren){
+					let index = currentNode.getChildren().findIndex((obj: BlockNode) => obj.$getNodeKey() === keyPath[i])
+					currentNode = currentNode.getChildren()[index];
+					indexArray.push(index)
+				}
+			}
+			else return undefined
+		}
+		return indexArray
+	}
+}
+
+
 
 function findEditorRoot(node: HTMLElement): HTMLElement | undefined {
 	while (true) {
-		let nodeDataSet = (node.parentNode as HTMLElement)?.dataset;
-		if (nodeDataSet.aite_editor_root !== undefined) {
+		let _childrenSet = (node.parentNode as HTMLElement)?.dataset;
+		if (_childrenSet.aite_editor_root !== undefined) {
 			return node.parentNode as HTMLDivElement;
 		} else if (node.tagName === 'BODY') break;
 		node = node.parentNode as HTMLElement;
@@ -121,27 +161,8 @@ function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent): boolean {
 	return false;
 }
 
-function findEditorCharIndex(node: HTMLElement): {node: HTMLElement, index: number} | undefined  {
-	while (true) {
-		let nodeDataSet = (node.parentNode as HTMLElement)?.dataset;
-		if (nodeDataSet.aite_block_node !== undefined) {
-			return {
-				node: node,
-				index: Array.from(node.parentNode!.children).indexOf(node),
-			};
-		} else if (node.tagName === 'BODY') break;
-		node = node.parentNode as HTMLElement;
-	}
-	return undefined;
-}
 
 
-function isTextNode(node: HTMLElement): boolean {
-	if(node.parentElement?.dataset.aite_block_node !== undefined){
-		return true;
-	}
-	return false;
-}
 
 function isArrow(event: KeyboardEventCommand): boolean{
 	return(
@@ -189,11 +210,7 @@ function isDefined(obj: any): boolean{
 	return (obj !== undefined && obj !== null)
 }
 
-// eslint-disable-next-line 
-function isSafari(): boolean{
-	let userAgent = navigator.userAgent
-	return (/safari/i.test(userAgent) && !/chromium|edg|ucbrowser|chrome|crios|opr|opera|fxios|firefox/i.test(userAgent))
-}
+
 function isApple(): boolean{
 	return /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
 }
@@ -255,9 +272,9 @@ function findStyle (StyleKey: string) {
 
 
 function getDecoratorNode(node: AiteHTMLNode): AiteHTMLNode{
-	let nodeDataset = node.dataset
-	if(!nodeDataset.aite_decorator_node){
-		nodeDataset = node.dataset
+	let _childrenset = node.dataset
+	if(!_childrenset.aite_decorator_node){
+		_childrenset = node.dataset
 		while((node.parentNode as AiteHTMLNode)?.dataset?.aite_editor_root === undefined){
 			node = node.parentNode as AiteHTMLNode;
 			if(node.dataset.aite_decorator_node){
@@ -269,21 +286,45 @@ function getDecoratorNode(node: AiteHTMLNode): AiteHTMLNode{
 }
 
 
+function DiffNodeState(previousState: {[K: string]: any}, nextState: {[K: string]: any}){
+	let statusObj: {[K: string]: any} = {}
+	Object.entries(previousState).forEach(([key, value]) => {
+		if(nextState[key]){
+			const next = nextState[key]
+			if(Array.isArray(next)){
+				// TODO: CURRENT NO USE
+			}
+			else if(next !== value){
+				statusObj[key] = 'changed'
+			}
+			
+		}
+		else{
+			statusObj[key] = 'removed'
+		}
+	})
+	return statusObj	
+}
+
+
 export {
+	getIndexPathFromKeyPath,
+
 	getChildrenNodes,
 	getBlockNodeWithNode,
 	getDecoratorNode,
 
 	keyCodeValidator,
+	DiffNodeState,
 	
 	editorWarning,
 
-	findEditorBlockIndex,
 	findEditorRoot,
-	findEditorCharIndex,
 	findStyle,
 
 	isApple,
+
+	isDecoratorNode,
 
 	isBackwardRemoveLine,
 	isBackwardRemoveWord,
@@ -298,7 +339,6 @@ export {
 	isArrowUp, 
 	isArrowDown,
 
-	isTextNode,
 	isNodesPathEqual,
 	isDefined
 	

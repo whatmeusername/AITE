@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 
 import defaultBlocks from './defaultStyles/defaultBlocks';
-import type {EditorState} from './index';
 import {NodePath, BlockNode, $$remountNode, getEditorEventStatus} from './index';
 
 import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
@@ -111,10 +110,6 @@ function AITEditor(): JSX.Element {
 				dataTransfer.setData('text/plain', '');
 
 				let nodeData = EditorState.selectionState.__getBlockNode(getDecoratorNode(event.target));
-				console.time('get from map');
-				const b = EditorState.__editorDOMState.__nodeMap.get(nodeData.node.$$AiteNodeKey);
-				console.timeEnd('get from map');
-				console.log(b?.$$AiteNodeKey);
 				dataTransfer.setData(
 					'application/aite-drag-event',
 					JSON.stringify({
@@ -158,13 +153,11 @@ function AITEditor(): JSX.Element {
 								);
 
 								DragElementBlock.removeNodeByKey(movedNodeKey);
-								CaretBlockNode.collectSameNodes();
 
 								if (isSameBlock === false) {
-									DragElementBlock.collectSameNodes();
-									$$remountNode(DragElementBlock, DragElementData?.block.path ?? [], true);
+									DragElementBlock.remount();
 								}
-								$$remountNode(CaretBlockNode, SelectionState.anchorPath.getBlockPath(), true);
+								CaretBlockNode.remount();
 							}
 						}
 					}
@@ -182,7 +175,7 @@ function AITEditor(): JSX.Element {
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={(e) => {
 						e.preventDefault();
-						setImageFloatDirection(getEditorState() as EditorState, 'right');
+						setImageFloatDirection('right');
 					}}
 				>
 					RIGHT
@@ -191,7 +184,7 @@ function AITEditor(): JSX.Element {
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={(e) => {
 						e.preventDefault();
-						setImageFloatDirection(getEditorState() as EditorState, 'left');
+						setImageFloatDirection('left');
 					}}
 				>
 					LEFT
@@ -200,7 +193,7 @@ function AITEditor(): JSX.Element {
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={(e) => {
 						e.preventDefault();
-						setImageFloatDirection(getEditorState() as EditorState, 'none');
+						setImageFloatDirection('none');
 					}}
 				>
 					DIR NULL
@@ -209,7 +202,7 @@ function AITEditor(): JSX.Element {
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={(e) => {
 						e.preventDefault();
-						toggleImageCaption(getEditorState() as EditorState);
+						toggleImageCaption();
 					}}
 				>
 					TOGGLE CAP

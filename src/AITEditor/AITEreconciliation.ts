@@ -1,5 +1,5 @@
 
-import type {TextNode} from './AITE_nodes/index'
+import type {TextNode, HeadNode} from './AITE_nodes/index'
 
 import type {NodeTypes, BlockType, ContentNode} from './index'
 import {getEditorState, EditorState} from './index'
@@ -28,6 +28,8 @@ interface AiteHTMLTextNode extends Text {
 
 type AiteNodeTypes = 'text' | 'breakline' | 'element' | 'unsigned' | 'image/gif';
 
+type AiteHTML = AiteHTMLNode | AiteHTMLTextNode
+
 
 interface AiteNodeOptions{
     key?: string,
@@ -37,7 +39,62 @@ interface AiteNodeOptions{
 }
 
 
-const __nodeMap: Map<string | undefined, AiteHTMLNode> = new Map()
+const __nodeMap: Map<string, AiteHTMLNode> = new Map()
+
+function getKeyPathNodeByNode(node: AiteHTMLNode){
+
+	let pathToNode = []
+
+	
+	if(node instanceof Text){
+		node = node.parentNode as AiteHTMLNode
+	}
+
+	if(node.$$AiteNodeKey !== undefined && node.$$isAiteNode){
+		pathToNode.unshift(node.$$AiteNodeKey)
+		while(node?.dataset.aite_editor_root === undefined){
+			node = node.parentNode as AiteHTMLNode
+			if(node.$$AiteNodeKey !== undefined){
+				pathToNode.unshift(node.$$AiteNodeKey)
+			}
+		}
+		return pathToNode
+	}
+	return []
+}
+
+function getParentNode(node: AiteHTML): AiteHTMLNode | undefined{
+    let parentNode = node.parentNode as AiteHTMLNode
+    
+    if(parentNode.$$isAiteNode){
+        if(parentNode.$$AiteNodeKey === undefined){
+            while(parentNode.$$isAiteNode){
+                parentNode = parentNode.parentNode as AiteHTMLNode
+                if(parentNode.$$AiteNodeKey){
+                    return parentNode
+                }
+            }
+        }
+    }
+    else if(parentNode.dataset?.aite_editor_root) return parentNode
+    else return undefined
+
+    return parentNode
+
+}
+
+function getBlockNode(node: AiteHTML): AiteHTMLNode | undefined{
+    let parentNode = node.parentNode as AiteHTMLNode
+    if(parentNode.$$isAiteNode && parentNode.dataset?.aiteBlockNode === undefined){
+        while(parentNode.$$isAiteNode && parentNode.dataset?.aiteBlockNode === undefined){
+            parentNode = parentNode.parentNode as AiteHTMLNode
+            if(parentNode.dataset?.aiteBlockNode){
+                return parentNode
+            }
+        }
+    }
+    return parentNode
+}
 
 
 function $$bulkUnmountNodes(
@@ -79,11 +136,13 @@ function $$mountNode(
             let parentDOMObject = EditorStateDOMState?.__editorObjectState.getObjectNode(getParentPath(nodePath))
             if(parentDOMObject !== undefined && Array.isArray(parentDOMObject.children)){
                 let newAiteNode = newNode.$getNodeState()
+
                 parentDOMObject.children.splice(nodePath[nodePath.length - 1], 0, newAiteNode)
                 if(insertDirection === 'after'){
                     currentDOMElement.parentNode?.insertBefore(createDOMElement(newAiteNode), currentDOMElement.nextSibling)
                 }
                 else if(insertDirection === 'before'){
+
                     currentDOMElement.parentNode?.insertBefore(createDOMElement(newAiteNode), currentDOMElement)
                 }
             }
@@ -157,13 +216,63 @@ function $$unmountNode(
     }
 }
 
+function getAllKeys(node: AiteHTML): Array<string>{
+    let keysArray: Array<string> = [];
+    if(node.$$AiteNodeKey){
+        keysArray.push(node.$$AiteNodeKey)
+    }
+    if(node.childNodes.length > 0){
+            (node.childNodes as NodeListOf<AiteHTML>).forEach((node: AiteHTML) => {
+            if(node.$$isAiteNode){
+                keysArray.push(...getAllKeys(node))
+            }
+            
+        })
+    }
+    return keysArray
+}
+
+function updateTextNodeContent(node: TextNode){
+    let currentDOMElement: AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(node.$getNodeKey());
+    if(currentDOMElement !== undefined){
+        if(currentDOMElement.nodeType !== HTML_TEXT_NODE){
+            currentDOMElement = currentDOMElement.firstChild as AiteHTMLTextNode;
+            if(currentDOMElement.nodeType !== HTML_TEXT_NODE){
+                // TODO: REPLACE WITN ERROR FUNCTION
+                throw new Error('');
+            }
+            if(node.__content !== currentDOMElement.textContent ){
+                currentDOMElement.textContent  = node.__content;
+            }
+        }
+    }
+}
+
+function mountNode(siblingNode: NodeTypes | BlockType, node: NodeTypes | BlockType, insertDirection: 'after' | 'before' = 'before'){
+    let currentDOMElement: AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(siblingNode.$getNodeKey());
+    if(currentDOMElement !== undefined){
+        let newAiteNode = node.$getNodeState();
+        if(insertDirection === 'after'){
+            let newDOMelement = createDOMElement(newAiteNode);
+            __nodeMap.set(node.$getNodeKey(), newDOMelement as AiteHTMLNode);
+            currentDOMElement.parentNode?.insertBefore(newDOMelement, currentDOMElement.nextSibling);
+        }
+        else if(insertDirection === 'before'){
+            let newDOMelement = createDOMElement(newAiteNode);
+            __nodeMap.set(node.$getNodeKey(), newDOMelement as AiteHTMLNode);
+            currentDOMElement.parentNode?.insertBefore(newDOMelement, currentDOMElement);
+        }
+    }
+}
+
+// DEPRECATED
 function $$updateNodeTextContent(
     node: TextNode,
     nodePath: Array<number>, 
 ){
     let EditorStateDOMState = getEditorState()?.__editorDOMState
     if(EditorStateDOMState !== undefined){
-        let currentDOMElement: AiteHTMLNode | AiteHTMLTextNode | undefined = EditorStateDOMState?.getDOMNode(nodePath)
+        let currentDOMElement:AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(node.$getNodeKey())
         if(currentDOMElement?.$$isAiteNode){
             let currentDOMObject: AiteNodes | undefined = EditorStateDOMState.__editorObjectState.getObjectNode(getParentPath(nodePath))
             if(currentDOMObject !== undefined){
@@ -184,8 +293,53 @@ function $$updateNodeTextContent(
     }
 }
 
-function generateNewRandomKey(length: number = 5): string {
-    return (Math.random()).toString(32).slice(2, length + 2)
+function unmountNode(node: HeadNode){
+    let currentDOMElement: AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(node.$getNodeKey());
+    if(currentDOMElement !== undefined){
+        let parentNode = currentDOMElement.parentNode as AiteHTMLNode;
+        if(parentNode.$$isAiteNode || parentNode.dataset.aite_editor_root){
+            getEditorState().__editorDOMState.removeNodeFromMap(node.$getNodeKey());
+            parentNode.removeChild(currentDOMElement);
+        }
+    }
+}
+
+
+function remountNode(node: HeadNode, childOnly: boolean = true){
+    let nodeState = (node as any)?.$getNodeState() ?? undefined;
+    if(nodeState){
+        let currentDOMElement: AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(node.$getNodeKey());
+        if(currentDOMElement){
+            let updatedNodeState = (node as any).$getNodeState();
+            if(updatedNodeState === undefined) {
+                // TODO: REPLACE WITH ERROR FUNCTION
+                throw new Error('');
+            }
+            else if(childOnly === false){
+                let parentNode = currentDOMElement.parentNode as AiteHTMLNode;
+                let updatedAiteHTMLNode = createDOMElement(updatedNodeState);
+                parentNode.replaceChild(updatedAiteHTMLNode, currentDOMElement);
+            }
+            else if(childOnly === true && updatedNodeState.children){
+                let updatedAiteHTMLNode = returnSingleDOMNode(updatedNodeState.children);
+                if(Array.isArray(updatedAiteHTMLNode)){
+                    currentDOMElement.replaceChildren(...updatedAiteHTMLNode);
+                }
+                else{
+                    currentDOMElement.replaceChildren(updatedAiteHTMLNode);
+                }
+            }
+            else{
+                // TODO: REPLACE WITH ERROR FUNCTION
+                throw new Error('');
+            }
+        }
+    }
+
+}
+
+function generateRandomKey(length: number = 5): string {
+    return (Math.random()).toString(32).slice(2, length + 2);
 }
 
 function getParentPath(path: Array<number>){
@@ -214,7 +368,7 @@ function addEventListeners($target: AiteHTMLNode, type: string, listener: (...ar
 function createAiteDomNode(node: AiteNode): AiteHTMLNode{
     let DOMnode = document.createElement(node.type) as AiteHTMLNode
     DOMnode.$$isAiteNode = true
-    DOMnode.$$AiteNodeKey = node.__key
+    DOMnode.$$AiteNodeKey = node._key
     DOMnode.$$AiteNodeType = node.AiteNodeType
     DOMnode.$$isAiteWrapper = node.isAiteWrapper ?? false
     return DOMnode
@@ -294,6 +448,9 @@ function createDOMElement(node: AiteNodes): AiteHTMLNode | Text{
         if(node.children){
             node.children.map(createDOMElement).forEach($node.appendChild.bind($node));
         }
+        if($node instanceof HTMLElement && node._key){
+            __nodeMap.set(node._key, $node)
+        }
         return $node
     } else throw new Error('')
 }
@@ -307,8 +464,8 @@ function appendChildrens(node: AiteNodes): AiteHTMLNode | Text{
                 currentDOMNode.appendChild.bind(currentDOMNode)
             )
         }
-        if(currentDOMNode instanceof HTMLElement){
-            __nodeMap.set(node.__key, currentDOMNode)
+        if(currentDOMNode instanceof HTMLElement && node._key){
+            __nodeMap.set(node._key, currentDOMNode)
         }
         return currentDOMNode
     } else return createAiteText(node.children);
@@ -411,7 +568,7 @@ class editorObjectState{
 class editorDOMState{
     __editorObjectState: editorObjectState;
 	__rootDOMElement: AiteHTMLNode;
-    __nodeMap: Map<string | undefined, AiteHTMLNode>;
+    __nodeMap: Map<string, AiteHTMLNode>;
     
     constructor(EditorState: EditorState){
         this.__editorObjectState = createNewObjectState(EditorState)
@@ -421,12 +578,17 @@ class editorDOMState{
     }
 
 
-
-    getNodeByKey(key: string | undefined): AiteHTMLNode | undefined{
+    getNodeFromMap(key: string | undefined): AiteHTMLNode | undefined{
         if(isDefined(key)){
-            return this.__nodeMap.get(key) ?? undefined
+            return this.__nodeMap.get(key as string) ?? undefined
         }
         return undefined
+    }
+
+    removeNodeFromMap(key: string | undefined): void{
+        if(isDefined(key)){
+            this.__nodeMap.delete(key as string)
+        }
     }
 
 
@@ -478,11 +640,11 @@ class editorDOMState{
 
 class AiteTextNode{
     children: string
-    __key: StringNumberBool | NullUndefined
+    _key: StringNumberBool | NullUndefined
     isAiteWrapper: boolean;
     constructor(children: string, isAiteWrapper: boolean, key: StringNumberBool | NullUndefined){
         this.children = children
-        this.__key = key ?? generateNewRandomKey()
+        this._key = key ?? undefined
         this.isAiteWrapper = isAiteWrapper ?? false 
     }
 }
@@ -514,7 +676,7 @@ class AiteNode{
     props: {[K: string]: any} | NullUndefined
     children: Array<AiteNodes> | NullUndefined
     childrenLength: number
-    __key: string | undefined
+    _key: string | undefined
     isAiteWrapper: boolean
     AiteNodeType: AiteNodeTypes
 
@@ -526,13 +688,14 @@ class AiteNode{
         this.children = children
         this.childrenLength = this.children?.length ?? 0
         this.isAiteWrapper = options?.isAiteWrapper ?? false
-        this.__key = options?.key ?? undefined
+        this._key = options?.key ?? undefined
         this.AiteNodeType = options?.AiteNodeType ?? 'unsigned'
     }
 
+
     __findChildByKey(key: StringNumberBool | NullUndefined): AiteNodes | undefined{
         if(this.children){
-            return this.children.find(child => child.__key === key)
+            return this.children.find(child => child._key === key)
         }
         return undefined
     }
@@ -541,6 +704,14 @@ class AiteNode{
 export {
     editorDOMState,
     AiteNode,
+
+    getParentNode,
+    getBlockNode,
+    updateTextNodeContent,
+    getKeyPathNodeByNode,
+    unmountNode,
+    remountNode,
+    mountNode,
 
     createNewDOMstate,
     returnSingleDOMNode,
@@ -554,6 +725,8 @@ export {
     $$updateNodeTextContent,
     $$bulkUnmountNodes,
     $$remountNode,
+
+    generateRandomKey,
 }
 
 export type{
@@ -562,5 +735,6 @@ export type{
     AiteTextNode,
     AiteNodes,
     AiteNodeOptions,
-    AiteNodeTypes
+    AiteNodeTypes,
+    AiteHTML,
 }

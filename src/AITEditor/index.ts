@@ -32,6 +32,16 @@
         $$updateNodeTextContent,
         $$bulkUnmountNodes,
         $$remountNode,
+
+        generateRandomKey,
+
+        updateTextNodeContent,
+        getKeyPathNodeByNode,
+        getParentNode,
+        getBlockNode,
+        unmountNode,
+        remountNode,
+        mountNode,
     } from './AITEreconciliation'
 
     import type{
@@ -40,7 +50,8 @@
         AiteTextNode,
         AiteNodes,
         AiteNodeOptions,
-        AiteNodeTypes
+        AiteNodeTypes,
+        AiteHTML
     } from './AITEreconciliation'
 
 
@@ -116,6 +127,14 @@ export {
 
     editorDOMState,
     AiteNode,
+
+    updateTextNodeContent,
+    getKeyPathNodeByNode,
+    getParentNode,
+    getBlockNode,
+    unmountNode,
+    remountNode,
+
     createNewDOMstate,
     returnSingleDOMNode,
     createAiteNode,
@@ -123,10 +142,12 @@ export {
     createNewObjectState,
     createAITEContentNode,
     $$mountNode,
+    generateRandomKey,
     $$unmountNode,
     $$updateNodeTextContent,
     $$bulkUnmountNodes,
     $$remountNode,
+    mountNode,
 
 
     createBlockNode,
@@ -157,6 +178,7 @@ export type{
 
     AiteHTMLNode,
     AiteHTMLTextNode,
+    AiteHTML,
     AiteTextNode,
     AiteNodes,
     AiteNodeOptions,

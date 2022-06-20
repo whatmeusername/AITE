@@ -52,6 +52,7 @@ function updateActiveEditor(EditorState: EditorState){
 function createEmptyEditorState(initData?: editorConf){
 
 	ActiveEditorState = new EditorState(initData)
+	
 
 	ActiveEditorState.EditorCommands.registerCommand('KEYDOWN_COMMAND', 'HIGH_IGNORECARET_COMMAND', (event) => {
 		onKeyDownEvent(event);

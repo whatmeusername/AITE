@@ -16,6 +16,7 @@ export default function CreateBlockResizeElements(node: imageNode) {
 	let imageWrapperNode: null | HTMLSpanElement = null;
 
 	const events = {
+		draggable: false,
 		onMouseDown: DragStart,
 	};
 

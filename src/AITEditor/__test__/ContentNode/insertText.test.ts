@@ -1,5 +1,4 @@
 import {nodeToString} from '../../testingUtils/index'
-import {createTestEditor} from './utils'
 import {cleanup, fireEvent, render} from '@testing-library/react';
 
 
@@ -45,8 +44,6 @@ let testData = [
 
 describe('testing inserting letters', () => {
     test.each(testData)('$caseName', ({expectedHTML, caseSelection, expectedSelection, caseActions}) => {
-        let testEditor = createTestEditor('one-line')
-        testEditor.selectionState.insertSelectionData(caseSelection)
-        expect(false).toBe(false)
+
     })
 })

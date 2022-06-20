@@ -1,6 +1,8 @@
-import {TEXT_NODE_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE} from "../ConstVariables"
+import {TEXT_NODE_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE, IMAGE_NODE_TYPE, LIST_NODE_TYPE} from "../ConstVariables"
 
-type nodeTypes = typeof TEXT_NODE_TYPE | 'image' | typeof LINK_NODE_TYPE | typeof BREAK_LINE_TYPE
+import {HeadNode} from './index'
+
+type nodeTypes = typeof TEXT_NODE_TYPE | typeof IMAGE_NODE_TYPE | typeof LINK_NODE_TYPE | typeof BREAK_LINE_TYPE | typeof LIST_NODE_TYPE
 type displayType = 'inline' | 'block'
 
 
@@ -20,30 +22,19 @@ type DOMattr = {
     }
 }
 
-abstract class BaseNode{
+abstract class BaseNode extends HeadNode{
     private __type: nodeTypes;
-    private __display: displayType;
-    __key: string | undefined; 
+    protected __status: 0 | 1;
 
-    constructor(type: nodeTypes, displayType: displayType){
+    constructor(type: nodeTypes){
+        super()
         this.__type = type;
-        this.__display = displayType;
-        this.__key = undefined;
+        this.__status = 1;
         
         this.$updateNodeKey()
     }
 
 
-    $updateNodeKey(){
-         this.__key = Math.random().toString(36).slice(5)
-        }
-
-    $getNodeKey(){
-		return this.__key
-	}
-    getElementDisplay(){
-        return this.__display
-    }
     getActualType(): string {
 		return this.__type;
 	}

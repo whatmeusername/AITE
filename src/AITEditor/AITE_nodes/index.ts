@@ -1,3 +1,5 @@
+import {HeadNode} from './HeadNode';
+
 import {
     BaseNode,
     DOMattr,
@@ -5,15 +7,18 @@ import {
 } from './BaseNode';
 
 import {TextNode, DOMTextAttr, textNodeConf, createTextNode} from './TextNode';
-import {LinkNode} from './LinkNode';
+import {LinkNode, createLinkNode} from './LinkNode';
 import {BreakLine} from './BreakLine'
 
 export {
+    HeadNode,
+    
     BaseNode,
     TextNode,
     LinkNode,
     BreakLine,
-    createTextNode
+    createTextNode,
+    createLinkNode,
 
 }
 

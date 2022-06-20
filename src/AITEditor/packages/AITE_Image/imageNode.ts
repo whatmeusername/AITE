@@ -66,7 +66,7 @@ class imageNode extends BaseNode{
 	ContentNode: ContentNode | undefined;
 
 	constructor(imageNodeConf: imageConf) {
-		super('image', 'inline')
+		super('image/gif')
 		this.imageConf = {
 			src: imageNodeConf.src,
 			alt: imageNodeConf.alt ?? '',
@@ -99,11 +99,11 @@ class imageNode extends BaseNode{
 					BlockNodes: [
 						new BlockNode({
 							blockInlineStyles: ['text_aligment_center'],
-							NodeData: chardata,
+							_children: chardata,
 						}),
 						new BlockNode({
 							blockWrapper: 'list-ordered-item',
-							NodeData: [
+							_children: [
 								new TextNode(
 									{plainText: `предмет листа 1`},
 								),
@@ -111,19 +111,10 @@ class imageNode extends BaseNode{
 						}),
 						new BlockNode({
 							blockWrapper: 'list-ordered-item',
-							NodeData: [
+							_children: [
 								new TextNode(
 									{plainText: `предмет листа 2`},
 								),
-								new LinkNode({
-									plainText: 'интеренсная',
-									url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
-								}),
-								new LinkNode({
-									plainText: ' жирная ссылка',
-									stylesArr: ['BOLD'],
-									url: 'https://ru.wikipedia.org/wiki/Заглавная_страница',
-								}),
 							],
 						}),
 					],
@@ -141,7 +132,7 @@ class imageNode extends BaseNode{
 				BlockNodes: [
 					new BlockNode({
 						allowedToInsert: 'text',
-						NodeData: [new TextNode()],
+						_children: [new TextNode()],
 					}),
 				],
 			});
@@ -266,7 +257,7 @@ class imageNode extends BaseNode{
 		}
 
 		return new AiteNode(
-			'div',
+			'span',
 			ImageWrapperAttr,
 			imageElements,
 			{AiteNodeType: 'image/gif', key: key, isAiteWrapper: false}

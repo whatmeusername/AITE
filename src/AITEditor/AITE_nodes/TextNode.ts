@@ -1,9 +1,10 @@
 import {BaseNode, DOMhtml} from './index';
-import {findStyle} from '../EditorUtils';
+import {findStyle, DiffNodeState} from '../EditorUtils';
 
 import {createAiteNode} from '../index';
 import type {AiteNode, AiteNodeOptions} from '../index'
 
+import {updateTextNodeContent} from '../index'
 
 
 
@@ -15,30 +16,63 @@ interface DOMTextAttr extends DOMhtml{
 
 interface textNodeConf{
 	plainText: string;
-	stylesArr?: Array<string>
-	nodeType?: 'text' | 'link'
+	styles?: Array<string>
 
 }
 
+interface updateOptions{
+	removeIfEmpty?: boolean;
+}
 
-function createTextNode(initData?: textNodeConf){
-	return new TextNode(initData)
+
+function createTextNode(text: string = '', styles?: Array<string>){
+	return new TextNode({plainText: text, styles: styles ?? []})
 }
 
 class TextNode extends BaseNode{
 	
     __content: string;
-    __styles: Array<string>
+    _styles: Array<string>
 
 	constructor(initData?: textNodeConf){
-        super(initData?.nodeType ?? 'text', 'inline')
+        super('text')
 		this.__content = initData?.plainText ?? ''
-        this.__styles = initData?.stylesArr ?? []
+        this._styles = initData?.styles ?? []
+	}
+
+
+	update(func: (...args: any[]) => void, options?: updateOptions): void{
+		let copiedState = {...this}
+		func()
+
+		let removeIfEmpty = options?.removeIfEmpty ?? true
+
+
+		if(this.__content === '' && removeIfEmpty){
+			this.remove()
+			this._status = 0
+		}
+		else if(this.__status === 1){
+			let diffResult = DiffNodeState(copiedState, this)
+		
+			if(Object.keys(diffResult).length > 0){
+				if(diffResult.__content){
+					updateTextNodeContent(this)
+				}
+				if(diffResult.__styles){
+					// TODO:
+				}
+			}
+		}	
+	}
+
+	getStyles(){
+		return this._styles
 	}
 
 	__prepareStyles() {
 		let classString = ''
-		this.__styles.forEach((Style) => {
+		this._styles.forEach((Style) => {
 			let currentStyle = findStyle(Style);
 			if (currentStyle.class !== undefined) {
  				classString += currentStyle.class + ' ';
@@ -54,7 +88,6 @@ class TextNode extends BaseNode{
 			className: className,
 			'data-aite-node': true
 		}
-		this.$updateNodeKey()
 		return createAiteNode(
 			'span',
 			props,
@@ -75,7 +108,7 @@ class TextNode extends BaseNode{
 	}
 
 	getNodeStyle(): Array<string> {
-		return this.__styles;
+		return this._styles;
 	}
 
 	getSlicedContent(startFromZero: boolean = true, start: number, end?: number): string {
@@ -93,7 +126,7 @@ class TextNode extends BaseNode{
 			return {
 			...this,
 			plaintText: this.__content,
-			stylesArr: this.__styles
+			stylesArr: this._styles
 			}
 		}
 		return {...this}
