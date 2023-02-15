@@ -1,58 +1,46 @@
-
 import ActiveElementState from './packages/AITE_ActiveState/activeElementState';
 
-import {editorWarning} from './EditorUtils'
-import type {AiteHTMLNode} from './index'
+import {editorWarning} from './EditorUtils';
+import type {AiteHTMLNode} from './index';
 import {onKeyDownEvent, onKeyUpEvent} from './EditorEvents';
 
+import {editorDOMState, getMutatedSelection, SelectionState, insertSelection, EditorCommands, ContentNode} from './index';
 
-import{
-	editorDOMState,
-	getMutatedSelection,
-	SelectionState, 
-	insertSelection,
-	EditorCommands,
-	ContentNode,
-} from './index'
-
-interface editorConf{
+interface editorConf {
 	ContentNode: ContentNode;
 }
 
+let ActiveEditorState: EditorState;
 
-let ActiveEditorState: EditorState
-
-function getEditorState(): EditorState{
-	return ActiveEditorState
+function getEditorState(): EditorState {
+	return ActiveEditorState;
 }
 
-function getSelectionState(): SelectionState{
-	return  ActiveEditorState.selectionState
+function getSelectionState(): SelectionState {
+	return ActiveEditorState.selectionState;
 }
 
-function getEditorDOM(): AiteHTMLNode{
-	return  ActiveEditorState.__editorDOMState.__rootDOMElement
+function getEditorDOM(): AiteHTMLNode {
+	return ActiveEditorState.__editorDOMState.__rootDOMElement;
 }
 
-function getEditorEventStatus(): boolean{
-	return ActiveEditorState.editorEventsActive
+function getEditorEventStatus(): boolean {
+	return ActiveEditorState.editorEventsActive;
 }
 
-function isNodeActive(key: string | undefined): boolean {
-	if(key){
-		return getEditorState().EditorActiveElementState?.activeNodeKey === key
+function isNodeActive(key: number | undefined): boolean {
+	if (key) {
+		return getEditorState().EditorActiveElementState?.activeNodeKey === key;
 	}
-	return false
+	return false;
 }
 
-function updateActiveEditor(EditorState: EditorState){
-	ActiveEditorState = EditorState
+function updateActiveEditor(EditorState: EditorState) {
+	ActiveEditorState = EditorState;
 }
 
-function createEmptyEditorState(initData?: editorConf){
-
-	ActiveEditorState = new EditorState(initData)
-	
+function createEmptyEditorState(initData?: editorConf) {
+	ActiveEditorState = new EditorState(initData);
 
 	ActiveEditorState.EditorCommands.registerCommand('KEYDOWN_COMMAND', 'HIGH_IGNORECARET_COMMAND', (event) => {
 		onKeyDownEvent(event);
@@ -63,7 +51,7 @@ function createEmptyEditorState(initData?: editorConf){
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand('LETTER_INSERT_COMMAND', 'HIGH_EDITOR_COMMAND', (event) => {
-		ActiveEditorState.contentNode.insertLetterIntoTextNode(event);
+		ActiveEditorState.contentNode.insertLetterIntoTextNodeTest(event);
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand('LETTER_REMOVE_COMMAND', 'HIGH_EDITOR_COMMAND', (_) => {
@@ -113,13 +101,13 @@ function createEmptyEditorState(initData?: editorConf){
 		}
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand('CLICK_COMMAND', 'LOW_IGNORECARET_COMMAND', (event) =>
-		ActiveEditorState.EditorActiveElementState?.handleElementClick(event),
-	);
+	// ActiveEditorState.EditorCommands.registerCommand('CLICK_COMMAND', 'LOW_IGNORECARET_COMMAND', (event) =>
+	// 	ActiveEditorState.EditorActiveElementState?.handleElementClick(event),
+	// );
 
-	ActiveEditorState.EditorCommands.listenRootEvent()
+	ActiveEditorState.EditorCommands.listenRootEvent();
 
-	return ActiveEditorState
+	return ActiveEditorState;
 }
 
 class EditorState {
@@ -138,8 +126,7 @@ class EditorState {
 	__previousSelection: insertSelection | undefined;
 
 	constructor(initData?: editorConf) {
-
-		updateActiveEditor(this)
+		updateActiveEditor(this);
 
 		this.contentNode = initData?.ContentNode ?? new ContentNode();
 		this.selectionState = new SelectionState();
@@ -147,45 +134,32 @@ class EditorState {
 		this.EditorActiveElementState = new ActiveElementState();
 
 		this.focus = false;
-		this.editorEventsActive = true
+		this.editorEventsActive = true;
 
-		this.__readOnly = false
-		this.__editorDOMState = new editorDOMState(this)
-		this.__previousSelection = undefined
+		this.__readOnly = false;
+		this.__editorDOMState = new editorDOMState(this);
+		this.__previousSelection = undefined;
 	}
 
-	replaceActiveSelectionWithPrevious(): void{
-		if(this.__previousSelection){
-			this.selectionState.insertSelectionData(this.__previousSelection)
-			this.selectionState.setCaretPosition()
-		}
-		else editorWarning(true, 'tried to set selection by previous selection data, when it undefined')
+	replaceActiveSelectionWithPrevious(): void {
+		if (this.__previousSelection) {
+			this.selectionState.insertSelectionData(this.__previousSelection);
+			this.selectionState.setCaretPosition();
+		} else editorWarning(true, 'tried to set selection by previous selection data, when it undefined');
 	}
 
-	setPreviousSelection(): void{
-		this.__previousSelection = this.selectionState.get()
+	setPreviousSelection(): void {
+		this.__previousSelection = this.selectionState.get();
 	}
 
-	onError(): void{
+	onError(): void {
 		// TODO:
 	}
-	onEditorDOMChange(): void{
+	onEditorDOMChange(): void {
 		// TODO:
 	}
 }
 
+export {isNodeActive, createEmptyEditorState, getEditorState, getSelectionState, getEditorEventStatus, updateActiveEditor, getEditorDOM};
 
-export{
-	isNodeActive,
-	createEmptyEditorState,
-	getEditorState,
-	getSelectionState,
-	getEditorEventStatus,
-	updateActiveEditor,
-	getEditorDOM,
-}
-
-export type
-{
-	EditorState
-}
+export type {EditorState};

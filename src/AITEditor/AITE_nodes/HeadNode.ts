@@ -1,56 +1,73 @@
-import {getKeyPathNodeByNode, getParentNode, getBlockNode, unmountNode, getEditorState, BlockNode, generateRandomKey, remountNode, ContentNode, AiteHTMLNode} from '../index'
-import {LinkNode} from './index'
+import {getKeyPathNodeByNode, getParentNode, unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey} from '../index';
+import {BaseNode, LinkNode, NodeKeyTypes} from './index';
 
+abstract class HeadNode {
+	protected _status: 0 | 1 | 2;
+	private _key: number;
+	protected __type: NodeKeyTypes | 'block';
 
-abstract class HeadNode{
-    protected _status: 0 | 1;
-    private _key: string;
-    
-    constructor(){
-        this._status = 1;
-        this._key = generateRandomKey(5)
-    }
+	constructor(type: NodeKeyTypes | 'block') {
+		this._status = 1;
+		this._key = generateKey();
+		this.__type = type;
+	}
 
-    $updateNodeKey(){
-        this._key = generateRandomKey(5)
-       }
-    $getNodeKey(){
-        return this._key
-    }
+	getSelfIndexPath(): number[] {
+		const path = [];
+		let node: any = this;
+		while (node.__parent) {
+			path.unshift(node.getSelfIndex());
+			node = node.__parent;
+		}
+		return path;
+	}
 
-    $getNodeStatus(){
-        return this._status
-    }
+	getSelfIndex(): number {
+		if (!(this as any)?.__parent) return -1;
+		return (this as any).__parent._children.indexOf(this as any);
+	}
 
-    remove(): void{
-		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this._key)
-		if(DOMnode !== undefined && this._key){
-			let parentDOMNode = getParentNode(DOMnode)
-			let parentPath = parentDOMNode ? getKeyPathNodeByNode(parentDOMNode) : undefined
-			let parentNode = parentPath ? getEditorState().contentNode.getBlockByKeyPath(parentPath) : undefined
-			if(parentNode && (parentNode instanceof BlockNode || parentNode instanceof ContentNode || parentNode instanceof LinkNode)){
-				this._status = 0
-				unmountNode(this)
-				parentNode.removeNodeByKey(this._key)
+	$setMountNodeStatus() {
+		if (this._status === 1) {
+			this._status = 2;
+		}
+	}
+
+	getActualType(): string {
+		return this.__type;
+	}
+
+	$getNodeKey(): number {
+		return this._key;
+	}
+
+	$getNodeStatus() {
+		return this._status;
+	}
+
+	remove(): void {
+		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this._key);
+		if (DOMnode !== undefined && this._key) {
+			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$$ref as BaseNode).__parent;
+			if (parentRef && (parentRef instanceof BlockNode || parentRef instanceof ContentNode || parentRef instanceof LinkNode)) {
+				this._status = 0;
+				unmountNode(this);
+				parentRef.removeNodeByKey(this._key);
 			}
 		}
 	}
-    
 
-    remount(): void{
-        let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this._key)
+	remount(): void {
+		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this._key);
 
-        // HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE $getNodeState
-        if(this._status = 1 && DOMnode !== undefined && this._key && (this as any).$getNodeState){
-            if((this as any).collectSameNodes){
-                (this as any).collectSameNodes();
-            }
-			remountNode(this)
+		// HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE $getNodeState
+		if ((this._status = 2 && DOMnode !== undefined && this._key && (this as any).$getNodeState)) {
+			// if((this as any).collectSameNodes){
+			//     (this as any).collectSameNodes();
+			// }
+			remountNode(this);
 		}
-    }
+	}
 }
 
-
-export{
-    HeadNode
-}
+export {HeadNode};

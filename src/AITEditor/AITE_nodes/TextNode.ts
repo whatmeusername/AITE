@@ -2,98 +2,86 @@ import {BaseNode, DOMhtml} from './index';
 import {findStyle, DiffNodeState} from '../EditorUtils';
 
 import {createAiteNode} from '../index';
-import type {AiteNode, AiteNodeOptions} from '../index'
+import type {AiteNode, AiteNodeOptions} from '../index';
 
-import {updateTextNodeContent} from '../index'
+import {updateTextNodeContent} from '../index';
 
-
-
-interface DOMTextAttr extends DOMhtml{
-    className?: string;
+interface DOMTextAttr extends DOMhtml {
+	className?: string;
 	'data-aite-node'?: boolean;
 }
 
-
-interface textNodeConf{
+interface textNodeConf {
 	plainText: string;
-	styles?: Array<string>
-
+	styles?: Array<string>;
 }
 
-interface updateOptions{
+interface updateOptions {
 	removeIfEmpty?: boolean;
 }
 
-
-function createTextNode(text: string = '', styles?: Array<string>){
-	return new TextNode({plainText: text, styles: styles ?? []})
+function createTextNode(text: string = '', styles?: Array<string>) {
+	return new TextNode({plainText: text, styles: styles ?? []});
 }
 
-class TextNode extends BaseNode{
-	
-    __content: string;
-    _styles: Array<string>
+class TextNode extends BaseNode {
+	__content: string;
+	_styles: Array<string>;
 
-	constructor(initData?: textNodeConf){
-        super('text')
-		this.__content = initData?.plainText ?? ''
-        this._styles = initData?.styles ?? []
+	constructor(initData?: textNodeConf) {
+		super('text');
+		this.__content = initData?.plainText ?? '';
+		this._styles = initData?.styles ?? [];
 	}
 
+	update(func: (textNode: TextNode) => void, options?: updateOptions): number {
+		let copiedState = {...this};
 
-	update(func: (...args: any[]) => void, options?: updateOptions): void{
-		let copiedState = {...this}
-		func()
+		func(this);
 
-		let removeIfEmpty = options?.removeIfEmpty ?? true
+		let removeIfEmpty = options?.removeIfEmpty ?? true;
 
+		if (this.__content === '' && removeIfEmpty) {
+			this.remove();
+			this._status = 0;
+		} else if (this.__status === 1) {
+			let diffResult = DiffNodeState(copiedState, this);
 
-		if(this.__content === '' && removeIfEmpty){
-			this.remove()
-			this._status = 0
-		}
-		else if(this.__status === 1){
-			let diffResult = DiffNodeState(copiedState, this)
-		
-			if(Object.keys(diffResult).length > 0){
-				if(diffResult.__content){
-					updateTextNodeContent(this)
+			if (Object.keys(diffResult).length > 0) {
+				if (diffResult.__content) {
+					updateTextNodeContent(this);
 				}
-				if(diffResult.__styles){
+				if (diffResult.__styles) {
 					// TODO:
 				}
 			}
-		}	
+		}
+
+		return this._status;
 	}
 
-	getStyles(){
-		return this._styles
+	getStyles() {
+		return this._styles;
 	}
 
 	__prepareStyles() {
-		let classString = ''
+		let classString = '';
 		this._styles.forEach((Style) => {
 			let currentStyle = findStyle(Style);
 			if (currentStyle.class !== undefined) {
- 				classString += currentStyle.class + ' ';
+				classString += currentStyle.class + ' ';
 			}
 		});
-		return classString
+		return classString;
 	}
 
-
-	$getNodeState(options?: AiteNodeOptions): AiteNode{
-		let className = this.__prepareStyles()
+	$getNodeState(options?: AiteNodeOptions): AiteNode {
+		let className = this.__prepareStyles();
 		let props = {
 			className: className,
-			'data-aite-node': true
-		}
-		return createAiteNode(
-			'span',
-			props,
-			[this.__content],
-			{...options, key: this.$getNodeKey(), isAiteWrapper: false}
-		)
+			'data-aite-node': true,
+		};
+		return createAiteNode(this, 'span', props, [this.__content], {...options, key: this.$getNodeKey(), isAiteWrapper: false});
 	}
 
 	getContent(): string {
@@ -117,28 +105,35 @@ class TextNode extends BaseNode{
 		else return this.__content.slice(start);
 	}
 
-	createSelfNode(data: textNodeConf){
-		return new TextNode(data)
+	createSelfNode(data: textNodeConf) {
+		return new TextNode(data);
 	}
 
-	getData(asCreation?: boolean){
-		if(asCreation){
+	getData(asCreation?: boolean) {
+		if (asCreation) {
 			return {
-			...this,
-			plaintText: this.__content,
-			stylesArr: this._styles
-			}
+				...this,
+				plaintText: this.__content,
+				stylesArr: this._styles,
+			};
 		}
-		return {...this}
+		return {...this};
+	}
+
+	sliceText(start?: number, end?: number, CharToInsert?: string) {
+		CharToInsert = CharToInsert ?? '';
+		if (start === undefined && end === undefined) {
+			this.__content = this.__content + CharToInsert;
+		} else if (end !== undefined && end !== -1) {
+			this.__content = this.__content.slice(0, start) + CharToInsert + this.__content.slice(end);
+		} else if (end === undefined) {
+			this.__content = this.__content.slice(start) + CharToInsert;
+		} else {
+			this.__content = this.__content.slice(0, start) + CharToInsert;
+		}
 	}
 }
 
-export{
-	createTextNode,
-	TextNode
-}
+export {createTextNode, TextNode};
 
-export type{
-	DOMTextAttr,
-	textNodeConf
-}
+export type {DOMTextAttr, textNodeConf};

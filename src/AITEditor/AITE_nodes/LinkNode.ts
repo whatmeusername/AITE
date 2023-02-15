@@ -1,165 +1,139 @@
-import {TextNode, textNodeConf, BaseNode} from './index'
-
 import {createAiteNode, unmountNode} from '../index';
-import type {AiteNode, AiteNodeOptions} from '../index'
-import {NodeTypes} from '../BlockNode'
-import {isDefined} from '../EditorUtils'
+import type {AiteNode, AiteNodeOptions} from '../index';
+import {BlockNode, NodeTypes} from '../BlockNode';
+import {isDefined} from '../EditorUtils';
 
-type stringURL = `https://${string}` | `http://prefix${string}`
+type stringURL = `https://${string}` | `http://prefix${string}`;
 
+class LeafNode extends BlockNode {
+	_children: NodeTypes[];
+	constructor(parent?: BlockNode) {
+		super(undefined, parent, 'link/leaf');
+		this._children = [];
+	}
+}
 
-class LinkNode extends BaseNode{
-    __url: stringURL
-    _children: NodeTypes[]
-    constructor(url: stringURL){
-        super('link/leaf')
-        this.__url = url
-        this._children = []
-    }
+class LinkNode extends LeafNode {
+	__url: stringURL;
+	constructor(url: stringURL) {
+		super();
+		this.__url = url;
+	}
 
-
-    removeNodeByKey(key: string): void {
-		let index = this._children.findIndex(node => node.$getNodeKey() === key);
-		if(index !== -1){
+	removeNodeByKey(key: number): void {
+		let index = this._children.findIndex((node) => node.$getNodeKey() === key);
+		if (index !== -1) {
 			this._children.splice(index, 1);
 		}
-		if(this._children.length === 0){
-            this.remove()
-        }
-
+		if (this._children.length === 0) {
+			this.remove();
+		}
 	}
 
 	splitChild(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes | Array<NodeTypes>): void {
-		let StartSlice = startFromZero === true ? 
-			this._children.slice(0, start) 
-			: 
-			this._children.slice(start);
+		let StartSlice = startFromZero === true ? this._children.slice(0, start) : this._children.slice(start);
 
 		let EndSlice = isDefined(end) ? this._children.slice(end) : [];
 
 		if (node === undefined) this._children = [...StartSlice, ...EndSlice];
 		else {
-			if(Array.isArray(node)){
+			if (Array.isArray(node)) {
 				this._children = [...StartSlice, ...node, ...EndSlice];
-			}
-			else this._children = [...StartSlice, node, ...EndSlice];
+			} else this._children = [...StartSlice, node, ...EndSlice];
 		}
 	}
-	
-	
 
-    removeDomNodes(startFromZero: boolean = true, start: number, end?: number): void{
-		let slicedNodes: Array<NodeTypes> = []
+	removeDomNodes(startFromZero: boolean = true, start: number, end?: number): void {
+		let slicedNodes: Array<NodeTypes> = [];
 		if (end === undefined) {
 			if (startFromZero === false) {
 				slicedNodes = this._children.slice(0, start);
 				this._children = this._children.slice(start);
-			}
-			else if (startFromZero === true){
+			} else if (startFromZero === true) {
 				slicedNodes = this._children.slice(start);
 				this._children = this._children.slice(0, start);
 			}
 		} else if (end !== undefined) {
-			if(startFromZero === false){
+			if (startFromZero === false) {
 				slicedNodes = [...this._children.slice(0, start), ...this._children.slice(end)];
 				this._children = this._children.slice(start, end);
-			}
-			else{
+			} else {
 				slicedNodes = this._children.slice(start, end);
 				this._children = [...this._children.slice(0, start), ...this._children.slice(end)];
 			}
 		}
-		if(slicedNodes.length > 0){
+		if (slicedNodes.length > 0) {
 			slicedNodes.forEach((node: NodeTypes) => {
-				unmountNode(node)
-			})
+				unmountNode(node);
+			});
 		}
-        if(this._children.length === 0){
-            this.remove()
-        }
+		if (this._children.length === 0) {
+			this.remove();
+		}
 	}
 
-    getContentLength(): number {
+	getContentLength(): number {
 		return -1;
 	}
 
-	getLastChild(){
-		return this._children[this._children.length - 1]
+	createSelfNode() {
+		return new LinkNode(this.__url);
 	}
 
-	getFirstChild(){
-		return this._children[0]
+	getLastChild() {
+		return this._children[this._children.length - 1];
 	}
 
-    getChildren(): NodeTypes[]{
-        return this._children
-    }
-
-    getChildrenByIndex(index: number): NodeTypes{
-        return this._children[index]
-    }
-
-    getChildrenIndexByKey(key: string): number {
-		return this._children.findIndex(node => node.$getNodeKey() === key)
+	getFirstChild() {
+		return this._children[0];
 	}
 
-    append(...nodes: NodeTypes[]){
-        for(let i = 0; i < nodes.length; i++){
-            let node = nodes[i]
-            if(node instanceof BaseNode){
-                this._children.push(node)
-            }
-        }
-        return this
-    }
+	getChildren(): NodeTypes[] {
+		return this._children;
+	}
 
-    $getNodeState(options?: AiteNodeOptions): AiteNode{
-        let className = 'AITE_link_node'
+	getChildrenByIndex(index: number): NodeTypes {
+		return this._children[index];
+	}
+
+	getChildrenIndexByKey(key: number): number {
+		return this._children.findIndex((node) => node.$getNodeKey() === key);
+	}
+
+	$getNodeState(options?: AiteNodeOptions): AiteNode {
+		let className = 'AITE_link_node';
 		let props = {
-            href: this.__url,
+			href: this.__url,
 			className: className,
-			'data-aite-node': true
-		}
+			'data-aite-node': true,
+		};
 
-        let children: Array<AiteNode> = []
+		let children: Array<AiteNode> = [];
 		this._children.forEach((node) => {
-			let $node = node.$getNodeState({...options})
-			if($node) children.push($node)
-		})
+			let $node = node.$getNodeState({...options});
+			if ($node) children.push($node);
+		});
 
-		return createAiteNode(
-			'a',
-			props,
-			children,
-			{...options, key: this.$getNodeKey(), isAiteWrapper: false}
-		)
-    }
-
+		return createAiteNode(this, 'a', props, children, {...options, key: this.$getNodeKey(), isAiteWrapper: false});
+	}
 }
-
 
 function URLvalidator(url: stringURL): boolean {
+	let urlString: URL | string = url;
 
-    let urlString: URL | string = url
+	try {
+		urlString = new URL(url);
+	} catch (_) {
+		return false;
+	}
 
-    try {
-        urlString = new URL(url);
-      } catch (_) {
-        return false;  
-      }
-    
-      return urlString.protocol === "http:" || urlString.protocol === "https:";
+	return urlString.protocol === 'http:' || urlString.protocol === 'https:';
 }
 
-function createLinkNode(url: stringURL): LinkNode{
-
-    if(URLvalidator(url)){
-        return new LinkNode(url)
-    }
-    else return new LinkNode('https://');
+function createLinkNode(url: stringURL): LinkNode {
+	if (URLvalidator(url)) {
+		return new LinkNode(url);
+	} else return new LinkNode('https://');
 }
 
-export{
-    LinkNode,
-    createLinkNode
-}
+export {LinkNode, createLinkNode, LeafNode};

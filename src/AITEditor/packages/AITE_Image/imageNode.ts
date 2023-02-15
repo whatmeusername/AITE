@@ -1,11 +1,10 @@
-
-import {TextNode, LinkNode} from '../../AITE_nodes/index'
+import {TextNode, createTextNode, createLinkNode} from '../../AITE_nodes/index';
 
 import {BaseNode} from '../../AITE_nodes/index';
 
 //eslint-disable-next-line
-import BlockResizeElemets from './imageResizeElements'
-import {validateImageURL} from './imageUtils'
+import BlockResizeElemets from './imageResizeElements';
+import {validateImageURL} from './imageUtils';
 
 import {BlockNode, ContentNode, AiteNode, isNodeActive} from '../../index';
 
@@ -35,12 +34,11 @@ interface ImageWrapperAttrType {
 	className: string;
 	draggable?: boolean;
 	contentEditable: false;
-	style?: {[K: string]: string}
-	'data-aite_decorator_node'?: boolean
+	style?: {[K: string]: string};
+	'data-aite_decorator_node'?: boolean;
 }
 
-
-class imageNode extends BaseNode{
+class imageNode extends BaseNode {
 	imageConf: {
 		src: string;
 		alt: string;
@@ -66,7 +64,7 @@ class imageNode extends BaseNode{
 	ContentNode: ContentNode | undefined;
 
 	constructor(imageNodeConf: imageConf) {
-		super('image/gif')
+		super('image/gif');
 		this.imageConf = {
 			src: imageNodeConf.src,
 			alt: imageNodeConf.alt ?? '',
@@ -102,20 +100,12 @@ class imageNode extends BaseNode{
 							_children: chardata,
 						}),
 						new BlockNode({
-							blockWrapper: 'list-ordered-item',
-							_children: [
-								new TextNode(
-									{plainText: `предмет листа 1`},
-								),
-							],
+							blockWrapper: 'standart',
+							_children: [createLinkNode('https://yandex.ru').append(createTextNode('Hello '), createTextNode('World '))],
 						}),
 						new BlockNode({
-							blockWrapper: 'list-ordered-item',
-							_children: [
-								new TextNode(
-									{plainText: `предмет листа 2`},
-								),
-							],
+							blockWrapper: 'standart',
+							_children: [new TextNode({plainText: `предмет листа 2`})],
 						}),
 					],
 			  });
@@ -165,11 +155,11 @@ class imageNode extends BaseNode{
 		return 1;
 	}
 
-	createSelfNode(data: imageConf){
-		return createImageNode(data)
+	createSelfNode(data: imageConf) {
+		return createImageNode(data);
 	}
 
-	getData(): imageConf{
+	getData(): imageConf {
 		return {
 			src: this.imageConf.src,
 			alt: this.imageConf.alt,
@@ -187,15 +177,15 @@ class imageNode extends BaseNode{
 			minHeight: parseInt(this.imageStyle.s.minHeight),
 			maxWidth: parseInt(this.imageStyle.s.maxWidth),
 			maxHeight: parseInt(this.imageStyle.s.maxHeight),
-		}
+		};
 	}
 
-	$getNodeState(options?: {path?: Array<number>}): AiteNode{
-
-		let key = this.$getNodeKey()
-		let isActive = isNodeActive(this.$getNodeKey())
+	$getNodeState(options?: {path?: Array<number>}): AiteNode {
+		let key = this.$getNodeKey();
+		let isActive = isNodeActive(this.$getNodeKey());
 
 		let imageNode = new AiteNode(
+			this,
 			'img',
 			{
 				alt: this.imageConf.alt,
@@ -205,18 +195,19 @@ class imageNode extends BaseNode{
 				style: this.imageStyle.s,
 			},
 			[],
-			{AiteNodeType: 'image/gif', isAiteWrapper: true}
-		)
+			{AiteNodeType: 'image/gif', isAiteWrapper: true},
+		);
 
-		let imageElements = [imageNode]
+		let imageElements = [imageNode];
 
-		if (this.ContentNode !== undefined && this.ContentNode.BlockNodes.length > 0 && this.imageConf.captionEnabled) {
-			let captionBlockNodes: Array<AiteNode> = []
-			this.ContentNode.BlockNodes.forEach((node) => {
-				captionBlockNodes.push(node.$getNodeState())
-			})
+		if (this.ContentNode !== undefined && this.ContentNode._children.length > 0 && this.imageConf.captionEnabled) {
+			let captionBlockNodes: Array<AiteNode> = [];
+			this.ContentNode._children.forEach((node) => {
+				captionBlockNodes.push(node.$getNodeState());
+			});
 
 			let captionWrapper = new AiteNode(
+				this,
 				'div',
 				{
 					className: 'AITE_image_caption_wrapper',
@@ -226,7 +217,7 @@ class imageNode extends BaseNode{
 					'data-aite_content_node': true,
 				},
 				captionBlockNodes,
-				{AiteNodeType: 'image/gif', isAiteWrapper: false}
+				{AiteNodeType: 'image/gif', isAiteWrapper: false},
 			);
 			imageElements = [...imageElements, captionWrapper];
 		}
@@ -243,10 +234,9 @@ class imageNode extends BaseNode{
 			},
 		};
 
-
-		if(isActive){
-			ImageWrapperAttr.className += ' AITE__image__active'
-			imageElements = [...imageElements, ...BlockResizeElemets(this)]
+		if (isActive) {
+			ImageWrapperAttr.className += ' AITE__image__active';
+			imageElements = [...imageElements, ...BlockResizeElemets(this)];
 		}
 
 		if (this.imageStyle.float.dir !== 'none') {
@@ -256,20 +246,12 @@ class imageNode extends BaseNode{
 			};
 		}
 
-		return new AiteNode(
-			'span',
-			ImageWrapperAttr,
-			imageElements,
-			{AiteNodeType: 'image/gif', key: key, isAiteWrapper: false}
-			) 
-	} 
-
+		return new AiteNode(this, 'div', ImageWrapperAttr, imageElements, {AiteNodeType: 'image/gif', key: key, isAiteWrapper: false});
+	}
 }
 
 function createImageNode(imageConf: imageConf): imageNode | undefined {
-
-
-	if(validateImageURL(imageConf.src) === false) return;
+	if (validateImageURL(imageConf.src) === false) return;
 	let initWidth = 0;
 	let initHeight = 0;
 	let sizeRatio = 1,
@@ -295,13 +277,7 @@ function createImageNode(imageConf: imageConf): imageNode | undefined {
 	};
 	img.src = imageConf.src;
 
-	ImageNode?.$updateNodeKey()
-
 	return ImageNode;
 }
 
-export{
-	createImageNode,
-	imageNode
-}
-
+export {createImageNode, imageNode};

@@ -10,16 +10,7 @@ import {getBlockNodeWithNode, getDecoratorNode} from './EditorUtils';
 import './defaultinlineStyles.scss';
 import './AITE_test.scss';
 
-import {
-	createAITEContentNode,
-	AiteHTMLNode,
-	AiteNodeTypes,
-	AiteHTMLTextNode,
-	returnSingleDOMNode,
-	createEmptyEditorState,
-	getSelectionState,
-	getEditorState,
-} from './index';
+import {createAITEContentNode, AiteHTMLNode, AiteNodeTypes, AiteHTMLTextNode, returnSingleDOMNode, createEmptyEditorState, getEditorState} from './index';
 
 type HTMLBlockStyle = {type: string; tag: string};
 
