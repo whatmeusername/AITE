@@ -1,6 +1,6 @@
 import {BaseNode} from './BaseNode';
 import {BREAK_LINE_TYPE} from '../ConstVariables';
-import {createAiteNode} from '../index';
+import {BlockNode, createAiteNode, createBlockNode} from '../index';
 import type {AiteNode, AiteNodeOptions} from '../index';
 
 class BreakLine extends BaseNode {
@@ -17,7 +17,7 @@ class BreakLine extends BaseNode {
 		if (options) options.AiteNodeType = 'breakline';
 		else options = {AiteNodeType: 'breakline'};
 
-		return createAiteNode(this, 'br', props, null, {...options, key: this.$getNodeKey(), isAiteWrapper: false});
+		return createAiteNode(this, 'br', props, null, {...options, isAiteWrapper: false});
 	}
 
 	getContentLength() {
@@ -29,4 +29,8 @@ class BreakLine extends BaseNode {
 	}
 }
 
-export {BreakLine};
+function createBreakLine(): BlockNode {
+	return createBlockNode().append(new BreakLine());
+}
+
+export {BreakLine, createBreakLine};

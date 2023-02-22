@@ -66,7 +66,7 @@ function createEmptyEditorState(initData?: editorConf) {
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand('ENTER_COMMAND', 'HIGH_EDITOR_COMMAND', (_) => {
-		ActiveEditorState.contentNode.handleEnter();
+		ActiveEditorState.contentNode.handleEnterTest();
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand('WORD_REMOVE_COMMAND', 'HIGH_EDITOR_COMMAND', (_) => {

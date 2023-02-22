@@ -181,8 +181,7 @@ class imageNode extends BaseNode {
 	}
 
 	$getNodeState(options?: {path?: Array<number>}): AiteNode {
-		let key = this.$getNodeKey();
-		let isActive = isNodeActive(this.$getNodeKey());
+		let isActive = isNodeActive(this.getNodeKey());
 
 		let imageNode = new AiteNode(
 			this,
@@ -246,7 +245,7 @@ class imageNode extends BaseNode {
 			};
 		}
 
-		return new AiteNode(this, 'div', ImageWrapperAttr, imageElements, {AiteNodeType: 'image/gif', key: key, isAiteWrapper: false});
+		return new AiteNode(this, 'div', ImageWrapperAttr, imageElements, {AiteNodeType: 'image/gif', isAiteWrapper: false});
 	}
 }
 

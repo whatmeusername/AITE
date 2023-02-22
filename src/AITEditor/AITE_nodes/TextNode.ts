@@ -81,7 +81,7 @@ class TextNode extends BaseNode {
 			className: className,
 			'data-aite-node': true,
 		};
-		return createAiteNode(this, 'span', props, [this.__content], {...options, key: this.$getNodeKey(), isAiteWrapper: false});
+		return createAiteNode(this, 'span', props, [this.__content], {...options, isAiteWrapper: false});
 	}
 
 	getContent(): string {

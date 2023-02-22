@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 
 import defaultBlocks from './defaultStyles/defaultBlocks';
-import {NodePath, BlockNode, $$remountNode, getEditorEventStatus} from './index';
+import {NodePath, BlockNode, getEditorEventStatus} from './index';
 
 import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
 
@@ -134,14 +134,8 @@ function AITEditor(): JSX.Element {
 							let CaretBlockNode = CaretElementData?.block.node;
 
 							if (CaretBlockNode instanceof BlockNode && DragElementBlock instanceof BlockNode && DragElementData?.node) {
-								let movedNodeKey = DragElementData?.node?.node.$getNodeKey() ?? '';
-								let isSameBlock = DragElementBlock.$getNodeKey() === CaretBlockNode.$getNodeKey();
-
-								let newNode = CaretBlockNode.insertNodeBetweenText(
-									SelectionState.anchorPath.getLastIndex(),
-									SelectionState.anchorOffset,
-									DragElementData.node.node,
-								);
+								let movedNodeKey = DragElementData?.node?.node.getNodeKey() ?? '';
+								let isSameBlock = DragElementBlock.getNodeKey() === CaretBlockNode.getNodeKey();
 
 								DragElementBlock.removeNodeByKey(movedNodeKey);
 

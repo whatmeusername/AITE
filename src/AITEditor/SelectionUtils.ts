@@ -1,23 +1,21 @@
-import {ClassVariables} from './Interfaces';
+import {ClassVariables, Nullable} from './Interfaces';
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from './ConstVariables';
 import {isDefined, getIndexPathFromKeyPath, isDecoratorNode} from './EditorUtils';
-import {getKeyPathNodeByNode, isBlockNode, isTextNode} from './index';
+import {AiteHTML, getKeyPathNodeByNode, isBlockNode, isTextNode} from './index';
 
 import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from './index';
 
 import {BaseNode, HeadNode, TextNode} from './AITE_nodes/index';
 
-import {AiteHTML} from './AITEreconciliation';
-
 interface block_childrenExtended {
 	node: AiteHTMLNode;
 	nodePath: Array<number>;
 	elementType: string | null;
-	nodeKey: number | undefined;
+	nodeKey: Nullable<number>;
 }
 
 interface selectionData {
-	nodeKey: number | undefined;
+	nodeKey: Nullable<number>;
 	node: AiteHTMLNode;
 	nodePath: Array<number>;
 }
@@ -159,8 +157,8 @@ class SelectionState {
 	anchorPath: NodePath;
 	focusPath: NodePath;
 
-	anchorKey: number | undefined;
-	focusKey: number | undefined;
+	anchorKey: Nullable<number>;
+	focusKey: Nullable<number>;
 
 	anchorType: string | null;
 	focusType: string | null;
@@ -168,8 +166,8 @@ class SelectionState {
 	isCollapsed: boolean;
 	sameBlock: boolean;
 
-	anchorNode: HeadNode | null;
-	focusNode: HeadNode | null;
+	anchorNode: Nullable<HeadNode>;
+	focusNode: Nullable<HeadNode>;
 
 	constructor() {
 		this.anchorOffset = 0;
@@ -407,7 +405,7 @@ class SelectionState {
 			this.anchorPath = blockIndex;
 			this.focusPath = blockIndex;
 
-			this.setNodeKey(nextNode.$getNodeKey());
+			this.setNodeKey(nextNode.getNodeKey());
 
 			this.anchorOffset = 1;
 			this.focusOffset = 1;
@@ -453,7 +451,7 @@ class SelectionState {
 			this.anchorOffset = lastNode.getContentLength();
 			this.focusOffset = lastNode.getContentLength();
 
-			this.setNodeKey(lastNode.$getNodeKey());
+			this.setNodeKey(lastNode.getNodeKey());
 
 			this.anchorPath.setLastPathIndex(lastNodeIndex ?? 0);
 			this.focusPath.setLastPathIndex(lastNodeIndex ?? 0);
@@ -500,7 +498,7 @@ class SelectionState {
 			this.anchorOffset = 0;
 			this.focusOffset = 0;
 
-			this.setNodeKey(firstNode.$getNodeKey());
+			this.setNodeKey(firstNode.getNodeKey());
 
 			this.anchorPath.setLastPathIndex(0);
 			this.focusPath.setLastPathIndex(0);
@@ -565,7 +563,7 @@ class SelectionState {
 			this.anchorPath = blockIndex;
 			this.focusPath = blockIndex;
 
-			this.setNodeKey(nextNode.$getNodeKey());
+			this.setNodeKey(nextNode.getNodeKey());
 
 			this.anchorOffset = (nextNode as any)?.getContentLength() ?? 0;
 			this.focusOffset = (nextNode as any).getContentLength() ?? 0;

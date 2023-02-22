@@ -5,9 +5,8 @@ export * from './EditorState';
 export * from './EditorState';
 
 // AITEreconciliation.ts
-export * from './AITEreconciliation';
 
-export * from './AITEreconciliation';
+export * from './reconciliation';
 
 // BlockNode.ts
 

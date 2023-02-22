@@ -21,7 +21,7 @@ class LinkNode extends LeafNode {
 	}
 
 	removeNodeByKey(key: number): void {
-		let index = this._children.findIndex((node) => node.$getNodeKey() === key);
+		let index = this._children.findIndex((node) => node.getNodeKey() === key);
 		if (index !== -1) {
 			this._children.splice(index, 1);
 		}
@@ -97,7 +97,7 @@ class LinkNode extends LeafNode {
 	}
 
 	getChildrenIndexByKey(key: number): number {
-		return this._children.findIndex((node) => node.$getNodeKey() === key);
+		return this._children.findIndex((node) => node.getNodeKey() === key);
 	}
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode {
@@ -114,7 +114,7 @@ class LinkNode extends LeafNode {
 			if ($node) children.push($node);
 		});
 
-		return createAiteNode(this, 'a', props, children, {...options, key: this.$getNodeKey(), isAiteWrapper: false});
+		return createAiteNode(this, 'a', props, children, {...options, isAiteWrapper: false});
 	}
 }
 

@@ -1,7 +1,7 @@
 import {KeyboardEventCommand} from './editorCommandsTypes';
 
 import {getEditorState, BlockNode, NodeTypes, BlockType, NodePath, AiteHTMLNode, ContentNode} from './index';
-import {BaseNode, HeadNode, LeafNode} from './AITE_nodes/index';
+import {BaseNode, LeafNode} from './AITE_nodes/index';
 
 import defaultInlineStyles from './defaultStyles/defaultInlineStyles';
 
@@ -91,29 +91,29 @@ function getIndexPathFromKeyPath(keyPath: Array<number>) {
 	if (keyPath.length === 0) {
 		return [];
 	} else if (keyPath.length === 1) {
-		return [contentNode._children.findIndex((obj) => obj.$getNodeKey() === keyPath[0])];
+		return [contentNode._children.findIndex((obj) => obj.getNodeKey() === keyPath[0])];
 	} else {
-		let index = contentNode._children.findIndex((obj) => obj.$getNodeKey() === keyPath[0]);
+		let index = contentNode._children.findIndex((obj) => obj.getNodeKey() === keyPath[0]);
 		let currentNode: any = contentNode._children[index];
 
 		indexArray.push(index);
 
 		for (let i = 1; i < keyPath.length; i++) {
 			if (currentNode instanceof BlockNode) {
-				let index = currentNode._children.findIndex((obj) => obj.$getNodeKey() === keyPath[i]);
+				let index = currentNode._children.findIndex((obj) => obj.getNodeKey() === keyPath[i]);
 				currentNode = currentNode._children[index];
 				indexArray.push(index);
 			} else if (currentNode instanceof ContentNode) {
-				let index = currentNode._children.findIndex((obj) => obj.$getNodeKey() === keyPath[i]);
+				let index = currentNode._children.findIndex((obj) => obj.getNodeKey() === keyPath[i]);
 				currentNode = currentNode._children[index];
 				indexArray.push(index);
 			} else if (currentNode && !(currentNode instanceof BlockNode) && !(currentNode instanceof ContentNode)) {
 				if (currentNode.ContentNode) {
-					let index = currentNode.ContentNode.BlockNodes.findIndex((obj: BlockNode) => obj.$getNodeKey() === keyPath[i]);
+					let index = currentNode.ContentNode.BlockNodes.findIndex((obj: BlockNode) => obj.getNodeKey() === keyPath[i]);
 					currentNode = currentNode.ContentNode.BlockNodes[index];
 					indexArray.push(index);
 				} else if (currentNode.getChildren) {
-					let index = currentNode.getChildren().findIndex((obj: BlockNode) => obj.$getNodeKey() === keyPath[i]);
+					let index = currentNode.getChildren().findIndex((obj: BlockNode) => obj.getNodeKey() === keyPath[i]);
 					currentNode = currentNode.getChildren()[index];
 					indexArray.push(index);
 				}

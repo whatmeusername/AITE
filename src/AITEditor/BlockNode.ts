@@ -98,7 +98,7 @@ class BlockNode extends BaseBlockNode {
 
 		for (let i = 0; i < block._children.length; i++) {
 			const node = block._children[i];
-			const nodeKey = node.$getNodeKey();
+			const nodeKey = node.getNodeKey();
 			const isDecorator = isDecoratorNode(node);
 			if (endKey && isDecorator) {
 				const nb = node.getNodesBetween(-1, endKey, false, true);
@@ -156,7 +156,8 @@ class BlockNode extends BaseBlockNode {
 			let $node = node.$getNodeState({...options});
 			if ($node) children.push($node);
 		});
-		return createAiteNode(this, tag, props, children, {...options, key: this.$getNodeKey(), isAiteWrapper: false});
+
+		return createAiteNode(this, tag, props, children, {...options, isAiteWrapper: false});
 	}
 
 	swapNodePosition(FirPosition: number, SecPosition: number): void {
@@ -179,7 +180,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	removeNodeByKey(key: number): void {
-		let index = this._children.findIndex((node) => node.$getNodeKey() === key);
+		let index = this._children.findIndex((node) => node.getNodeKey() === key);
 		if (index !== -1) {
 			this._children.splice(index, 1);
 		}
@@ -381,7 +382,7 @@ class BlockNode extends BaseBlockNode {
 			if (letterCount >= offset) {
 				data.offsetKey = i;
 				data.letterIndex = currentLetterCount - (letterCount - offset);
-				data.key = currentNode.$getNodeKey();
+				data.key = currentNode.getNodeKey();
 				return data;
 			}
 		}
@@ -417,7 +418,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	getNodeByKey(key: number): NodeTypes | undefined {
-		return this._children.find((node) => node.$getNodeKey() === key);
+		return this._children.find((node) => node.getNodeKey() === key);
 	}
 
 	getType(): string {
@@ -450,7 +451,6 @@ class HorizontalRuleNode extends BaseBlockNode {
 
 		return createAiteNode(this, 'div', {contenteditable: false}, [createAiteNode(null, 'hr', props, [])], {
 			...options,
-			key: this.$getNodeKey(),
 			isAiteWrapper: false,
 		});
 	}

@@ -1,16 +1,15 @@
-import {$$remountNode, getEditorState} from '../../index';
+import {getEditorState} from '../../index';
 import type {floatType, imageNode} from './imageNode';
-import {IMAGE_NODE_TYPE} from '../../ConstVariables'
-import {getBlockNodeWithNode} from '../../EditorUtils'
+import {IMAGE_NODE_TYPE} from '../../ConstVariables';
+import {getBlockNodeWithNode} from '../../EditorUtils';
 
 export function setImageFloatDirection(direction: floatType): void {
-	let EditorState = getEditorState()
-	let activeEditorState = EditorState.EditorActiveElementState
+	let EditorState = getEditorState();
+	let activeEditorState = EditorState.EditorActiveElementState;
 
-	let CurrentNodeData = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)
-	let BlockNode = CurrentNodeData?.block
-	let ImageNode = CurrentNodeData?.node
-
+	let CurrentNodeData = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined);
+	let BlockNode = CurrentNodeData?.block;
+	let ImageNode = CurrentNodeData?.node;
 
 	// if (BlockNode?.node !== undefined) {
 	// 	if (ImageNode.node.getActualType() === 'image/gif') {
@@ -47,31 +46,25 @@ export function setImageFloatDirection(direction: floatType): void {
 }
 
 export function toggleImageCaption(): void {
-	let activeEditorState = getEditorState().EditorActiveElementState
-	if(activeEditorState.activeNodeType === IMAGE_NODE_TYPE) {
-		let CurrentNode = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)?.node
-		if(CurrentNode && CurrentNode.node.getActualType() === IMAGE_NODE_TYPE){
-			(CurrentNode.node as imageNode).toggleCaptition()
-			CurrentNode.node.remount()
+	let activeEditorState = getEditorState().EditorActiveElementState;
+	if (activeEditorState.activeNodeType === IMAGE_NODE_TYPE) {
+		let CurrentNode = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)?.node;
+		if (CurrentNode && CurrentNode.node.getActualType() === IMAGE_NODE_TYPE) {
+			(CurrentNode.node as imageNode).toggleCaptition();
+			CurrentNode.node.remount();
 		}
 	}
 }
 
-
 export function validateImageURL(imageURL: string): boolean {
-
-	let url
+	let url;
 
 	try {
 		//eslint-disable-next-line
 		url = new URL(imageURL);
-	  } catch (_) {
-		return false;  
-	  }
+	} catch (_) {
+		return false;
+	}
 
-	return(
-		imageURL.match(/\.(jpeg|jpg|gif|png)$/) !== null &&
-		(imageURL.startsWith('http://') || imageURL.startsWith('https://'))
-		)
-
+	return imageURL.match(/\.(jpeg|jpg|gif|png)$/) !== null && (imageURL.startsWith('http://') || imageURL.startsWith('https://'));
 }
