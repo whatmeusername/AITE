@@ -21,7 +21,7 @@ class LinkNode extends LeafNode {
 	}
 
 	removeNodeByKey(key: number): void {
-		let index = this._children.findIndex((node) => node.getNodeKey() === key);
+		let index = this._children.findIndex((node) => node.key === key);
 		if (index !== -1) {
 			this._children.splice(index, 1);
 		}
@@ -97,7 +97,7 @@ class LinkNode extends LeafNode {
 	}
 
 	getChildrenIndexByKey(key: number): number {
-		return this._children.findIndex((node) => node.getNodeKey() === key);
+		return this._children.findIndex((node) => node.key === key);
 	}
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode {

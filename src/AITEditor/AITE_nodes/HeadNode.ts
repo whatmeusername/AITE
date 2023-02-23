@@ -3,12 +3,12 @@ import {BaseNode, LinkNode, NodeKeyTypes} from './index';
 
 abstract class HeadNode {
 	protected _status: 0 | 1 | 2;
-	private _key: number;
+	key: number;
 	protected __type: NodeKeyTypes | 'block';
 
 	constructor(type: NodeKeyTypes | 'block') {
 		this._status = 1;
-		this._key = generateKey();
+		this.key = generateKey();
 		this.__type = type;
 	}
 
@@ -42,30 +42,26 @@ abstract class HeadNode {
 		return this.__type;
 	}
 
-	getNodeKey(): number {
-		return this._key;
-	}
-
 	$getNodeStatus() {
 		return this._status;
 	}
 
 	remove(): void {
-		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this._key);
-		if (DOMnode !== undefined && this._key) {
+		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
+		if (DOMnode !== undefined && this.key) {
 			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$$ref as BaseNode).__parent;
 			if (parentRef && (parentRef instanceof BlockNode || parentRef instanceof ContentNode || parentRef instanceof LinkNode)) {
 				this._status = 0;
 				unmountNode(this);
-				parentRef.removeNodeByKey(this._key);
+				parentRef.removeNodeByKey(this.key);
 			}
 		}
 	}
 
 	remount(): void {
-		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this._key);
+		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
 		// HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE $getNodeState
-		if (DOMnode !== undefined && this._key !== undefined && (this as any).$getNodeState) {
+		if (DOMnode !== undefined && this.key !== undefined && (this as any).$getNodeState) {
 			// if((this as any).collectSameNodes){
 			//     (this as any).collectSameNodes();
 			// }

@@ -181,7 +181,7 @@ class imageNode extends BaseNode {
 	}
 
 	$getNodeState(options?: {path?: Array<number>}): AiteNode {
-		let isActive = isNodeActive(this.getNodeKey());
+		let isActive = isNodeActive(this.key);
 
 		let imageNode = new AiteNode(
 			this,

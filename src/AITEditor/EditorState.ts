@@ -1,10 +1,9 @@
 import ActiveElementState from './packages/AITE_ActiveState/activeElementState';
 
 import {editorWarning} from './EditorUtils';
-import type {AiteHTMLNode} from './index';
 import {onKeyDownEvent, onKeyUpEvent} from './EditorEvents';
 
-import {editorDOMState, getMutatedSelection, SelectionState, insertSelection, EditorCommands, ContentNode} from './index';
+import {EditorDOMState, getMutatedSelection, SelectionState, insertSelection, EditorCommands, ContentNode} from './index';
 
 interface editorConf {
 	ContentNode: ContentNode;
@@ -18,10 +17,6 @@ function getEditorState(): EditorState {
 
 function getSelectionState(): SelectionState {
 	return ActiveEditorState.selectionState;
-}
-
-function getEditorDOM(): AiteHTMLNode {
-	return ActiveEditorState.__editorDOMState.__rootDOMElement;
 }
 
 function getEditorEventStatus(): boolean {
@@ -116,7 +111,7 @@ class EditorState {
 	EditorCommands: EditorCommands;
 
 	EditorActiveElementState: ActiveElementState;
-	__editorDOMState: editorDOMState;
+	__editorDOMState: EditorDOMState;
 
 	// __onError?: (...rest: any) => void
 
@@ -137,7 +132,7 @@ class EditorState {
 		this.editorEventsActive = true;
 
 		this.__readOnly = false;
-		this.__editorDOMState = new editorDOMState(this);
+		this.__editorDOMState = new EditorDOMState(this);
 		this.__previousSelection = undefined;
 	}
 
@@ -160,6 +155,6 @@ class EditorState {
 	}
 }
 
-export {isNodeActive, createEmptyEditorState, getEditorState, getSelectionState, getEditorEventStatus, updateActiveEditor, getEditorDOM};
+export {isNodeActive, createEmptyEditorState, getEditorState, getSelectionState, getEditorEventStatus, updateActiveEditor};
 
 export type {EditorState};

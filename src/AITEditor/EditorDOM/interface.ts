@@ -4,7 +4,6 @@ import type {AiteNode, AiteTextNode} from './index';
 
 type StringNumberBool = string | number | boolean;
 type AiteNodes = AiteNode | AiteTextNode;
-type CSSStyles = {[K: string]: string};
 
 interface AiteHTMLNode extends HTMLElement {
 	$$AiteNodeType: string;
@@ -25,6 +24,7 @@ interface AiteHTMLTextNode extends Text {
 type AiteNodeTypes = 'text' | 'breakline' | 'element' | 'unsigned' | 'image/gif';
 
 type AiteHTML = AiteHTMLNode | AiteHTMLTextNode;
+type NodeMap = Map<string, AiteHTMLNode>;
 
 interface AiteNodeOptions {
 	isAiteTextNode?: boolean;
@@ -32,4 +32,15 @@ interface AiteNodeOptions {
 	AiteNodeType?: AiteNodeTypes;
 }
 
-export type {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, AiteNodeOptions, AiteNodeTypes, AiteHTML, StringNumberBool, CSSStyles};
+enum NodeInsertionDeriction {
+	after = 'after',
+	before = 'before',
+}
+
+enum ClassAttribute {
+	className = 'className',
+	class = 'class',
+}
+
+export {NodeInsertionDeriction, ClassAttribute};
+export type {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, AiteNodeOptions, AiteNodeTypes, AiteHTML, StringNumberBool, NodeMap};

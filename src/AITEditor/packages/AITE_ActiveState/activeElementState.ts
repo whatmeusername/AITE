@@ -86,7 +86,7 @@ export default class ActiveElementState {
 		if (targetNodeData) {
 			this.isActive = true;
 			this.activeNodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target) ?? undefined;
-			this.activeNodeKey = targetNodeData.getNodeKey();
+			this.activeNodeKey = targetNodeData.key;
 			this.pathToActiveNode.set(targetNodeDOMData.nodePath);
 			targetNodeData.remount();
 		}

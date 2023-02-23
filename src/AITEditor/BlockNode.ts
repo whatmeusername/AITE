@@ -5,7 +5,7 @@ import {ClassVariables} from './Interfaces';
 import {TextNode, LinkNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes} from './AITE_nodes/index';
 import type {imageNode} from './packages/AITE_Image/imageNode';
 
-import {createAiteNode, unmountNode, mountNode, ContentNode} from './index';
+import {createAiteNode, unmountNode, mountNode, ContentNode, NodeInsertionDeriction} from './index';
 import type {AiteNode, AiteNodeOptions} from './index';
 import {isBaseNode, isDecoratorNode, isDefined} from './EditorUtils';
 
@@ -98,7 +98,7 @@ class BlockNode extends BaseBlockNode {
 
 		for (let i = 0; i < block._children.length; i++) {
 			const node = block._children[i];
-			const nodeKey = node.getNodeKey();
+			const nodeKey = node.key;
 			const isDecorator = isDecoratorNode(node);
 			if (endKey && isDecorator) {
 				const nb = node.getNodesBetween(-1, endKey, false, true);
@@ -180,7 +180,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	removeNodeByKey(key: number): void {
-		let index = this._children.findIndex((node) => node.getNodeKey() === key);
+		let index = this._children.findIndex((node) => node.key === key);
 		if (index !== -1) {
 			this._children.splice(index, 1);
 		}
@@ -204,7 +204,7 @@ class BlockNode extends BaseBlockNode {
 			let insertOffset = index > 0 ? index - 1 : index;
 			let previousSibling = this._children[index];
 			this.insertNodeBetween(node, insertOffset, insertOffset);
-			if (previousSibling) mountNode(previousSibling, node, 'before');
+			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
 		}
 		return node;
 	}
@@ -216,12 +216,12 @@ class BlockNode extends BaseBlockNode {
 			let insertOffset = index > 0 ? index - 1 : index;
 			let previousSibling = this._children[index];
 			this.insertNodeBetween(node, insertOffset, insertOffset);
-			if (previousSibling) mountNode(previousSibling, node, 'before');
+			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
 		}
 		return node;
 	}
 
-	insertNode(node: NodeTypes, index: number | 'last' | 'first', direction: 'before' | 'after') {
+	insertNode(node: NodeTypes, index: number | 'last' | 'first', direction: NodeInsertionDeriction) {
 		index = index >= 0 ? index : 0;
 		let blocksLength = this._children.length - 1;
 		if (index === 0 || index === 'first') {
@@ -382,7 +382,7 @@ class BlockNode extends BaseBlockNode {
 			if (letterCount >= offset) {
 				data.offsetKey = i;
 				data.letterIndex = currentLetterCount - (letterCount - offset);
-				data.key = currentNode.getNodeKey();
+				data.key = currentNode.key;
 				return data;
 			}
 		}
@@ -418,7 +418,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	getNodeByKey(key: number): NodeTypes | undefined {
-		return this._children.find((node) => node.getNodeKey() === key);
+		return this._children.find((node) => node.key === key);
 	}
 
 	getType(): string {

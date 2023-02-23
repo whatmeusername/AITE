@@ -1,6 +1,6 @@
 import {EDITOR_PRIORITY} from './ConstVariables';
 import {editorWarning, keyCodeValidator} from './EditorUtils';
-import {getEditorState, getEditorDOM} from './index';
+import {getEditorState} from './index';
 
 import type {
 	KeyboardEventCommand,
@@ -147,7 +147,7 @@ class EditorCommands {
 			this.removeHandles['selectionchange'] = () => document.removeEventListener('selectionchange', SelectionEvent);
 		}
 
-		let EditorDOM = getEditorDOM();
+		let EditorDOM = getEditorState().__editorDOMState.getRootHTMLNode();
 		Object.entries(this.rootCommands).map(([eventname, event]) => {
 			if (event !== undefined) {
 				let eventData = {eventname: undefined, event: undefined} as {eventname: undefined | string; event: undefined | ((...args: any) => void)};

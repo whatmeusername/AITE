@@ -3,10 +3,10 @@ import {AiteHTML} from './interface';
 import {createDOMElement, returnSingleDOMNode} from './reconiliation';
 import {getEditorState} from '../index';
 
-function remountNode(node: HeadNode, childOnly: boolean = true) {
+function remountNode(node: HeadNode, childOnly: boolean = true): HeadNode {
 	let nodeState = (node as any)?.$getNodeState() ?? undefined;
 	if (nodeState) {
-		let currentDOMElement: AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(node.getNodeKey());
+		let currentDOMElement: AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(node.key);
 		if (currentDOMElement) {
 			let newNodeState = (node as any).$getNodeState();
 			if (newNodeState === undefined) {
@@ -15,15 +15,15 @@ function remountNode(node: HeadNode, childOnly: boolean = true) {
 			} else if (childOnly === false) {
 				currentDOMElement.parentNode?.replaceChild(createDOMElement(newNodeState), currentDOMElement);
 			} else if (childOnly === true && newNodeState.children) {
-				let updatedAiteHTMLNode = returnSingleDOMNode(newNodeState.children);
-				if (Array.isArray(updatedAiteHTMLNode)) currentDOMElement.replaceChildren(...updatedAiteHTMLNode);
-				else currentDOMElement.replaceChildren(updatedAiteHTMLNode);
+				const newHTMLNode = returnSingleDOMNode(newNodeState.children);
+				currentDOMElement.replaceChildren.apply(currentDOMElement, Array.isArray(newHTMLNode) ? newHTMLNode : [newHTMLNode]);
 			} else {
 				// TODO: REPLACE WITH ERROR FUNCTION
 				throw new Error('');
 			}
 		}
 	}
+	return node;
 }
 
 export {remountNode};

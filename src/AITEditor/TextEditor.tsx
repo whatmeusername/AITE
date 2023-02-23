@@ -134,8 +134,8 @@ function AITEditor(): JSX.Element {
 							let CaretBlockNode = CaretElementData?.block.node;
 
 							if (CaretBlockNode instanceof BlockNode && DragElementBlock instanceof BlockNode && DragElementData?.node) {
-								let movedNodeKey = DragElementData?.node?.node.getNodeKey() ?? '';
-								let isSameBlock = DragElementBlock.getNodeKey() === CaretBlockNode.getNodeKey();
+								let movedNodeKey = DragElementData?.node?.node.key ?? '';
+								let isSameBlock = DragElementBlock.key === CaretBlockNode.key;
 
 								DragElementBlock.removeNodeByKey(movedNodeKey);
 

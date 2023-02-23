@@ -405,7 +405,7 @@ class SelectionState {
 			this.anchorPath = blockIndex;
 			this.focusPath = blockIndex;
 
-			this.setNodeKey(nextNode.getNodeKey());
+			this.setNodeKey(nextNode.key);
 
 			this.anchorOffset = 1;
 			this.focusOffset = 1;
@@ -451,7 +451,7 @@ class SelectionState {
 			this.anchorOffset = lastNode.getContentLength();
 			this.focusOffset = lastNode.getContentLength();
 
-			this.setNodeKey(lastNode.getNodeKey());
+			this.setNodeKey(lastNode.key);
 
 			this.anchorPath.setLastPathIndex(lastNodeIndex ?? 0);
 			this.focusPath.setLastPathIndex(lastNodeIndex ?? 0);
@@ -498,7 +498,7 @@ class SelectionState {
 			this.anchorOffset = 0;
 			this.focusOffset = 0;
 
-			this.setNodeKey(firstNode.getNodeKey());
+			this.setNodeKey(firstNode.key);
 
 			this.anchorPath.setLastPathIndex(0);
 			this.focusPath.setLastPathIndex(0);
@@ -563,7 +563,7 @@ class SelectionState {
 			this.anchorPath = blockIndex;
 			this.focusPath = blockIndex;
 
-			this.setNodeKey(nextNode.getNodeKey());
+			this.setNodeKey(nextNode.key);
 
 			this.anchorOffset = (nextNode as any)?.getContentLength() ?? 0;
 			this.focusOffset = (nextNode as any).getContentLength() ?? 0;
