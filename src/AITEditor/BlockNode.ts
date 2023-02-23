@@ -1,5 +1,5 @@
 import defaultBlocks from './defaultStyles/defaultBlocks';
-import {TEXT_NODE_TYPE, STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, BREAK_LINE_TYPE} from './ConstVariables';
+import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from './ConstVariables';
 import {ClassVariables} from './Interfaces';
 
 import {TextNode, LinkNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes} from './AITE_nodes/index';
@@ -7,7 +7,7 @@ import type {imageNode} from './packages/AITE_Image/imageNode';
 
 import {createAiteNode, unmountNode, mountNode, ContentNode, NodeInsertionDeriction} from './index';
 import type {AiteNode, AiteNodeOptions} from './index';
-import {isBaseNode, isDecoratorNode, isDefined} from './EditorUtils';
+import {isBaseNode, isLeafNode, isDefined} from './EditorUtils';
 
 type NodeTypes = TextNode | imageNode | BreakLine | LinkNode;
 type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
@@ -82,7 +82,7 @@ class BlockNode extends BaseBlockNode {
 	append(...nodes: NodeTypes[]) {
 		for (let i = 0; i < nodes.length; i++) {
 			let node = nodes[i];
-			if (isBaseNode(node) || isDecoratorNode(node)) {
+			if (isBaseNode(node) || isLeafNode(node)) {
 				node.__parent = this;
 				this._children.push(node);
 			}
@@ -94,12 +94,12 @@ class BlockNode extends BaseBlockNode {
 		let startFound = false;
 		let nodes: NodeTypes[] = [];
 
-		const block = !r ? (isDecoratorNode(this) ? (this.__parent as BlockNode) : this) : this;
+		const block = !r ? (isLeafNode(this) ? (this.__parent as BlockNode) : this) : this;
 
 		for (let i = 0; i < block._children.length; i++) {
 			const node = block._children[i];
 			const nodeKey = node.key;
-			const isDecorator = isDecoratorNode(node);
+			const isDecorator = isLeafNode(node);
 			if (endKey && isDecorator) {
 				const nb = node.getNodesBetween(-1, endKey, false, true);
 				nodes = [...nodes, ...nb];
@@ -122,14 +122,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	isBreakLine() {
-		if (
-			this._children.length === 0 ||
-			(this._children.length === 1 &&
-				(this._children[0].getType() === BREAK_LINE_TYPE ||
-					(this._children[0].getType() === TEXT_NODE_TYPE && this._children[0].getContentLength() === 0)))
-		)
-			return true;
-		return false;
+		return this._children.length === 1 && this._children[0] instanceof BreakLine;
 	}
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode {
@@ -284,19 +277,6 @@ class BlockNode extends BaseBlockNode {
 			slicedNodes.forEach((node: NodeTypes) => {
 				unmountNode(node);
 			});
-		}
-		if (this._children.length === 0) {
-			this.insertBreakLine();
-		}
-	}
-
-	// DEPREACATED METHOD / TODO: REPLACE WITH splitNodes
-	removeNodes(startFromZero: boolean = true, start: number, end?: number): void {
-		if (end === undefined) {
-			if (startFromZero === false) this._children = this._children.slice(start);
-			else if (startFromZero === true) this._children = this._children.slice(0, start);
-		} else if (end !== undefined) {
-			this._children = this._children.slice(start, end);
 		}
 		if (this._children.length === 0) {
 			this.insertBreakLine();

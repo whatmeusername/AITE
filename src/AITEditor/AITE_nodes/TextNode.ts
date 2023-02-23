@@ -141,7 +141,7 @@ class TextNode extends BaseNode {
 		return {...this};
 	}
 
-	sliceText(start?: number, end?: number, CharToInsert?: string) {
+	sliceContent(start?: number, end?: number, CharToInsert?: string) {
 		CharToInsert = CharToInsert ?? '';
 		if (start === undefined && end === undefined) {
 			this.__content = this.__content + CharToInsert;

@@ -1,11 +1,11 @@
 import {ClassVariables, Nullable} from '../Interfaces';
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from '../ConstVariables';
-import {isDefined, getIndexPathFromKeyPath, isDecoratorNode} from '../EditorUtils';
+import {isDefined, getIndexPathFromKeyPath, isLeafNode} from '../EditorUtils';
 import {AiteHTML, getKeyPathNodeByNode, isBlockNode, isTextNode} from '../index';
 
 import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from '../index';
 
-import {BaseNode, HeadNode, TextNode} from '../AITE_nodes/index';
+import {BaseNode, BreakLine, HeadNode, TextNode} from '../AITE_nodes/index';
 
 interface block_childrenExtended {
 	node: AiteHTMLNode;
@@ -46,6 +46,9 @@ const isSelectionBackward = (rangeOrSelection: Selection | Range) => {
  */
 const getSelection = (): Selection => window.getSelection() as Selection;
 
+function isBreakLine(node: any): node is BreakLine {
+	return node instanceof BreakLine;
+}
 /**
  * Returns window getSelection() with applied modifications to selection
  * @returns Selection
@@ -356,12 +359,12 @@ class SelectionState {
 		let currentNode = anchorBlock.getNodeByKey(this.anchorKey ?? -1) as BaseNode;
 		currentNode = (currentNode ? currentNode.nextSibling() : anchorBlock._children[this.anchorPath.getLastIndex() + 1]) as BaseNode;
 
-		if (isDecoratorNode(anchorBlock) && !currentNode) {
+		if (isLeafNode(anchorBlock) && !currentNode) {
 			const index = anchorBlock.getSelfIndex();
 			anchorBlock = anchorBlock.__parent as BlockNode;
 			nextNode = anchorBlock.getChildrenByIndex(index + 1);
 			if (!nextNode) shouldSearch = true;
-		} else if (isDecoratorNode(currentNode)) {
+		} else if (isLeafNode(currentNode)) {
 			anchorBlock = currentNode as BlockNode;
 			nextNode = anchorBlock.getFirstChild();
 		} else if (currentNode) {
@@ -374,7 +377,7 @@ class SelectionState {
 		const getTextNode = (node: BlockNode): TextNode | null => {
 			for (let i = 0, l = node.getLength(); i < l; i++) {
 				const node = anchorBlock.getChildrenByIndex(i);
-				if (isDecoratorNode(node)) {
+				if (isLeafNode(node)) {
 					return getTextNode(node);
 				} else if (isTextNode(node)) {
 					return node;
@@ -418,7 +421,7 @@ class SelectionState {
 		blockIndex.addOrRemoveToBlock('dec', 1);
 		let anchorBlock = ContentNode.getBlockByPath(blockIndex.getBlockPath());
 
-		if (isDecoratorNode(anchorBlock)) {
+		if (isLeafNode(anchorBlock)) {
 			anchorBlock = ContentNode.getBlockByPath(blockIndex.getContentNode());
 			blockIndex = new NodePath(blockIndex.getContentNode());
 		}
@@ -467,7 +470,7 @@ class SelectionState {
 
 		let firstNode;
 
-		if (isDecoratorNode(anchorBlock)) {
+		if (isLeafNode(anchorBlock)) {
 			anchorBlock = ContentNode.getBlockByPath(blockIndex.getContentNode());
 			blockIndex = new NodePath(blockIndex.getContentNode());
 		}
@@ -514,12 +517,12 @@ class SelectionState {
 		let currentNode = anchorBlock.getNodeByKey(this.anchorKey ?? -1) as BaseNode;
 		currentNode = (currentNode ? currentNode.previousSibling() : anchorBlock._children[this.anchorPath.getLastIndex() - 1]) as BaseNode;
 
-		if (isDecoratorNode(anchorBlock) && !currentNode) {
+		if (isLeafNode(anchorBlock) && !currentNode) {
 			const index = anchorBlock.getSelfIndex();
 			anchorBlock = anchorBlock.__parent as BlockNode;
 			nextNode = anchorBlock.getChildrenByIndex(index - 1);
 			if (!nextNode) shouldSearch = true;
-		} else if (isDecoratorNode(currentNode)) {
+		} else if (isLeafNode(currentNode)) {
 			anchorBlock = currentNode as BlockNode;
 			nextNode = anchorBlock.getLastChild();
 		} else if (currentNode) {
@@ -529,12 +532,12 @@ class SelectionState {
 			shouldSearch = true;
 		}
 
-		const getTextNode = (node: BlockNode): TextNode | null => {
+		const getTextNode = (node: BlockNode): TextNode | BreakLine | null => {
 			for (let i = node.getLength() - 1, l = node.getLength(); i < l; i++) {
 				const node = anchorBlock.getChildrenByIndex(i);
-				if (isDecoratorNode(node)) {
+				if (isLeafNode(node)) {
 					return getTextNode(node);
-				} else if (isTextNode(node)) {
+				} else if (isTextNode(node) || isBreakLine(node)) {
 					return node;
 				}
 			}

@@ -76,7 +76,7 @@ function getBlockNodeWithNode(
 	return undefined;
 }
 
-function isDecoratorNode(node: any): node is LeafNode {
+function isLeafNode(node: any): node is LeafNode {
 	return node instanceof LeafNode;
 }
 
@@ -286,7 +286,7 @@ export {
 	findEditorRoot,
 	findStyle,
 	isApple,
-	isDecoratorNode,
+	isLeafNode,
 	isBackwardRemoveLine,
 	isBackwardRemoveWord,
 	isForwardBackspace,

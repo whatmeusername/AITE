@@ -4,7 +4,7 @@ import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine} fro
 import {createBlockNode, createHorizontalRule} from './BlockNode';
 
 import {unmountNode, BlockType, SelectionState, NodePath, BlockNode, HorizontalRuleNode, getSelectionState, mountNode, NodeInsertionDeriction} from './index';
-import {isDecoratorNode} from './EditorUtils';
+import {isLeafNode} from './EditorUtils';
 
 interface contentNodeConf {
 	BlockNodes?: Array<BlockType>;
@@ -33,7 +33,7 @@ function isContentNode(node: any): node is ContentNode {
 }
 
 function isBreakLine(node: any): node is BlockNode {
-	if (isDecoratorNode(node)) return false;
+	if (isLeafNode(node)) return false;
 	return (
 		node._children.length <= 1 &&
 		(node._children[0].getType() === BREAK_LINE_TYPE || (node._children[0].getType() === TEXT_NODE_TYPE && node._children[0].getContentLength() === 0))
@@ -437,8 +437,8 @@ class ContentNode {
 		let startFound = false;
 		let nodes: BlockType[] = [];
 
-		let startKey = isDecoratorNode(startNode) ? (startNode.__parent as BlockNode).key : startNode.key;
-		let endKey = isDecoratorNode(endNode) ? (endNode.__parent as BlockNode).key : startNode.key;
+		let startKey = isLeafNode(startNode) ? (startNode.__parent as BlockNode).key : startNode.key;
+		let endKey = isLeafNode(endNode) ? (endNode.__parent as BlockNode).key : startNode.key;
 
 		for (let i = 0; i < this._children.length; i++) {
 			const node = this._children[i];
@@ -456,8 +456,8 @@ class ContentNode {
 	}
 
 	MergeBlockNode(connectingNode: BlockNode, joinNode: BlockNode, selectionState: SelectionState): void {
-		connectingNode = (isDecoratorNode(connectingNode) ? connectingNode.__parent : connectingNode) as BlockNode;
-		joinNode = (isDecoratorNode(joinNode) ? joinNode.__parent : joinNode) as BlockNode;
+		connectingNode = (isLeafNode(connectingNode) ? connectingNode.__parent : connectingNode) as BlockNode;
+		joinNode = (isLeafNode(joinNode) ? joinNode.__parent : joinNode) as BlockNode;
 
 		if (isBlockNode(connectingNode) && isBlockNode(joinNode)) {
 			const applyChilds = joinNode._children;
@@ -467,7 +467,7 @@ class ContentNode {
 		}
 	}
 
-	insertLetterIntoTextNodeTest(KeyBoardEvent?: KeyboardEvent) {
+	insertLetter(KeyBoardEvent?: KeyboardEvent) {
 		const isRemove = KeyBoardEvent === undefined;
 		let key = isRemove ? '' : KeyBoardEvent ? KeyBoardEvent.key : '';
 		const selectionState = getSelectionState();
@@ -493,7 +493,6 @@ class ContentNode {
 				previousBlock.remove();
 			} else if (isBlockNode(previousBlock)) {
 				if (contentNode) {
-					selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
 					this.MergeBlockNode(previousBlock, anchorBlockNode, selectionState);
 				}
 			}
@@ -515,7 +514,7 @@ class ContentNode {
 				if (!isRemove) selectionState.moveSelectionForward();
 			}
 
-			anchorNodeData.sliceText(SliceFrom, SliceTo, key);
+			anchorNodeData.sliceContent(SliceFrom, SliceTo, key);
 
 			const isBR = isBreakLine(anchorBlockNode);
 			if (isBR) selectionState.toggleCollapse().setNodeKey(anchorBlockNode.getFirstChild().key);
@@ -524,8 +523,8 @@ class ContentNode {
 			const nodesBetween = anchorBlockNode.getNodesBetween(anchorNodeData.key, focusNodeData.key);
 			nodesBetween.forEach((node) => node.remove());
 
-			anchorNodeData.sliceText(SliceFrom, -1, key);
-			focusNodeData.sliceText(SliceTo);
+			anchorNodeData.sliceContent(SliceFrom, -1, key);
+			focusNodeData.sliceContent(SliceTo);
 
 			if (isBreakLine(anchorBlockNode)) selectionState.toggleCollapse().setNodeKey(anchorBlockNode.getFirstChild().key);
 			else if (focusNodeData.status === 0 && anchorNodeData.status === 0) selectionState.moveSelectionToNextSibling();
@@ -538,12 +537,12 @@ class ContentNode {
 
 			if (isTextNode(anchorNodeData)) {
 				anchorBlockNode.getNodesBetween(anchorNodeData.key).forEach((node) => node.remove());
-				anchorNodeData.sliceText(SliceFrom, -1, key);
+				anchorNodeData.sliceContent(SliceFrom, -1, key);
 			} else anchorNodeData.remove();
 
 			if (isTextNode(focusNodeData)) {
 				focusBlockNode.getNodesBetween(-1, focusNodeData.key).forEach((node) => node.remove());
-				focusNodeData.sliceText(SliceTo);
+				focusNodeData.sliceContent(SliceTo);
 			} else focusNodeData.remove();
 
 			blocksBetween.forEach((node) => node.remove());
@@ -794,8 +793,8 @@ class ContentNode {
 	 * @param  {SelectionState} selectionState
 	 * @returns void
 	 */
-	removeLetterFromBlock(): void {
-		this.insertLetterIntoTextNodeTest(undefined);
+	removeLetter(): void {
+		this.insertLetter(undefined);
 	}
 
 	handleEnterTest(): void {
@@ -808,7 +807,7 @@ class ContentNode {
 			const newBreakLine = createBreakLine();
 			const {contentNode, index} = anchorNode.getContentNode();
 			if (contentNode) {
-				contentNode.insertNode(newBreakLine, index, NodeInsertionDeriction.after);
+				contentNode.insertNode(newBreakLine, index, NodeInsertionDeriction.before);
 			}
 		}
 	}

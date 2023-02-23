@@ -21,7 +21,7 @@ class BreakLine extends BaseNode {
 	}
 
 	getContentLength() {
-		return 1;
+		return 0;
 	}
 
 	createSelfNode() {

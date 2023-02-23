@@ -90,9 +90,9 @@ function createAITEContentNode(ContentNode: ContentNode, options?: AiteNodeOptio
 }
 
 class EditorDOMState {
-	private __rootNode: AiteNode;
+	private readonly __rootNode: AiteNode;
 	private __rootDOMElement: AiteHTMLNode;
-	private __nodeMap: Map<string, AiteHTMLNode>;
+	private readonly __nodeMap: Map<string, AiteHTMLNode>;
 
 	constructor(EditorState: EditorState) {
 		this.__rootNode = createAiteNode(null, 'div', {}, createAITEContentNode(EditorState.contentNode));
