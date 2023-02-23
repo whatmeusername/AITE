@@ -26,8 +26,6 @@ export * from './EditorEvents';
 
 // SelectionUtils.ts
 
-export * from './SelectionUtils';
-
-export * from './SelectionUtils';
+export * from './Selection';
 
 export * from './BlockNode';

@@ -1,11 +1,11 @@
-import {ClassVariables, Nullable} from './Interfaces';
-import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from './ConstVariables';
-import {isDefined, getIndexPathFromKeyPath, isDecoratorNode} from './EditorUtils';
-import {AiteHTML, getKeyPathNodeByNode, isBlockNode, isTextNode} from './index';
+import {ClassVariables, Nullable} from '../Interfaces';
+import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from '../ConstVariables';
+import {isDefined, getIndexPathFromKeyPath, isDecoratorNode} from '../EditorUtils';
+import {AiteHTML, getKeyPathNodeByNode, isBlockNode, isTextNode} from '../index';
 
-import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from './index';
+import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from '../index';
 
-import {BaseNode, HeadNode, TextNode} from './AITE_nodes/index';
+import {BaseNode, HeadNode, TextNode} from '../AITE_nodes/index';
 
 interface block_childrenExtended {
 	node: AiteHTMLNode;
@@ -33,13 +33,11 @@ interface insertSelection extends Omit<ClassVariables<SelectionState>, 'anchorPa
  */
 const isSelectionBackward = (rangeOrSelection: Selection | Range) => {
 	if (rangeOrSelection instanceof Selection) {
-		let pos = rangeOrSelection?.anchorNode?.compareDocumentPosition(rangeOrSelection.focusNode as HTMLElement);
-		if ((!pos && rangeOrSelection.anchorOffset > rangeOrSelection.focusOffset) || pos === Node.DOCUMENT_POSITION_PRECEDING) return true;
-		return false;
+		const pos = rangeOrSelection?.anchorNode?.compareDocumentPosition(rangeOrSelection.focusNode as HTMLElement);
+		return (!pos && rangeOrSelection.anchorOffset > rangeOrSelection.focusOffset) || pos === Node.DOCUMENT_POSITION_PRECEDING;
 	} else {
-		let pos = rangeOrSelection?.startContainer?.compareDocumentPosition(rangeOrSelection.endContainer as HTMLElement);
-		if ((!pos && rangeOrSelection.startOffset > rangeOrSelection.endOffset) || pos === Node.DOCUMENT_POSITION_PRECEDING) return true;
-		return false;
+		const pos = rangeOrSelection?.startContainer?.compareDocumentPosition(rangeOrSelection.endContainer as HTMLElement);
+		return (!pos && rangeOrSelection.startOffset > rangeOrSelection.endOffset) || pos === Node.DOCUMENT_POSITION_PRECEDING;
 	}
 };
 /**
@@ -151,11 +149,8 @@ class NodePath {
 }
 
 class SelectionState {
-	anchorOffset: number;
-	focusOffset: number;
-
-	anchorPath: NodePath;
-	focusPath: NodePath;
+	_anchorOffset: number;
+	_focusOffset: number;
 
 	anchorKey: Nullable<number>;
 	focusKey: Nullable<number>;
@@ -169,9 +164,12 @@ class SelectionState {
 	anchorNode: Nullable<HeadNode>;
 	focusNode: Nullable<HeadNode>;
 
+	anchorPath: NodePath;
+	focusPath: NodePath;
+
 	constructor() {
-		this.anchorOffset = 0;
-		this.focusOffset = 0;
+		this._anchorOffset = 0;
+		this._focusOffset = 0;
 
 		this.anchorPath = new NodePath();
 		this.focusPath = new NodePath();
@@ -189,9 +187,24 @@ class SelectionState {
 		this.focusNode = null;
 	}
 
-	// DEPRECATED / TODO
+	set anchorOffset(value: number) {
+		this._anchorOffset = value < 0 ? 0 : value;
+	}
+
+	get anchorOffset(): number {
+		return this._anchorOffset;
+	}
+
+	set focusOffset(value: number) {
+		this._focusOffset = value < 0 ? 0 : value;
+	}
+
+	get focusOffset(): number {
+		return this._focusOffset;
+	}
+
 	isNodesSame(): boolean {
-		return this.focusPath.getLastIndex() === this.anchorPath.getLastIndex() && this.focusPath.length() === this.anchorPath.length();
+		return this.anchorNode?.key === this.focusNode?.key;
 	}
 
 	/**
@@ -218,21 +231,6 @@ class SelectionState {
 		return this.anchorPath.getLastIndex() <= 0 && this.anchorOffset <= 0 && this.focusPath.getLastIndex() <= 0 && this.focusOffset <= 0;
 	}
 
-	// DEPRECATED / DONT USED
-	isFullBlockSelected(): boolean {
-		let anchorPath = this.anchorPath;
-		let focusPath = this.focusPath;
-		if (
-			(anchorPath.getLastIndex() === 0 || anchorPath.getLastIndex() === -1) &&
-			this.anchorOffset === 0 &&
-			focusPath.getBlockPath()[anchorPath.getBlockPath.length - 1] === anchorPath.getBlockPath()[anchorPath.getBlockPath.length - 1] + 1 &&
-			(focusPath.getLastIndex() === 0 || focusPath.getLastIndex() === -1) &&
-			this.focusOffset === 0
-		)
-			return true;
-		else return false;
-	}
-
 	// DEPRECATED / TODO: REMOVE
 	enableDirty(): SelectionState {
 		return this;
@@ -243,6 +241,9 @@ class SelectionState {
 	 * @returns SelectionState - собственный возрат
 	 */
 	resetSelection(): SelectionState {
+		this.anchorNode = null;
+		this.focusNode = null;
+
 		this.anchorOffset = 0;
 		this.focusOffset = 0;
 
@@ -287,15 +288,6 @@ class SelectionState {
 	 */
 	getPathToNodeByNode(node: AiteHTMLNode): selectionData | undefined {
 		if (node.$$isAiteNode === true) {
-			// if(node.$$isAiteWrapper === true){
-			// 	while(node.$$isAiteWrapper){
-			// 		node = node.parentNode as AiteHTMLNode
-			// 		if(node.$$isAiteNode === undefined){
-			// 			return undefined
-			// 		}
-
-			// 	}
-			// }
 			if (node.dataset?.aite_decorator_node === undefined) {
 				node = node.firstChild ? (node.firstChild as AiteHTMLNode) : node;
 			}
@@ -744,8 +736,7 @@ class SelectionState {
 		if (range !== undefined) {
 			if (!anchorNode || !focusNode || !anchorNode.$$isAiteNode || !anchorNode.$$isAiteNode) return;
 
-			let isCollapsed = range.collapsed;
-			this.isCollapsed = isCollapsed;
+			this.isCollapsed = range.collapsed;
 			let isBackward = isSelectionBackward(range);
 
 			this.anchorNode = anchorNode.$$ref;
@@ -754,25 +745,21 @@ class SelectionState {
 			if (anchorNodeData) {
 				this.anchorKey = anchorNodeData.nodeKey;
 				this.anchorType = anchorNodeData.elementType;
-				//this.anchorPath.setLastPathIndex(anchorNodeData.nodePath[anchorNodeData.nodePath.length - 1]);
 				this.anchorPath = new NodePath(anchorNodeData.nodePath);
 
 				this.anchorOffset = isBackward ? range.endOffset : range.startOffset;
-
-				if (isCollapsed) {
-					this.toggleCollapse();
-					this.sameBlock = true;
-					this.focusNode = anchorNode.$$ref;
-				}
 			}
 
-			if (!isCollapsed) {
+			if (this.isCollapsed) {
+				this.toggleCollapse();
+				this.sameBlock = true;
+				this.focusNode = anchorNode.$$ref;
+			} else {
 				this.focusNode = focusNode.$$ref;
 				let focusNodeData = this.__getBlockNode(focusNode);
 
 				this.focusKey = focusNodeData.nodeKey;
 				this.focusType = focusNodeData.elementType;
-				//this.focusPath.setLastPathIndex(focusNodeData.nodePath[focusNodeData.nodePath.length - 1]);
 				this.focusPath = new NodePath(focusNodeData.nodePath);
 
 				this.focusOffset = isBackward ? range.startOffset : range.endOffset;

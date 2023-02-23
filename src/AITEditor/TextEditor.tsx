@@ -1,11 +1,11 @@
 import React, {useEffect} from 'react';
 
 import defaultBlocks from './defaultStyles/defaultBlocks';
-import {NodePath, BlockNode, getEditorEventStatus} from './index';
+import {getEditorEventStatus} from './index';
 
 import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
 
-import {getBlockNodeWithNode, getDecoratorNode} from './EditorUtils';
+import {getDecoratorNode} from './EditorUtils';
 
 import './defaultinlineStyles.scss';
 import './AITE_test.scss';
@@ -118,34 +118,28 @@ function AITEditor(): JSX.Element {
 					return false;
 				}
 				if (canDropElement(event as DropEvent)) {
-					let dropRange = getDropCaretRange(event as DropEvent);
-					if (dropRange !== null) {
-						let dropData = getDragData(event)?.data;
-
-						let EditorState = getEditorState();
-						EditorState.selectionState.getCaretPosition(dropRange);
-						let SelectionState = EditorState.selectionState;
-
-						if (dropData !== undefined && dropData.nodePath !== null) {
-							let DragElementData = getBlockNodeWithNode(new NodePath(dropData.nodePath), undefined);
-							let CaretElementData = getBlockNodeWithNode(SelectionState.anchorPath, 'anchor');
-
-							let DragElementBlock = DragElementData?.block.node;
-							let CaretBlockNode = CaretElementData?.block.node;
-
-							if (CaretBlockNode instanceof BlockNode && DragElementBlock instanceof BlockNode && DragElementData?.node) {
-								let movedNodeKey = DragElementData?.node?.node.key ?? '';
-								let isSameBlock = DragElementBlock.key === CaretBlockNode.key;
-
-								DragElementBlock.removeNodeByKey(movedNodeKey);
-
-								if (isSameBlock === false) {
-									DragElementBlock.remount();
-								}
-								CaretBlockNode.remount();
-							}
-						}
-					}
+					// let dropRange = getDropCaretRange(event as DropEvent);
+					// if (dropRange !== null) {
+					// 	let dropData = getDragData(event)?.data;
+					// 	let EditorState = getEditorState();
+					// 	EditorState.selectionState.getCaretPosition(dropRange);
+					// 	let SelectionState = EditorState.selectionState;
+					// 	if (dropData !== undefined && dropData.nodePath !== null) {
+					// 		let DragElementData = getBlockNodeWithNode(new NodePath(dropData.nodePath), undefined);
+					// 		let CaretElementData = getBlockNodeWithNode(SelectionState.anchorPath, 'anchor');
+					// 		let DragElementBlock = DragElementData?.block.node;
+					// 		let CaretBlockNode = CaretElementData?.block.node;
+					// 		if (CaretBlockNode instanceof BlockNode && DragElementBlock instanceof BlockNode && DragElementData?.node) {
+					// 			let movedNodeKey = DragElementData?.node?.node.key ?? '';
+					// 			let isSameBlock = DragElementBlock.key === CaretBlockNode.key;
+					// 			DragElementBlock.removeNodeByKey(movedNodeKey);
+					// 			if (isSameBlock === false) {
+					// 				DragElementBlock.remount();
+					// 			}
+					// 			CaretBlockNode.remount();
+					// 		}
+					// 	}
+					// }
 				}
 			});
 

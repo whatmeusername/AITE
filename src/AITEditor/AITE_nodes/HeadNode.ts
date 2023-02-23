@@ -2,12 +2,12 @@ import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, genera
 import {BaseNode, LinkNode, NodeKeyTypes} from './index';
 
 abstract class HeadNode {
-	protected _status: 0 | 1 | 2;
+	status: 0 | 1 | 2;
 	key: number;
 	protected __type: NodeKeyTypes | 'block';
 
 	constructor(type: NodeKeyTypes | 'block') {
-		this._status = 1;
+		this.status = 1;
 		this.key = generateKey();
 		this.__type = type;
 	}
@@ -42,16 +42,12 @@ abstract class HeadNode {
 		return this.__type;
 	}
 
-	$getNodeStatus() {
-		return this._status;
-	}
-
 	remove(): void {
 		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
 		if (DOMnode !== undefined && this.key) {
 			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$$ref as BaseNode).__parent;
 			if (parentRef && (parentRef instanceof BlockNode || parentRef instanceof ContentNode || parentRef instanceof LinkNode)) {
-				this._status = 0;
+				this.status = 0;
 				unmountNode(this);
 				parentRef.removeNodeByKey(this.key);
 			}

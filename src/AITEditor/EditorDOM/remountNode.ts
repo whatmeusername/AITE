@@ -1,6 +1,6 @@
 import {HeadNode} from '../AITE_nodes';
 import {AiteHTML} from './interface';
-import {createDOMElement, returnSingleDOMNode} from './reconiliation';
+import {createDOMElement, returnSingleDOMNode} from './EditorDom';
 import {getEditorState} from '../index';
 
 function remountNode(node: HeadNode, childOnly: boolean = true): HeadNode {

@@ -24,14 +24,35 @@ function createTextNode(text: string = '', styles?: Array<string>) {
 	return new TextNode({plainText: text, styles: styles ?? []});
 }
 
+const TEXT_NODE_CONTENT_KEY = '__content';
+
 class TextNode extends BaseNode {
-	__content: string;
+	[TEXT_NODE_CONTENT_KEY]: string;
 	_styles: Array<string>;
 
 	constructor(initData?: textNodeConf) {
 		super('text');
 		this.__content = initData?.plainText ?? '';
 		this._styles = initData?.styles ?? [];
+
+		return new Proxy(this, {
+			set(target: TextNode, key: string, value) {
+				const copiedState: TextNode = {...this} as TextNode;
+				(target as any)[key] = value;
+				if (key === TEXT_NODE_CONTENT_KEY) {
+					if (target[TEXT_NODE_CONTENT_KEY] === '') {
+						target.remove();
+						target.status = 0;
+					} else if (target[TEXT_NODE_CONTENT_KEY] !== copiedState[TEXT_NODE_CONTENT_KEY]) {
+						updateTextNodeContent(target);
+					}
+				}
+				return true;
+			},
+			get(target: TextNode, key: keyof TextNode): TextNode[keyof TextNode] {
+				return target[key];
+			},
+		});
 	}
 
 	update(func: (textNode: TextNode) => void, options?: updateOptions): number {
@@ -43,7 +64,7 @@ class TextNode extends BaseNode {
 
 		if (this.__content === '' && removeIfEmpty) {
 			this.remove();
-			this._status = 0;
+			this.status = 0;
 		} else if (this.__status === 1) {
 			let diffResult = DiffNodeState(copiedState, this);
 
@@ -57,7 +78,7 @@ class TextNode extends BaseNode {
 			}
 		}
 
-		return this._status;
+		return this.status;
 	}
 
 	getStyles() {

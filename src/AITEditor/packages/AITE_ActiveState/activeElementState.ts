@@ -1,6 +1,6 @@
 import {getDecoratorNode, isNodesPathEqual} from '../../EditorUtils';
 
-import {NodePath, getSelection} from '../../SelectionUtils';
+import {NodePath, getSelection} from '../../Selection';
 import {getEditorState, getSelectionState} from '../../index';
 import {AiteHTMLNode} from '../../index';
 

@@ -4,7 +4,7 @@ import {Nullable} from '../Interfaces';
 import {AiteTextNode} from './AiteTextNode';
 import {setProps} from './helpers';
 import {AiteHTMLNode, AiteNodeOptions, AiteNodes, AiteNodeTypes} from './interface';
-import {__nodeMap} from './reconiliation';
+import {__nodeMap} from './EditorDom';
 import {isAiteNode} from './utils';
 
 class AiteNode {

@@ -230,7 +230,6 @@ class EditorCommands {
 				this.currentEventPriority = null;
 			} else event.preventDefault();
 		}
-		//console.log([...arr])
 	}
 }
 
