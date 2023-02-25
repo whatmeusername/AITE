@@ -1,8 +1,8 @@
-import {getDecoratorNode, isNodesPathEqual} from '../../EditorUtils';
+import {getDecoratorNode, isNodesPathEqual} from "../../EditorUtils";
 
-import {NodePath, getSelection} from '../../Selection';
-import {getEditorState, getSelectionState} from '../../index';
-import {AiteHTMLNode} from '../../index';
+import {NodePath, getSelection} from "../../Selection";
+import {getEditorState, getSelectionState} from "../../index";
+import {AiteHTMLNode} from "../../index";
 
 type mouseEvent = React.MouseEvent | MouseEvent;
 type EditorNodeSelectedData = {node: Node | HTMLElement; index: number} | undefined;
@@ -15,7 +15,7 @@ export default class ActiveElementState {
 	activeNodeType: string | undefined;
 
 	constructor() {
-		this.allowedAllements = ['image/gif'];
+		this.allowedAllements = ["image/gif"];
 		this.isActive = false;
 		this.pathToActiveNode = new NodePath();
 		this.activeNodeKey = undefined;
@@ -29,7 +29,7 @@ export default class ActiveElementState {
 	}
 
 	removeElementFromAllowed(element: string): void {
-		let elementIndex = this.allowedAllements.findIndex((o) => o === element);
+		const elementIndex = this.allowedAllements.findIndex((o) => o === element);
 		if (elementIndex !== -1) {
 			this.allowedAllements.splice(elementIndex, 1);
 		}
@@ -41,48 +41,48 @@ export default class ActiveElementState {
 	}
 
 	handleActiveClick(target: AiteHTMLNode): void {
-		let EditorState = getEditorState();
-		let selectionState = EditorState.selectionState;
-		let nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target);
+		const EditorState = getEditorState();
+		const selectionState = EditorState.selectionState;
+		const nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target);
 
 		if (nodeType && this.allowedAllements.includes(nodeType)) {
-			let decoratorNode = getDecoratorNode(target);
-			let targetNodeDOMData = selectionState.__getBlockNode(decoratorNode);
+			const decoratorNode = getDecoratorNode(target);
+			const targetNodeDOMData = selectionState.__getBlockNode(decoratorNode);
 
 			if (!isNodesPathEqual(this.pathToActiveNode, targetNodeDOMData.nodePath)) {
-				let nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target);
+				const nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target);
 				if (nodeType && this.allowedAllements.includes(nodeType)) {
-					let previousActivePath = this.pathToActiveNode.get();
+					const previousActivePath = this.pathToActiveNode.get();
 					this.resetActiveData();
 
-					let targetNodeData = getEditorState().contentNode.getBlockByPath(previousActivePath);
+					const targetNodeData = getEditorState().contentNode.getBlockByPath(previousActivePath);
 					targetNodeData.remount();
 
 					this.setActiveElement(target);
 				}
 			}
 		} else {
-			let previousActivePath = this.pathToActiveNode.get();
+			const previousActivePath = this.pathToActiveNode.get();
 			this.resetActiveData();
 
-			let targetNodeData = getEditorState().contentNode.getBlockByPath(previousActivePath);
+			const targetNodeData = getEditorState().contentNode.getBlockByPath(previousActivePath);
 			targetNodeData.remount();
 		}
 	}
 
 	setActiveElement(target: AiteHTMLNode): void {
-		let EditorState = getEditorState();
-		let selectionState = EditorState.selectionState;
-		let contentNode = EditorState.contentNode;
+		const EditorState = getEditorState();
+		const selectionState = EditorState.selectionState;
+		const contentNode = EditorState.contentNode;
 
-		let decoratorNode = getDecoratorNode(target);
+		const decoratorNode = getDecoratorNode(target);
 		let targetNodeDOMData;
 
 		if (decoratorNode.dataset?.aite_decorator_node) {
 			targetNodeDOMData = selectionState.__getBlockNode(decoratorNode);
 		}
 		targetNodeDOMData = selectionState.__getBlockNode(target);
-		let targetNodeData = contentNode.getBlockByPath(targetNodeDOMData.nodePath);
+		const targetNodeData = contentNode.getBlockByPath(targetNodeDOMData.nodePath);
 		if (targetNodeData) {
 			this.isActive = true;
 			this.activeNodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target) ?? undefined;
@@ -93,12 +93,12 @@ export default class ActiveElementState {
 	}
 
 	handleElementClick(event: MouseEvent): void {
-		let target = event.target as AiteHTMLNode;
+		const target = event.target as AiteHTMLNode;
 		if (this.isActive) {
 			this.handleActiveClick(target);
 		} else if (target && target.$$isAiteNode) {
-			let selectionState = getSelectionState();
-			let nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target);
+			const selectionState = getSelectionState();
+			const nodeType = target.$$AiteNodeType ? target.$$AiteNodeType : selectionState.$getNodeType(target);
 			if (nodeType && this.allowedAllements.includes(nodeType)) {
 				this.setActiveElement(target);
 				getSelection().removeAllRanges();

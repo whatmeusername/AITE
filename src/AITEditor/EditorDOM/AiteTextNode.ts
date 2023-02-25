@@ -1,6 +1,6 @@
-import {TextNode} from '../AITE_nodes';
-import {Nullable} from '../Interfaces';
-import {AiteHTMLTextNode} from './interface';
+import {TextNode} from "../AITE_nodes";
+import {Nullable} from "../Interfaces";
+import {AiteHTMLTextNode} from "./interface";
 
 class AiteTextNode {
 	children: string;
@@ -16,10 +16,10 @@ class AiteTextNode {
 }
 
 function createAiteText(string: string, ref?: Nullable<TextNode>): AiteHTMLTextNode {
-	let textNode: AiteHTMLTextNode = document.createTextNode(string) as AiteHTMLTextNode;
+	const textNode: AiteHTMLTextNode = document.createTextNode(string) as AiteHTMLTextNode;
 	textNode.$$isAiteNode = true;
 	textNode.$$isAiteTextNode = true;
-	textNode.$$AiteNodeType = 'text';
+	textNode.$$AiteNodeType = "text";
 	textNode.$$ref = ref ?? null;
 	return textNode;
 }

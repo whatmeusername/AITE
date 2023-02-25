@@ -1,15 +1,15 @@
-import {getEditorState} from '../../index';
-import type {floatType, imageNode} from './imageNode';
-import {IMAGE_NODE_TYPE} from '../../ConstVariables';
-import {getBlockNodeWithNode} from '../../EditorUtils';
+import {getEditorState} from "../../index";
+import type {floatType, imageNode} from "./imageNode";
+import {IMAGE_NODE_TYPE} from "../../ConstVariables";
+import {getBlockNodeWithNode} from "../../EditorUtils";
 
 export function setImageFloatDirection(direction: floatType): void {
-	let EditorState = getEditorState();
-	let activeEditorState = EditorState.EditorActiveElementState;
+	const EditorState = getEditorState();
+	const activeEditorState = EditorState.EditorActiveElementState;
 
-	let CurrentNodeData = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined);
-	let BlockNode = CurrentNodeData?.block;
-	let ImageNode = CurrentNodeData?.node;
+	const CurrentNodeData = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined);
+	const BlockNode = CurrentNodeData?.block;
+	const ImageNode = CurrentNodeData?.node;
 
 	// if (BlockNode?.node !== undefined) {
 	// 	if (ImageNode.node.getActualType() === 'image/gif') {
@@ -46,9 +46,9 @@ export function setImageFloatDirection(direction: floatType): void {
 }
 
 export function toggleImageCaption(): void {
-	let activeEditorState = getEditorState().EditorActiveElementState;
+	const activeEditorState = getEditorState().EditorActiveElementState;
 	if (activeEditorState.activeNodeType === IMAGE_NODE_TYPE) {
-		let CurrentNode = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)?.node;
+		const CurrentNode = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)?.node;
 		if (CurrentNode && CurrentNode.node.getActualType() === IMAGE_NODE_TYPE) {
 			(CurrentNode.node as imageNode).toggleCaptition();
 			CurrentNode.node.remount();
@@ -66,5 +66,5 @@ export function validateImageURL(imageURL: string): boolean {
 		return false;
 	}
 
-	return imageURL.match(/\.(jpeg|jpg|gif|png)$/) !== null && (imageURL.startsWith('http://') || imageURL.startsWith('https://'));
+	return imageURL.match(/\.(jpeg|jpg|gif|png)$/) !== null && (imageURL.startsWith("http://") || imageURL.startsWith("https://"));
 }

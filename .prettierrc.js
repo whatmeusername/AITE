@@ -2,9 +2,9 @@
 
 module.exports = {
   bracketSpacing: false,
-  singleQuote: true,
+  singleQuote: false,
   useTabs: true,
-  tabWidth: 4,
+  tabWidth: 2,
   semi: true,
   printWidth: 160,
 

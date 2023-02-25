@@ -1,7 +1,7 @@
-import {BaseNode} from './BaseNode';
-import {BREAK_LINE_TYPE} from '../ConstVariables';
-import {BlockNode, createAiteNode, createBlockNode} from '../index';
-import type {AiteNode, AiteNodeOptions} from '../index';
+import {BaseNode} from "./BaseNode";
+import {BREAK_LINE_TYPE} from "../ConstVariables";
+import {BlockNode, createAiteNode, createBlockNode} from "../index";
+import type {AiteNode, AiteNodeOptions} from "../index";
 
 class BreakLine extends BaseNode {
 	constructor() {
@@ -9,15 +9,15 @@ class BreakLine extends BaseNode {
 	}
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode {
-		let className = 'AITE_breakline';
-		let props = {
+		const className = "AITE_breakline";
+		const props = {
 			className: className,
-			'data-aite-node': true,
+			"data-aite-node": true,
 		};
-		if (options) options.AiteNodeType = 'breakline';
-		else options = {AiteNodeType: 'breakline'};
+		if (options) options.AiteNodeType = "breakline";
+		else options = {AiteNodeType: "breakline"};
 
-		return createAiteNode(this, 'br', props, null, {...options, isAiteWrapper: false});
+		return createAiteNode(this, "br", props, null, {...options, isAiteWrapper: false});
 	}
 
 	getContentLength() {

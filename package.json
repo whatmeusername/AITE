@@ -41,6 +41,10 @@
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
+    "@typescript-eslint/parser": "^5.53.0",
+    "eslint": "^8.34.0",
+    "eslint-plugin-react": "^7.32.2",
     "jest": "^28.1.0",
     "jest-environment-jsdom": "^28.1.0",
     "prettier": "2.6.2",

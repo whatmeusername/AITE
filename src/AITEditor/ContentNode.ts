@@ -1,10 +1,10 @@
-import {BREAK_LINE_TYPE, TEXT_NODE_TYPE} from './ConstVariables';
-import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine} from './AITE_nodes/index';
+import {BREAK_LINE_TYPE, TEXT_NODE_TYPE} from "./ConstVariables";
+import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine} from "./AITE_nodes/index";
 
-import {createBlockNode, createHorizontalRule} from './BlockNode';
+import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
-import {unmountNode, BlockType, SelectionState, NodePath, BlockNode, HorizontalRuleNode, getSelectionState, mountNode, NodeInsertionDeriction} from './index';
-import {isLeafNode} from './EditorUtils';
+import {unmountNode, BlockType, NodePath, BlockNode, HorizontalRuleNode, getSelectionState, mountNode, NodeInsertionDeriction} from "./index";
+import {isLeafNode} from "./EditorUtils";
 
 interface contentNodeConf {
 	BlockNodes?: Array<BlockType>;
@@ -49,32 +49,32 @@ class ContentNode {
 			return this.children.length;
 		};
 		this.children = initData?.BlockNodes ?? [
-			createBlockNode({blockWrapper: 'header-two'}).append(createTextNode('Тестовый текст для редактора')),
+			createBlockNode({blockWrapper: "header-two"}).append(createTextNode("Тестовый текст для редактора")),
 			createHorizontalRule(),
 			createHorizontalRule(),
 			createHorizontalRule(),
 			createBreakLine(),
-			createBlockNode({blockWrapper: 'standart'}).append(
+			createBlockNode({blockWrapper: "standart"}).append(
 				createTextNode(
-					'Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.',
-					['ITALIC'],
+					"Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.",
+					["ITALIC"],
 				),
-				createTextNode('some amazing text number 1 ', ['ITALIC', 'BOLD']),
-				createTextNode('some amazing text number 2', ['ITALIC', 'UNDERLINE', 'BOLD']),
+				createTextNode("some amazing text number 1 ", ["ITALIC", "BOLD"]),
+				createTextNode("some amazing text number 2", ["ITALIC", "UNDERLINE", "BOLD"]),
 			),
-			createBlockNode({blockWrapper: 'header-one'}).append(
-				createLinkNode('https://yandex.ru').append(
-					createTextNode(`начало `, ['ITALIC', 'UNDERLINE']),
-					createTextNode(`середина `, []),
-					createTextNode(`конец`, ['UNDERLINE']),
+			createBlockNode({blockWrapper: "header-one"}).append(
+				createLinkNode("https://yandex.ru").append(
+					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
+					createTextNode("середина ", []),
+					createTextNode("конец", ["UNDERLINE"]),
 				),
-				createTextNode(`Языки программирования`, ['STRIKETHROUGH', 'UNDERLINE']),
-				createLinkNode('https://yandex.ru').append(
-					createTextNode(`начало `, ['ITALIC', 'UNDERLINE']),
-					createTextNode(`середина `, []),
-					createTextNode(`конец`, ['UNDERLINE']),
+				createTextNode("Языки программирования", ["STRIKETHROUGH", "UNDERLINE"]),
+				createLinkNode("https://yandex.ru").append(
+					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
+					createTextNode("середина ", []),
+					createTextNode("конец", ["UNDERLINE"]),
 				),
-				createTextNode(` текст после ссылки`, ['ITALIC', 'UNDERLINE']),
+				createTextNode(" текст после ссылки", ["ITALIC", "UNDERLINE"]),
 			),
 		];
 
@@ -110,34 +110,34 @@ class ContentNode {
 	}
 
 	insertNodeBefore<T extends BlockType>(index: number, node: T): T {
-		let insertOffset = index > 0 ? index - 1 : index;
-		let previousSibling = this.children[index];
+		const insertOffset = index > 0 ? index - 1 : index;
+		const previousSibling = this.children[index];
 		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
 		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
 		return node;
 	}
 
 	insertNodeAfter<T extends BlockType>(index: number, node: T): T {
-		let insertOffset = index + 1;
-		let previousSibling = this.children[index];
+		const insertOffset = index + 1;
+		const previousSibling = this.children[index];
 
 		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
 		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
 		return node;
 	}
 
-	insertNode(node: BlockType, index: number | 'last' | 'first', direction: NodeInsertionDeriction) {
+	insertNode(node: BlockType, index: number | "last" | "first", direction: NodeInsertionDeriction) {
 		if (index < 0) return;
 
 		node.parent = this;
-		let blocksLength = this.children.length - 1;
-		if ((index === 0 && direction !== 'after') || index === 'first') {
+		const blocksLength = this.children.length - 1;
+		if ((index === 0 && direction !== "after") || index === "first") {
 			this.insertNodeBefore(0, node);
-		} else if (index === blocksLength || index === 'last') {
+		} else if (index === blocksLength || index === "last") {
 			this.insertNodeAfter(blocksLength, node);
 		} else {
-			let previousSibling = this.children[index];
-			index = direction === 'after' ? index + 1 : (index as number);
+			const previousSibling = this.children[index];
+			index = direction === "after" ? index + 1 : (index as number);
 			this.insertBlockNodeBetween(node, index, index);
 			if (previousSibling) mountNode(previousSibling, node, direction);
 		}
@@ -154,7 +154,7 @@ class ContentNode {
 		if (nodePath.length() !== 1) {
 			let currentContentNode = this.getBlockByPath(nodePath.getContentNode()) as any;
 			if (currentContentNode instanceof ContentNode) {
-				let currentContentNode = this.getBlockByPath(nodePath.getContentNode()) as any;
+				const currentContentNode = this.getBlockByPath(nodePath.getContentNode()) as any;
 				return {ContentNode: currentContentNode, NodePath: nodePath};
 			} else if (currentContentNode instanceof BlockNode) {
 				nodePath = new NodePath(nodePath.getBlockPath());
@@ -227,7 +227,7 @@ class ContentNode {
 
 	// TODO: MOVE TO TextNode
 
-	TextNodeSlice(char: TextNode, CharToInsert: string = '', start: number, end?: number): void {
+	TextNodeSlice(char: TextNode, CharToInsert: string = "", start: number, end?: number): void {
 		if (start === -1) {
 			char.__content = char.__content + CharToInsert;
 		} else if (end !== undefined && end !== -1) {
@@ -342,7 +342,7 @@ class ContentNode {
 	// }
 
 	removeNodeByKey(key: number) {
-		let index = this.children.findIndex((block) => block.key === key);
+		const index = this.children.findIndex((block) => block.key === key);
 		if (index !== -1) this.children.splice(index, 1);
 	}
 
@@ -363,7 +363,7 @@ class ContentNode {
 	}
 
 	getTextNodeOffset(node: TextNode, offset: number): number {
-		let TextContentLength = node.getContentLength();
+		const TextContentLength = node.getContentLength();
 		if (offset === -1) {
 			offset = TextContentLength;
 		} else if (offset > TextContentLength) {
@@ -381,10 +381,10 @@ class ContentNode {
 
 	getBlockNodesBetween(startNode: BlockType, endNode: BlockType, returnAllIfNotFound?: boolean): BlockType[] {
 		let startFound = false;
-		let nodes: BlockType[] = [];
+		const nodes: BlockType[] = [];
 
-		let startKey = isLeafNode(startNode) ? (startNode.parent as BlockNode).key : startNode.key;
-		let endKey = isLeafNode(endNode) ? (endNode.parent as BlockNode).key : startNode.key;
+		const startKey = isLeafNode(startNode) ? (startNode.parent as BlockNode).key : startNode.key;
+		const endKey = isLeafNode(endNode) ? (endNode.parent as BlockNode).key : startNode.key;
 
 		for (let i = 0; i < this.children.length; i++) {
 			const node = this.children[i];
@@ -401,7 +401,7 @@ class ContentNode {
 		return returnAllIfNotFound && nodes.length === 0 ? this.children : nodes;
 	}
 
-	MergeBlockNode(connectingNode: BlockNode, joinNode: BlockNode, selectionState: SelectionState): void {
+	MergeBlockNode(connectingNode: BlockNode, joinNode: BlockNode): void {
 		connectingNode = (isLeafNode(connectingNode) ? connectingNode.parent : connectingNode) as BlockNode;
 		joinNode = (isLeafNode(joinNode) ? joinNode.parent : joinNode) as BlockNode;
 
@@ -417,10 +417,10 @@ class ContentNode {
 		const selectionState = getSelectionState();
 		const isSelectionOnSameNode = selectionState.isNodesSame();
 		let SliceFrom = selectionState.anchorOffset;
-		let SliceTo = selectionState.focusOffset;
+		const SliceTo = selectionState.focusOffset;
 
 		const isRemove = KeyBoardEvent === undefined;
-		let key = isRemove ? '' : KeyBoardEvent ? KeyBoardEvent.key : '';
+		let key = isRemove ? "" : KeyBoardEvent ? KeyBoardEvent.key : "";
 
 		let anchorNode: BaseNode = selectionState.anchorNode as BaseNode;
 		let focusNode: BaseNode = selectionState.focusNode as BaseNode;
@@ -428,12 +428,12 @@ class ContentNode {
 		let anchorBlock: BlockNode = anchorNode.parent as BlockNode;
 		let focusBlock: BlockNode = focusNode.parent as BlockNode;
 
-		if (selectionState.anchorType === 'breakline' && isBlockNode(anchorNode)) {
+		if (selectionState.anchorType === "breakline" && isBlockNode(anchorNode)) {
 			anchorNode = anchorNode.convertFromBreakLine();
 			anchorBlock = anchorNode.parent as BlockNode;
 			selectionState.setNodeKey(anchorNode);
 		}
-		if (selectionState.focusType === 'breakline' && !selectionState.isCollapsed && isBlockNode(focusNode)) {
+		if (selectionState.focusType === "breakline" && !selectionState.isCollapsed && isBlockNode(focusNode)) {
 			focusNode = focusNode.convertFromBreakLine();
 			focusBlock = focusNode.parent as BlockNode;
 			selectionState.setNodeKey(focusNode);
@@ -455,7 +455,7 @@ class ContentNode {
 				previousBlock.remove();
 			} else if (isBlockNode(previousBlock)) {
 				if (contentNode) {
-					this.MergeBlockNode(previousBlock, anchorBlock, selectionState);
+					this.MergeBlockNode(previousBlock, anchorBlock);
 				}
 			}
 		};
@@ -466,8 +466,8 @@ class ContentNode {
 			SliceFrom = isRemove && selectionState.isCollapsed ? selectionState.anchorOffset - 1 : selectionState.anchorOffset;
 
 			if (selectionState.isCollapsed) {
-				if (key === ' ' && KeyBoardEvent?.which === 229) {
-					key = '.';
+				if (key === " " && KeyBoardEvent?.which === 229) {
+					key = ".";
 					SliceFrom -= 1;
 				} else if (!isRemove) selectionState.moveSelectionForward();
 				else if (isRemove) selectionState.moveSelectionBackward();
@@ -507,7 +507,7 @@ class ContentNode {
 
 			blocksBetween.forEach((node) => node.remove());
 
-			this.MergeBlockNode(anchorBlock, focusBlock, selectionState);
+			this.MergeBlockNode(anchorBlock, focusBlock);
 			selectionState.toggleCollapse(!anchorNode.status ? true : false);
 			if (!anchorNode.status && focusNode.status) selectionState.offsetToZero();
 			else if (!focusNode.status && !anchorNode.status) selectionState.moveSelectionToPreviousSibling();
@@ -758,9 +758,9 @@ class ContentNode {
 	}
 
 	handleEnterTest(): void {
-		let selectionState = getSelectionState();
-		let anchorNode = selectionState.anchorNode;
-		let focusNode = selectionState.focusNode;
+		const selectionState = getSelectionState();
+		const anchorNode = selectionState.anchorNode;
+		const focusNode = selectionState.focusNode;
 		if (!anchorNode) return;
 
 		if (selectionState.isOffsetOnStart()) {

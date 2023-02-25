@@ -1,12 +1,12 @@
-import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, isContentNode, BlockType} from '../index';
-import {BaseNode, LinkNode, NodeKeyTypes} from './index';
+import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, isContentNode, BlockType} from "../index";
+import {BaseNode, LinkNode, NodeKeyTypes} from "./index";
 
 abstract class HeadNode {
 	status: 0 | 1 | 2;
 	key: number;
-	protected __type: NodeKeyTypes | 'block';
+	protected __type: NodeKeyTypes | "block";
 
-	constructor(type: NodeKeyTypes | 'block') {
+	constructor(type: NodeKeyTypes | "block") {
 		this.status = 1;
 		this.key = generateKey();
 		this.__type = type;
@@ -44,7 +44,7 @@ abstract class HeadNode {
 	}
 
 	remove(): void {
-		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
+		const DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
 		if (DOMnode !== undefined && this.key) {
 			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$$ref as BaseNode).parent;
 			if (parentRef && (parentRef instanceof BlockNode || parentRef instanceof ContentNode || parentRef instanceof LinkNode)) {
@@ -56,7 +56,7 @@ abstract class HeadNode {
 	}
 
 	remount(): void {
-		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
+		const DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
 		// HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE $getNodeState
 		if (DOMnode !== undefined && this.key !== undefined && (this as any).$getNodeState) {
 			// if((this as any).collectSameNodes){

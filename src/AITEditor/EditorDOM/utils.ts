@@ -1,4 +1,4 @@
-import {AiteNode} from './AiteNode';
+import {AiteNode} from "./AiteNode";
 
 const generateKey = (() => {
 	let i = 1;
@@ -8,7 +8,7 @@ const generateKey = (() => {
 })();
 
 function isEventProp(name: string): boolean {
-	return name.startsWith('on');
+	return name.startsWith("on");
 }
 
 function isAiteNode(node: any): node is AiteNode {
@@ -16,7 +16,7 @@ function isAiteNode(node: any): node is AiteNode {
 }
 
 function isNotEmpty(value: any): boolean {
-	if (value === null || value === undefined || value === '') return false;
+	if (value === null || value === undefined || value === "") return false;
 	return true;
 }
 

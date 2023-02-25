@@ -1,44 +1,44 @@
 const defaultBlocks = [
 	{
-		type: 'unstyled',
-		tag: 'div',
+		type: "unstyled",
+		tag: "div",
 	},
 	{
-		type: 'header-six',
-		tag: 'h6',
+		type: "header-six",
+		tag: "h6",
 	},
 	{
-		type: 'header-five',
-		tag: 'h5',
+		type: "header-five",
+		tag: "h5",
 	},
 	{
-		type: 'header-four',
-		tag: 'h4',
+		type: "header-four",
+		tag: "h4",
 	},
 	{
-		type: 'header-three',
-		tag: 'h3',
+		type: "header-three",
+		tag: "h3",
 	},
 	{
-		type: 'header-two',
-		tag: 'h2',
+		type: "header-two",
+		tag: "h2",
 	},
 	{
-		type: 'header-one',
-		tag: 'h1',
+		type: "header-one",
+		tag: "h1",
 	},
 	{
-		type: 'list-unordered-item',
-		tag: 'li',
+		type: "list-unordered-item",
+		tag: "li",
 	},
 	{
-		type: 'list-ordered-item',
-		tag: 'li',
+		type: "list-ordered-item",
+		tag: "li",
 	},
 	{
-		type: 'blockquote',
-		tag: 'blockquote',
-		class: 'AITE__editor__blockquote',
+		type: "blockquote",
+		tag: "blockquote",
+		class: "AITE__editor__blockquote",
 	},
 ];
 

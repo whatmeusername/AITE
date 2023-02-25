@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 
-import {EditorState as editorState} from '../../EditorState';
-import type {BlockType} from '../../BlockNode';
-import type {BlockNode} from '../../BlockNode';
+import {EditorState as editorState} from "../../EditorState";
+import type {BlockType} from "../../BlockNode";
+import type {BlockNode} from "../../BlockNode";
 
-import defaultBlocks from '../../defaultStyles/defaultBlocks';
-import defaultStyle from '../../defaultStyles/defaultStyle';
+import defaultBlocks from "../../defaultStyles/defaultBlocks";
+import defaultStyle from "../../defaultStyles/defaultStyle";
 
 interface styleCheck {
 	blockIndex?: number;

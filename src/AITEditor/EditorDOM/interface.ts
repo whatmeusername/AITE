@@ -1,6 +1,6 @@
-import type {TextNode, HeadNode} from '../AITE_nodes/index';
-import {Nullable} from '../Interfaces';
-import type {AiteNode, AiteTextNode} from './index';
+import type {TextNode, HeadNode} from "../AITE_nodes/index";
+import {Nullable} from "../Interfaces";
+import type {AiteNode, AiteTextNode} from "./index";
 
 type StringNumberBool = string | number | boolean;
 type AiteNodes = AiteNode | AiteTextNode;
@@ -21,7 +21,7 @@ interface AiteHTMLTextNode extends Text {
 	$$ref: Nullable<TextNode>;
 }
 
-type AiteNodeTypes = 'text' | 'breakline' | 'element' | 'unsigned' | 'image/gif';
+type AiteNodeTypes = "text" | "breakline" | "element" | "unsigned" | "image/gif";
 
 type AiteHTML = AiteHTMLNode | AiteHTMLTextNode;
 type NodeMap = Map<string, AiteHTMLNode>;
@@ -33,13 +33,13 @@ interface AiteNodeOptions {
 }
 
 enum NodeInsertionDeriction {
-	after = 'after',
-	before = 'before',
+	after = "after",
+	before = "before",
 }
 
 enum ClassAttribute {
-	className = 'className',
-	class = 'class',
+	className = "className",
+	class = "class",
 }
 
 export {NodeInsertionDeriction, ClassAttribute};

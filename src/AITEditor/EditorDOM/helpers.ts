@@ -1,5 +1,5 @@
-import {ClassAttribute, StringNumberBool} from './interface';
-import {isEventProp, isNotEmpty} from './utils';
+import {ClassAttribute, StringNumberBool} from "./interface";
+import {isEventProp, isNotEmpty} from "./utils";
 
 function addEventListeners<T extends HTMLElement>(target: T, type: string, listener: (...args: any[]) => void): T {
 	if (isEventProp(type)) {
@@ -24,10 +24,10 @@ function setProps<T extends HTMLElement>(target: T, props: {[K: string]: any}): 
 }
 
 function setAttribute<T extends HTMLElement>(target: T, attrName: string, value: StringNumberBool | CSSStyleDeclaration): T {
-	if (attrName === 'style' && typeof value === 'object') {
+	if (attrName === "style" && typeof value === "object") {
 		setStyles(target, value);
 	} else if ((attrName === ClassAttribute.className || attrName === ClassAttribute.class) && isNotEmpty(value)) {
-		target.setAttribute('class', value.toString());
+		target.setAttribute("class", value.toString());
 	} else if (isNotEmpty(value)) {
 		target.setAttribute(attrName, value.toString());
 	}
@@ -35,8 +35,8 @@ function setAttribute<T extends HTMLElement>(target: T, attrName: string, value:
 }
 
 function removeAttribute<T extends HTMLElement>(target: T, attrName: string, value: StringNumberBool | CSSStyleDeclaration): T {
-	if (attrName === 'className' && isNotEmpty(value)) {
-		target.removeAttribute('class');
+	if (attrName === "className" && isNotEmpty(value)) {
+		target.removeAttribute("class");
 	} else if (isNotEmpty(value as StringNumberBool)) {
 		target.removeAttribute(attrName);
 	}

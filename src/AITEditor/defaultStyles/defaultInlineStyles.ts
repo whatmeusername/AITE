@@ -7,39 +7,39 @@ interface defaultInlineStyles {
 
 const defaultInlineStyles: Array<defaultInlineStyles> = [
 	{
-		style: 'BOLD',
-		tag: 'strong',
-		class: 'AITEditor__standart__BOLD',
+		style: "BOLD",
+		tag: "strong",
+		class: "AITEditor__standart__BOLD",
 	},
 	{
-		style: 'STANDART',
-		tag: 'span',
-		class: 'AITEditor__standart__STANDART',
+		style: "STANDART",
+		tag: "span",
+		class: "AITEditor__standart__STANDART",
 	},
 	{
-		style: 'ITALIC',
-		tag: 'em',
-		class: 'AITEditor__standart__ITALIC',
+		style: "ITALIC",
+		tag: "em",
+		class: "AITEditor__standart__ITALIC",
 	},
 	{
-		style: 'SUPERSCRIPT',
-		tag: 'sup',
-		class: 'AITEditor__standart__SUPERSCRIPT',
+		style: "SUPERSCRIPT",
+		tag: "sup",
+		class: "AITEditor__standart__SUPERSCRIPT",
 	},
 	{
-		style: 'SUBSCRIPT',
-		tag: 'sub',
-		class: 'AITEditor__standart__SUBSCRIPT',
+		style: "SUBSCRIPT",
+		tag: "sub",
+		class: "AITEditor__standart__SUBSCRIPT",
 	},
 	{
-		style: 'UNDERLINE',
-		tag: 'u',
-		class: 'AITEditor__standart__UNDERLINE',
+		style: "UNDERLINE",
+		tag: "u",
+		class: "AITEditor__standart__UNDERLINE",
 	},
 	{
-		style: 'STRIKETHROUGH',
-		tag: 'strike',
-		class: 'AITEditor__standart__STRIKETHROUGH',
+		style: "STRIKETHROUGH",
+		tag: "strike",
+		class: "AITEditor__standart__STRIKETHROUGH",
 	},
 ];
 

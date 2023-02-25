@@ -1,17 +1,17 @@
-import {TextNode} from '../AITE_nodes/index';
+import {TextNode} from "../AITE_nodes/index";
 
-import type {ContentNode} from '../index';
-import {EditorState} from '../index';
+import type {ContentNode} from "../index";
+import {EditorState} from "../index";
 
-import {AiteNode, AiteTextNode, createAiteDomNode, createAiteNode, createAiteText, isAiteNode, setProps} from './index';
+import {AiteNode, AiteTextNode, createAiteDomNode, createAiteNode, createAiteText, isAiteNode, setProps} from "./index";
 
-import {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, AiteNodeOptions, NodeMap} from './interface';
-import {Nullable} from '../Interfaces';
+import {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, AiteNodeOptions, NodeMap} from "./interface";
+import {Nullable} from "../Interfaces";
 
 export const __nodeMap: NodeMap = new Map();
 
 function getKeyPathNodeByNode(node: AiteHTMLNode) {
-	let pathToNode = [];
+	const pathToNode = [];
 
 	if (node instanceof Text) {
 		node = node.parentNode as AiteHTMLNode;
@@ -33,22 +33,22 @@ function getKeyPathNodeByNode(node: AiteHTMLNode) {
 function createDOMElementWithoutChildren(node: AiteNode): AiteHTMLNode;
 function createDOMElementWithoutChildren(node: string): AiteHTMLTextNode;
 function createDOMElementWithoutChildren(node: AiteNode | string): AiteHTMLNode | AiteHTMLTextNode {
-	if (typeof node === 'string') {
+	if (typeof node === "string") {
 		return createAiteText(node);
 	} else if (isAiteNode(node)) {
-		let $node: AiteHTMLNode = createAiteDomNode(node);
+		const $node: AiteHTMLNode = createAiteDomNode(node);
 		if (node.props) {
 			setProps($node, node.props);
 		}
 		return $node;
-	} else throw new Error('');
+	} else throw new Error("");
 }
 
 function createDOMElement(node: AiteNodes): AiteHTMLNode | Text {
-	if (typeof node.children === 'string') {
+	if (typeof node.children === "string") {
 		return createAiteText(node.children, node.ref as TextNode);
 	} else if (isAiteNode(node)) {
-		let $node = createAiteDomNode(node);
+		const $node = createAiteDomNode(node);
 		if (node.props) {
 			setProps($node, node.props);
 		}
@@ -56,12 +56,12 @@ function createDOMElement(node: AiteNodes): AiteHTMLNode | Text {
 			node.children.map(createDOMElement).forEach($node.appendChild.bind($node));
 		}
 		return $node;
-	} else throw new Error('');
+	} else throw new Error("");
 }
 
 function appendChildrens(node: AiteNode | AiteTextNode): AiteHTMLNode | AiteHTMLTextNode {
 	if (isAiteNode(node)) {
-		let currentDOMNode = createDOMElementWithoutChildren(node);
+		const currentDOMNode = createDOMElementWithoutChildren(node);
 		if (node.children && node.children.length > 0) {
 			node.children.map(appendChildrens).forEach(currentDOMNode.appendChild.bind(currentDOMNode));
 		}
@@ -73,7 +73,7 @@ function returnSingleDOMNode(CurrentState: AiteNodes): AiteHTMLNode;
 function returnSingleDOMNode(CurrentState: AiteNodes[]): Array<AiteHTMLNode | Text>;
 function returnSingleDOMNode(CurrentState: AiteNodes | AiteNodes[]): AiteHTMLNode | Array<AiteHTMLNode | Text> {
 	if (Array.isArray(CurrentState)) {
-		let childrens: Array<AiteHTMLNode | Text> = [];
+		const childrens: Array<AiteHTMLNode | Text> = [];
 		CurrentState.map(appendChildrens).forEach(($node) => childrens.push($node));
 		return childrens;
 	}
@@ -81,8 +81,8 @@ function returnSingleDOMNode(CurrentState: AiteNodes | AiteNodes[]): AiteHTMLNod
 }
 
 function createAITEContentNode(ContentNode: ContentNode, options?: AiteNodeOptions): Array<AiteNode> {
-	let BlockNodes = ContentNode.children;
-	let BlockArray: Array<AiteNode> = [];
+	const BlockNodes = ContentNode.children;
+	const BlockArray: Array<AiteNode> = [];
 	for (let i = 0; i < BlockNodes.length; i++) {
 		BlockArray.push(BlockNodes[i].$getNodeState({...options}));
 	}
@@ -95,7 +95,7 @@ class EditorDOMState {
 	private readonly __nodeMap: Map<string, AiteHTMLNode>;
 
 	constructor(EditorState: EditorState) {
-		this.__rootNode = createAiteNode(null, 'div', {}, createAITEContentNode(EditorState.contentNode));
+		this.__rootNode = createAiteNode(null, "div", {}, createAITEContentNode(EditorState.contentNode));
 		this.__nodeMap = __nodeMap;
 		this.__rootDOMElement = createDOMElement(this.__rootNode) as AiteHTMLNode;
 	}

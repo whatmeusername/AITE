@@ -1,11 +1,11 @@
-import {HeadNode} from '../AITE_nodes';
-import {isTextNode} from '../ContentNode';
-import {Nullable} from '../Interfaces';
-import {AiteTextNode} from './AiteTextNode';
-import {setProps} from './helpers';
-import {AiteHTMLNode, AiteNodeOptions, AiteNodes, AiteNodeTypes} from './interface';
-import {__nodeMap} from './EditorDom';
-import {isAiteNode} from './utils';
+import {HeadNode} from "../AITE_nodes";
+import {isTextNode} from "../ContentNode";
+import {Nullable} from "../Interfaces";
+import {AiteTextNode} from "./AiteTextNode";
+import {setProps} from "./helpers";
+import {AiteHTMLNode, AiteNodeOptions, AiteNodes, AiteNodeTypes} from "./interface";
+import {__nodeMap} from "./EditorDom";
+import {isAiteNode} from "./utils";
 
 class AiteNode {
 	type: string;
@@ -24,7 +24,7 @@ class AiteNode {
 		this.childrenLength = this.children?.length ?? 0;
 		this.isAiteWrapper = options?.isAiteWrapper ?? false;
 		this._key = ref?.key;
-		this.AiteNodeType = options?.AiteNodeType ?? 'unsigned';
+		this.AiteNodeType = options?.AiteNodeType ?? "unsigned";
 		this.ref = ref;
 	}
 }
@@ -40,7 +40,7 @@ function createAiteNode(
 		const mappedChildren: Array<AiteNodes> = [];
 
 		children.forEach((node) => {
-			if (typeof node === 'string' && isTextNode(ref)) {
+			if (typeof node === "string" && isTextNode(ref)) {
 				mappedChildren.push(new AiteTextNode(ref, node, true));
 			} else if (isAiteNode(node)) mappedChildren.push(node);
 		});

@@ -1,6 +1,6 @@
-import {EDITOR_PRIORITY} from './ConstVariables';
-import {editorWarning, keyCodeValidator} from './EditorUtils';
-import {getEditorState} from './index';
+import {EDITOR_PRIORITY} from "./ConstVariables";
+import {editorWarning, keyCodeValidator} from "./EditorUtils";
+import {getEditorState} from "./index";
 
 import type {
 	KeyboardEventCommand,
@@ -19,28 +19,27 @@ import type {
 	KEYDOWN_COMMAND,
 	KEYUP_COMMAND,
 	DRAGSTART_COMMAND,
-	DRAG_COMMAND,
 	DRAGEND_COMMAND,
-} from './editorCommandsTypes';
+} from "./editorCommandsTypes";
 
 type commandPriority = keyof typeof EDITOR_PRIORITY;
 
 type commandTypes =
-	| 'KEYBOARD_COMMAND'
-	| 'SELECTION_COMMAND'
-	| 'CLICK_COMMAND'
-	| 'LETTER_INSERT_COMMAND'
-	| 'LETTER_REMOVE_COMMAND'
-	| 'ENTER_COMMAND'
-	| 'WORD_REMOVE_COMMAND'
-	| 'LINE_REMOVE_COMMAND'
-	| 'FORWARD_LETTER_REMOVE_COMMAND'
-	| 'FORWARD_WORD_REMOVE_COMMAND'
-	| 'FORWARD_LINE_REMOVE_COMMAND'
-	| 'KEYDOWN_COMMAND'
-	| 'KEYUP_COMMAND'
-	| 'DRAGSTART_COMMAND'
-	| 'DRAGEND_COMMAND';
+	| "KEYBOARD_COMMAND"
+	| "SELECTION_COMMAND"
+	| "CLICK_COMMAND"
+	| "LETTER_INSERT_COMMAND"
+	| "LETTER_REMOVE_COMMAND"
+	| "ENTER_COMMAND"
+	| "WORD_REMOVE_COMMAND"
+	| "LINE_REMOVE_COMMAND"
+	| "FORWARD_LETTER_REMOVE_COMMAND"
+	| "FORWARD_WORD_REMOVE_COMMAND"
+	| "FORWARD_LINE_REMOVE_COMMAND"
+	| "KEYDOWN_COMMAND"
+	| "KEYUP_COMMAND"
+	| "DRAGSTART_COMMAND"
+	| "DRAGEND_COMMAND";
 
 interface KEYBIND_COMMAND {
 	//eslint-disable-line
@@ -94,19 +93,19 @@ interface commandStorage {
 type FindWithoutUndefined<O, K extends keyof O> = {[I in K]-?: O[K]};
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
-type GetCommandEventType<C extends keyof commandStorage> = ('action' extends keyof FindWithoutUndefined<commandStorage, C>[C]
-	? FindWithoutUndefined<FindWithoutUndefined<commandStorage, C>[C], 'action'>['action'] extends (...args: infer A) => any
+type GetCommandEventType<C extends keyof commandStorage> = ("action" extends keyof FindWithoutUndefined<commandStorage, C>[C]
+	? FindWithoutUndefined<FindWithoutUndefined<commandStorage, C>[C], "action">["action"] extends (...args: infer A) => any
 		? A
 		: never
 	: never)[0];
 
-type GetCommandActionType<S extends keyof commandStorage> = 'action' extends keyof FindWithoutUndefined<commandStorage, S>[S]
-	? FindWithoutUndefined<FindWithoutUndefined<commandStorage, S>[S], 'action'>['action']
+type GetCommandActionType<S extends keyof commandStorage> = "action" extends keyof FindWithoutUndefined<commandStorage, S>[S]
+	? FindWithoutUndefined<FindWithoutUndefined<commandStorage, S>[S], "action">["action"]
 	: never;
 
 type ActionType = UnionToIntersection<GetCommandActionType<keyof commandStorage>>;
 
-type decoratorStorage<S> = {[K in keyof S]+?: Function};
+type decoratorStorage<S> = {[K in keyof S]+?: (...args: any) => any};
 
 const rootDecoratorStorage: decoratorStorage<rootCommandStorage> = {
 	// FOCUS_COMMAND: onFocusDecorator,
@@ -116,10 +115,10 @@ const rootDecoratorStorage: decoratorStorage<rootCommandStorage> = {
 const DecoratorStorage: decoratorStorage<commandStorage> = {
 	LETTER_INSERT_COMMAND: keyCodeValidator,
 	LETTER_REMOVE_COMMAND: (event: KeyboardEventCommand) => {
-		return event.code === 'Backspace';
+		return event.code === "Backspace";
 	},
 	ENTER_COMMAND: (event: KeyboardEventCommand) => {
-		return event.code === 'Enter';
+		return event.code === "Enter";
 	},
 };
 
@@ -142,29 +141,29 @@ class EditorCommands {
 
 	listenRootEvent(): void {
 		if (this.removeHandles.SELECTION_COMMAND === undefined) {
-			let SelectionEvent = (event: any) => getEditorState().selectionState.getCaretPosition();
-			document.addEventListener('selectionchange', SelectionEvent);
-			this.removeHandles['selectionchange'] = () => document.removeEventListener('selectionchange', SelectionEvent);
+			const SelectionEvent = (event: any) => getEditorState().selectionState.getCaretPosition();
+			document.addEventListener("selectionchange", SelectionEvent);
+			this.removeHandles["selectionchange"] = () => document.removeEventListener("selectionchange", SelectionEvent);
 		}
 
-		let EditorDOM = getEditorState().__editorDOMState.getRootHTMLNode();
+		const EditorDOM = getEditorState().__editorDOMState.getRootHTMLNode();
 		Object.entries(this.rootCommands).map(([eventname, event]) => {
 			if (event !== undefined) {
 				let eventData = {eventname: undefined, event: undefined} as {eventname: undefined | string; event: undefined | ((...args: any) => void)};
 				eventData = (() => {
 					switch (eventname) {
-						case 'COPY_COMMAND':
-							return {eventname: 'copy', event: event};
-						case 'PASTE_COMMAND':
-							return {eventname: 'paste', event: event};
-						case 'DRAGSTART_COMANND':
-							return {eventname: 'dragstart', event: event};
-						case 'DRAGEND_COMANND':
-							return {eventname: 'dragend', event: event};
-						case 'DRAGOVER_COMMAND':
-							return {eventname: 'dragover', event: event};
-						case 'DRAG_COMANND':
-							return {eventname: 'drag', event: event};
+						case "COPY_COMMAND":
+							return {eventname: "copy", event: event};
+						case "PASTE_COMMAND":
+							return {eventname: "paste", event: event};
+						case "DRAGSTART_COMANND":
+							return {eventname: "dragstart", event: event};
+						case "DRAGEND_COMANND":
+							return {eventname: "dragend", event: event};
+						case "DRAGOVER_COMMAND":
+							return {eventname: "dragover", event: event};
+						case "DRAG_COMANND":
+							return {eventname: "drag", event: event};
 						default:
 							return {eventname: undefined, event: undefined};
 					}
@@ -178,17 +177,17 @@ class EditorCommands {
 	}
 
 	registerCommand(commandType: commandTypes, commandPriority: commandPriority, action: (...args: any) => void, reassign: boolean = false): void {
-		let actionDecorator = DecoratorStorage[commandType];
+		const actionDecorator = DecoratorStorage[commandType];
 		let commandAction;
 		if (this.commandStorage[commandType] === undefined || reassign === true) {
 			if (actionDecorator !== undefined) {
-				commandAction = function <C extends typeof commandType>(event: GetCommandEventType<C>, ...args: any): void {
-					if ((actionDecorator as Function)(event) === true) {
+				commandAction = function (event: any, ...args: any): void {
+					if (actionDecorator(event) === true) {
 						action(event, ...args);
 					}
 				};
 			} else {
-				commandAction = function <C extends typeof commandType>(event: GetCommandEventType<C>, ...args: any): void {
+				commandAction = function (event: any, ...args: any): void {
 					action(event, ...args);
 				};
 			}
@@ -204,16 +203,16 @@ class EditorCommands {
 		const Command = this.commandStorage[commandType];
 		if (!Command) return;
 
-		let EventPriority = EDITOR_PRIORITY[Command.commandPriority];
+		const EventPriority = EDITOR_PRIORITY[Command.commandPriority];
 
 		if (Command !== undefined) {
-			let editorState = getEditorState();
+			const editorState = getEditorState();
 			if (
 				(this.currentEventPriority === null || EventPriority <= this.currentEventPriority) &&
 				editorState !== undefined &&
 				editorState.editorEventsActive === true
 			) {
-				let passCaretSet = Command.commandPriority === 'HIGH_IGNORECARET_COMMAND' || Command.commandPriority === 'LOW_IGNORECARET_COMMAND';
+				const passCaretSet = Command.commandPriority === "HIGH_IGNORECARET_COMMAND" || Command.commandPriority === "LOW_IGNORECARET_COMMAND";
 				this.currentEventPriority = EventPriority;
 
 				if (passCaretSet === false) {

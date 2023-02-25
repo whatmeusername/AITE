@@ -1,21 +1,21 @@
-import React, {useEffect} from 'react';
+import {useEffect, useRef} from "react";
 
-import defaultBlocks from './defaultStyles/defaultBlocks';
-import {getEditorEventStatus} from './index';
+import defaultBlocks from "./defaultStyles/defaultBlocks";
+import {getEditorEventStatus} from "./index";
 
-import {setImageFloatDirection, toggleImageCaption} from './packages/AITE_Image/imageUtils';
+import {setImageFloatDirection, toggleImageCaption} from "./packages/AITE_Image/imageUtils";
 
-import {getDecoratorNode} from './EditorUtils';
+import {getDecoratorNode} from "./EditorUtils";
 
-import './defaultinlineStyles.scss';
-import './AITE_test.scss';
+import "./defaultinlineStyles.scss";
+import "./AITE_test.scss";
 
-import {createAITEContentNode, AiteHTMLNode, AiteNodeTypes, AiteHTMLTextNode, returnSingleDOMNode, createEmptyEditorState, getEditorState} from './index';
+import {createAITEContentNode, AiteHTMLNode, AiteNodeTypes, AiteHTMLTextNode, returnSingleDOMNode, createEmptyEditorState, getEditorState} from "./index";
 
 type HTMLBlockStyle = {type: string; tag: string};
 
 function getElementBlockStyle(Tag: string): HTMLBlockStyle {
-	let TagData = {type: 'unstyled', tag: 'div'};
+	let TagData = {type: "unstyled", tag: "div"};
 	TagData = defaultBlocks.find((obj) => obj.tag === Tag || obj.type === Tag) ?? TagData;
 	return TagData;
 }
@@ -32,6 +32,7 @@ interface DropEvent extends DragEvent {
 	rangeOffset: number;
 }
 
+//eslint-disable-next-line
 function getDropCaretRange(event: DropEvent): Range | null {
 	event.preventDefault();
 	let range;
@@ -47,10 +48,10 @@ function getDropCaretRange(event: DropEvent): Range | null {
 }
 
 function canDropElement(event: DropEvent): boolean {
-	let target = event.target as AiteHTMLNode;
+	const target = event.target as AiteHTMLNode;
 	if (target && target.$$isAiteNode) {
-		let firstChild: AiteHTMLTextNode | AiteHTMLNode = target.firstChild as any;
-		if ((firstChild as AiteHTMLTextNode).$$isAiteTextNode || (firstChild as AiteHTMLNode).$$AiteNodeType === 'breakline') {
+		const firstChild: AiteHTMLTextNode | AiteHTMLNode = target.firstChild as any;
+		if ((firstChild as AiteHTMLTextNode).$$isAiteTextNode || (firstChild as AiteHTMLNode).$$AiteNodeType === "breakline") {
 			return true;
 		} else if ((firstChild.firstChild as AiteHTMLTextNode).$$isAiteTextNode) {
 			return true;
@@ -61,11 +62,12 @@ function canDropElement(event: DropEvent): boolean {
 
 let test2 = false;
 
+//eslint-disable-next-line
 function getDragData(event: DragEvent): DragData | null {
-	let data = event.dataTransfer?.getData('application/aite-drag-event');
+	const data = event.dataTransfer?.getData("application/aite-drag-event");
 	if (!data) return null;
 
-	let parsedData = JSON.parse(data);
+	const parsedData = JSON.parse(data);
 	if (!parsedData) return null;
 	return parsedData;
 }
@@ -73,36 +75,36 @@ function getDragData(event: DragEvent): DragData | null {
 createEmptyEditorState();
 
 function AITEditor(): JSX.Element {
-	const EditorRef = React.useRef<HTMLDivElement>(null!);
+	const EditorRef = useRef<HTMLDivElement>(null!);
 	const EditorState = getEditorState();
 
 	useEffect(() => {
 		if (test2 === false) {
 			test2 = true;
-			let EditorNodes = returnSingleDOMNode(createAITEContentNode(EditorState.contentNode)) as AiteHTMLNode[];
+			const EditorNodes = returnSingleDOMNode(createAITEContentNode(EditorState.contentNode)) as AiteHTMLNode[];
 			EditorRef.current.replaceChildren(...EditorNodes);
 
-			EditorRef.current.addEventListener('mousedown', (e) => {
+			EditorRef.current.addEventListener("mousedown", (e) => {
 				if (getEditorEventStatus() === false) e.preventDefault();
 			});
 
-			EditorRef.current.addEventListener('dragstart', (event: any) => {
-				let EditorState = getEditorState();
+			EditorRef.current.addEventListener("dragstart", (event: any) => {
+				const EditorState = getEditorState();
 
 				const dataTransfer = event.dataTransfer;
 				if (!dataTransfer) {
 					return false;
 				}
 
-				var img = document.createElement('img');
-				img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+				const img = document.createElement("img");
+				img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 				dataTransfer.setDragImage(img, 0, 0);
-				dataTransfer.setData('text/plain', '');
+				dataTransfer.setData("text/plain", "");
 
-				let nodeData = EditorState.selectionState.__getBlockNode(getDecoratorNode(event.target));
+				const nodeData = EditorState.selectionState.__getBlockNode(getDecoratorNode(event.target));
 				dataTransfer.setData(
-					'application/aite-drag-event',
+					"application/aite-drag-event",
 					JSON.stringify({
 						data: {
 							nodePath: nodeData.nodePath,
@@ -112,7 +114,7 @@ function AITEditor(): JSX.Element {
 				);
 			});
 
-			EditorRef.current.addEventListener('drop', (event) => {
+			EditorRef.current.addEventListener("drop", (event) => {
 				const dataTransfer = event.dataTransfer;
 				if (!dataTransfer) {
 					return false;
@@ -154,7 +156,7 @@ function AITEditor(): JSX.Element {
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={(e) => {
 						e.preventDefault();
-						setImageFloatDirection('right');
+						setImageFloatDirection("right");
 					}}
 				>
 					RIGHT
@@ -163,7 +165,7 @@ function AITEditor(): JSX.Element {
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={(e) => {
 						e.preventDefault();
-						setImageFloatDirection('left');
+						setImageFloatDirection("left");
 					}}
 				>
 					LEFT
@@ -172,7 +174,7 @@ function AITEditor(): JSX.Element {
 					onMouseDown={(e) => e.preventDefault()}
 					onClick={(e) => {
 						e.preventDefault();
-						setImageFloatDirection('none');
+						setImageFloatDirection("none");
 					}}
 				>
 					DIR NULL
@@ -189,20 +191,20 @@ function AITEditor(): JSX.Element {
 			</div>
 			<div
 				ref={EditorRef}
-				style={{fontSize: '16px'}}
+				style={{fontSize: "16px"}}
 				className="AITE__editor"
 				data-aite_editor_root={true}
 				contentEditable={true}
 				suppressContentEditableWarning={true}
 				spellCheck={false}
 				onClick={(event) => {
-					EditorState.EditorCommands.dispatchCommand('CLICK_COMMAND', event);
+					EditorState.EditorCommands.dispatchCommand("CLICK_COMMAND", event);
 				}}
 				onKeyDown={(event) => {
-					EditorState?.EditorCommands.dispatchCommand('KEYDOWN_COMMAND', event);
+					EditorState?.EditorCommands.dispatchCommand("KEYDOWN_COMMAND", event);
 				}}
 				onKeyUp={(event) => {
-					EditorState?.EditorCommands.dispatchCommand('KEYUP_COMMAND', event);
+					EditorState?.EditorCommands.dispatchCommand("KEYUP_COMMAND", event);
 				}}
 				onDrop={(event) => event.preventDefault()}
 			></div>
