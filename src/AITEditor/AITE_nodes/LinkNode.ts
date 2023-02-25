@@ -84,10 +84,6 @@ class LinkNode extends LeafNode {
 		return this.children[this.children.length - 1];
 	}
 
-	getFirstChild() {
-		return this.children[0];
-	}
-
 	getChildren(): NodeTypes[] {
 		return this.children;
 	}

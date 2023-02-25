@@ -358,8 +358,8 @@ class SelectionState {
 	 * @param  {number} step - How much nodes should be skipped
 	 * @returns SelectionState - Self return
 	 */
-	moveSelectionToNextSibling(): SelectionState {
-		let anchorBlock: BlockNode = (this.anchorNode as BaseNode).parent as BlockNode;
+	moveSelectionToNextSibling(startNode?: BlockNode): SelectionState {
+		let anchorBlock: BlockNode = startNode ?? ((this.anchorNode as BaseNode).parent as BlockNode);
 		let nextNode;
 		let shouldSearch = false;
 
@@ -516,8 +516,8 @@ class SelectionState {
 	 * @param  {ContentNode} ContentNode -  ContentNode where previous block will be searched
 	 * @returns SelectionState - Self return
 	 */
-	moveSelectionToPreviousSibling(): SelectionState {
-		let anchorBlock: BlockNode = (this.anchorNode as BaseNode).parent as BlockNode;
+	moveSelectionToPreviousSibling(startNode?: BlockNode): SelectionState {
+		let anchorBlock: BlockNode = startNode ?? ((this.anchorNode as BaseNode).parent as BlockNode);
 		let nextNode;
 		let shouldSearch = false;
 

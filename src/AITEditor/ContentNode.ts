@@ -63,6 +63,11 @@ class ContentNode {
 				createTextNode('some amazing text number 2', ['ITALIC', 'UNDERLINE', 'BOLD']),
 			),
 			createBlockNode({blockWrapper: 'header-one'}).append(
+				createLinkNode('https://yandex.ru').append(
+					createTextNode(`начало `, ['ITALIC', 'UNDERLINE']),
+					createTextNode(`середина `, []),
+					createTextNode(`конец`, ['UNDERLINE']),
+				),
 				createTextNode(`Языки программирования`, ['STRIKETHROUGH', 'UNDERLINE']),
 				createLinkNode('https://yandex.ru').append(
 					createTextNode(`начало `, ['ITALIC', 'UNDERLINE']),
@@ -71,67 +76,6 @@ class ContentNode {
 				),
 				createTextNode(` текст после ссылки`, ['ITALIC', 'UNDERLINE']),
 			),
-			// 	new BlockNode({
-			// 		blockWrapper: 'header-six',
-			// 		children: [createTextNode(`совсем `), createTextNode(`не видимый `, ['ITALIC']), createTextNode(`текст`)],
-			// 	}),
-			// 	new BlockNode({
-			// 		blockWrapper: 'standart',
-			// 		children: [new BreakLine() as any],
-			// 	}),
-			// 	new BlockNode({
-			// 		children: [
-			// 			createImageNode({
-			// 				src: 'https://i.gifer.com/2GU.gif',
-			// 				captionEnabled: true,
-			// 			}) as imageNode,
-			// 			createTextNode(
-			// 				`Большая часть работы программистов связана с написанием исходного кода, тестированием и отладкой программ на одном из языков программирования. Исходные тексты и исполняемые файлы программ являются объектами авторского права и являются интеллектуальной собственностью их авторов и правообладателей.
-			// Различные языки программирования поддерживают различные стили программирования (парадигмы программирования). Выбор нужного языка программирования для некоторых частей алгоритма позволяет сократить время написания программы и решить задачу описания алгоритма наиболее эффективно. Разные языки требуют от программиста различного уровня внимания к деталям при реализации алгоритма, результатом чего часто бывает компромисс между простотой и производительностью (или между «временем программиста» и «временем пользователя»).
-			// Единственный язык, напрямую выполняемый ЭВМ — это машинный язык (также называемый машинным кодом и языком машинных команд). Изначально все программы писались в машинном коде, но сейчас этого практически уже не делается. Вместо этого программисты пишут исходный код на том или ином языке программирования, затем, используя компилятор, транслируют его в один или несколько этапов в машинный код, готовый к исполнению на целевом процессоре, или в промежуточное представление, которое может быть исполнено специальным интерпретатором — виртуальной машиной. Но это справедливо только для языков высокого уровня. Если требуется полный низкоуровневый контроль над системой на уровне машинных команд и отдельных ячеек памяти, программы пишут на языке ассемблера, мнемонические инструкции которого преобразуются один к одному в соответствующие инструкции машинного языка целевого процессора ЭВМ (по этой причине трансляторы с языков ассемблера получаются алгоритмически простейшими трансляторами).
-			// `,
-			// 			),
-			// 		],
-			// 	}),
-			// 	new BlockNode({
-			// 		blockWrapper: 'blockquote',
-			// 		children: [
-			// 			createTextNode(
-			// 				`В некоторых языках вместо машинного кода генерируется интерпретируемый двоичный код «виртуальной машины», также называемый байт-кодом (byte-code). Такой подход применяется в Forth, некоторых реализациях Lisp, Java, Perl, Python, языках для .NET Framework.`,
-			// 			),
-			// 		],
-			// 	}),
-			// 	new HorizontalRuleNode(),
-			// 	new BlockNode({
-			// 		blockWrapper: 'list-ordered-item',
-			// 		children: [createTextNode(`предмет листа 1`)],
-			// 	}),
-			// 	new BlockNode({
-			// 		blockWrapper: 'list-ordered-item',
-			// 		children: [createTextNode(`предмет листа 2`)],
-			// 	}),
-			// 	new BlockNode({
-			// 		blockWrapper: 'list-ordered-item',
-			// 		children: [createTextNode(`предмет листа 3`)],
-			// 	}),
-			// 	new BlockNode({
-			// 		blockWrapper: 'header-five',
-			// 		children: [
-			// 			createTextNode(`предмет листа 4`),
-			// 			createImageNode({
-			// 				src: 'https://i.gifer.com/2GU.gif',
-			// 				captionEnabled: true,
-			// 			}) as imageNode,
-			// 		],
-			// 	}),
-			// 	new BlockNode({
-			// 		blockWrapper: 'list-unordered-item',
-			// 		children: [createTextNode(`предмет листа 5`)],
-			// 	}),
-			// 	new BlockNode({
-			// 		blockWrapper: 'list-ordered-item',
-			// 		children: [createTextNode(`предмет листа 5`)],
-			// 	}),
 		];
 
 		this.children.forEach((node) => {
@@ -165,7 +109,7 @@ class ContentNode {
 		}
 	}
 
-	insertNodeBefore(index: number, node: BlockType): BlockType {
+	insertNodeBefore<T extends BlockType>(index: number, node: T): T {
 		let insertOffset = index > 0 ? index - 1 : index;
 		let previousSibling = this.children[index];
 		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
@@ -173,7 +117,7 @@ class ContentNode {
 		return node;
 	}
 
-	insertNodeAfter(index: number, node: BlockType): BlockType {
+	insertNodeAfter<T extends BlockType>(index: number, node: T): T {
 		let insertOffset = index + 1;
 		let previousSibling = this.children[index];
 
@@ -204,6 +148,8 @@ class ContentNode {
 	 * @param  {NodePath} NodePath
 	 * @returns ContentNode
 	 */
+
+	// FULL DEPRECATION HOLDING UNTIL REMOVAL
 	getCurrentContentNode(nodePath: NodePath): {ContentNode: ContentNode; NodePath: NodePath} {
 		if (nodePath.length() !== 1) {
 			let currentContentNode = this.getBlockByPath(nodePath.getContentNode()) as any;
@@ -468,9 +414,13 @@ class ContentNode {
 	}
 
 	insertLetter(KeyBoardEvent?: KeyboardEvent) {
+		const selectionState = getSelectionState();
+		const isSelectionOnSameNode = selectionState.isNodesSame();
+		let SliceFrom = selectionState.anchorOffset;
+		let SliceTo = selectionState.focusOffset;
+
 		const isRemove = KeyBoardEvent === undefined;
 		let key = isRemove ? '' : KeyBoardEvent ? KeyBoardEvent.key : '';
-		const selectionState = getSelectionState();
 
 		let anchorNode: BaseNode = selectionState.anchorNode as BaseNode;
 		let focusNode: BaseNode = selectionState.focusNode as BaseNode;
@@ -478,31 +428,27 @@ class ContentNode {
 		let anchorBlock: BlockNode = anchorNode.parent as BlockNode;
 		let focusBlock: BlockNode = focusNode.parent as BlockNode;
 
-		const isSelectionOnSameNode = selectionState.isNodesSame();
-
-		let SliceFrom = selectionState.anchorOffset;
-		let SliceTo = selectionState.focusOffset;
-
 		if (selectionState.anchorType === 'breakline' && isBlockNode(anchorNode)) {
-			const textNode = createTextNode('');
-			anchorNode.children = [textNode];
-			anchorNode.remount();
-			anchorNode = textNode;
-			selectionState.setNodeKey(textNode);
+			anchorNode = anchorNode.convertFromBreakLine();
+			anchorBlock = anchorNode.parent as BlockNode;
+			selectionState.setNodeKey(anchorNode);
 		}
 		if (selectionState.focusType === 'breakline' && !selectionState.isCollapsed && isBlockNode(focusNode)) {
-			const textNode = createTextNode('');
-			focusNode.children = [textNode];
-			focusNode.remount();
-			focusNode = textNode;
-			selectionState.setNodeKey(textNode);
+			focusNode = focusNode.convertFromBreakLine();
+			focusBlock = focusNode.parent as BlockNode;
+			selectionState.setNodeKey(focusNode);
 		}
 
-		const {contentNode}: {contentNode: ContentNode | undefined} = anchorNode.getContentNode();
+		const {contentNode, blockNode}: {contentNode: ContentNode | undefined; blockNode: BlockNode | undefined} = anchorNode.getContentNode();
 
-		const handleOffsetStart = () => {
+		const handleOffsetStart = (): void => {
+			if (anchorBlock.isBreakLine) {
+				selectionState.moveSelectionToPreviousSibling(anchorBlock);
+				anchorBlock.remove();
+				return;
+			}
+
 			const previousBlock = anchorBlock.previousSibling();
-
 			if (!previousBlock) return;
 
 			if (isHorizontalRuleNode(previousBlock) || (isBlockNode(previousBlock) && isBreakLine(previousBlock))) {
@@ -532,17 +478,15 @@ class ContentNode {
 
 			anchorNode.sliceContent(SliceFrom, SliceTo, key);
 
-			const isBR = isBreakLine(anchorBlock);
-			if (isBR) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild().key);
+			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
 			else if (anchorNode.status === 0) selectionState.moveSelectionToPreviousSibling();
 		} else if (selectionState.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
-			const nodesBetween = anchorBlock.getNodesBetween(anchorNode.key, focusNode.key);
-			nodesBetween.forEach((node) => node.remove());
+			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key).forEach((node) => node.remove());
 
 			anchorNode.sliceContent(SliceFrom, -1, key);
 			focusNode.sliceContent(SliceTo);
 
-			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild().key);
+			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
 			else if (anchorNode.status === 0 && anchorNode.status === 0) selectionState.moveSelectionToNextSibling();
 			else {
 				selectionState.toggleCollapse();

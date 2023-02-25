@@ -22,15 +22,16 @@ abstract class HeadNode {
 		return path;
 	}
 
-	getContentNode(): {contentNode: ContentNode | undefined; index: number} {
+	getContentNode(): {contentNode: ContentNode | undefined; blockNode: BlockNode | undefined; index: number} {
 		let c: BaseNode | BlockNode = this as unknown as BaseNode;
 		while (c.parent) {
 			if (isContentNode(c.parent)) {
-				return {contentNode: c.parent, index: c.parent.children.indexOf(c as BlockType)};
+				const index = c.parent.children.indexOf(c as BlockType);
+				return {contentNode: c.parent, blockNode: c as BlockNode, index: index};
 			}
 			c = c.parent;
 		}
-		return {contentNode: undefined, index: -1};
+		return {contentNode: undefined, blockNode: undefined, index: -1};
 	}
 
 	getSelfIndex(): number {

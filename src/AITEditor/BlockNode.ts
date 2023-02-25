@@ -2,14 +2,16 @@ import defaultBlocks from './defaultStyles/defaultBlocks';
 import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from './ConstVariables';
 import {ClassVariables} from './Interfaces';
 
-import {TextNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes, LeafNode, BaseNode, LinkNode} from './AITE_nodes/index';
+import {TextNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes, LeafNode, BaseNode, LinkNode, createLinkNode} from './AITE_nodes/index';
 import type {imageNode} from './packages/AITE_Image/imageNode';
 
 import {createAiteNode, unmountNode, mountNode, ContentNode, NodeInsertionDeriction} from './index';
 import type {AiteNode, AiteNodeOptions} from './index';
 import {isBaseNode, isLeafNode, isDefined} from './EditorUtils';
 
-type NodeTypes = TextNode | imageNode | BreakLine | LinkNode;
+type CoreNodes = TextNode | BreakLine;
+
+type NodeTypes = CoreNodes | imageNode | LinkNode;
 type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
 type BlockType = BlockNode | HorizontalRuleNode;
 
@@ -105,7 +107,8 @@ class BlockNode extends BaseBlockNode {
 		});
 	}
 
-	append(...nodes: NodeTypes[]) {
+	// ----- NEWEST
+	append(...nodes: NodeTypes[]): this {
 		const filteredNodes = filterNode.apply(this, nodes);
 		this.children.push(...filteredNodes);
 		return this;
@@ -142,9 +145,20 @@ class BlockNode extends BaseBlockNode {
 		return returnAllIfNotFound && nodes.length === 0 ? block.children : nodes;
 	}
 
-	isBreakLine() {
-		return this.children.length === 1 && this.children[0] instanceof BreakLine;
+	get isBreakLine(): boolean {
+		return this.children.length === 1 && (this.children[0] instanceof BreakLine || (this.children[0] as TextNode).__content === '');
 	}
+
+	convertFromBreakLine(): TextNode;
+	convertFromBreakLine<T extends NodeTypes>(nodeToSet: T): T;
+	convertFromBreakLine<T extends NodeTypes>(nodeToSet?: T): T | TextNode {
+		const node = nodeToSet ? nodeToSet : createTextNode('');
+		this.children = [node];
+		this.remount();
+		return node;
+	}
+
+	// ------ OLDEST
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode {
 		const prepareBlockStyle = (): {n: string; c: null | string} => {
@@ -212,7 +226,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	insertNodeBefore(index: number, node: NodeTypes): NodeTypes {
-		if (this.isBreakLine()) {
+		if (this.isBreakLine) {
 			this.replaceNode(0, node);
 		} else {
 			let insertOffset = index > 0 ? index - 1 : index;
@@ -224,7 +238,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	insertNodeAfter(index: number, node: NodeTypes): NodeTypes {
-		if (this.isBreakLine()) {
+		if (this.isBreakLine) {
 			this.replaceNode(0, node);
 		} else {
 			let insertOffset = index > 0 ? index - 1 : index;
@@ -268,7 +282,7 @@ class BlockNode extends BaseBlockNode {
 			} else if (offset === textContentLength) {
 				return this.insertNodeAfter(nodeIndex, node);
 			}
-		} else if (this.isBreakLine()) {
+		} else if (this.isBreakLine) {
 			this.replaceNode(0, node);
 		}
 		return;
@@ -398,7 +412,7 @@ class BlockNode extends BaseBlockNode {
 		return this.children[this.children.length - 1];
 	}
 
-	getFirstChild(depth: true): NodeTypes;
+	getFirstChild(depth: true): CoreNodes;
 	getFirstChild(depth?: undefined): NodeTypes | LeafNode;
 	getFirstChild(depth?: boolean): NodeTypes | LeafNode {
 		if (depth) {
