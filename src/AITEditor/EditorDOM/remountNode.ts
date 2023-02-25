@@ -6,7 +6,7 @@ import {getEditorState} from '../index';
 function remountNode(node: HeadNode, childOnly: boolean = true): HeadNode {
 	let nodeState = (node as any)?.$getNodeState() ?? undefined;
 	if (nodeState) {
-		let currentDOMElement: AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(node.key);
+		const currentDOMElement: AiteHTML | undefined = getEditorState().__editorDOMState.getNodeFromMap(node.key);
 		if (currentDOMElement) {
 			let newNodeState = (node as any).$getNodeState();
 			if (newNodeState === undefined) {

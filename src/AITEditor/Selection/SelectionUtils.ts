@@ -1,13 +1,13 @@
 import {ClassVariables, Nullable} from '../Interfaces';
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from '../ConstVariables';
-import {isDefined, getIndexPathFromKeyPath, isLeafNode} from '../EditorUtils';
+import {isDefined, getIndexPathFromKeyPath, isLeafNode, isBaseNode} from '../EditorUtils';
 import {AiteHTML, getKeyPathNodeByNode, isBlockNode, isTextNode} from '../index';
 
 import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from '../index';
 
 import {BaseNode, BreakLine, HeadNode, TextNode} from '../AITE_nodes/index';
 
-interface block_childrenExtended {
+interface blockchildrenExtended {
 	node: AiteHTMLNode;
 	nodePath: Array<number>;
 	elementType: string | null;
@@ -329,19 +329,26 @@ class SelectionState {
 		return undefined;
 	}
 
-	setAnchorKey(key: number | undefined): SelectionState {
-		this.anchorKey = key;
+	setAnchorKey(KeyOrNode: BaseNode): SelectionState;
+	setAnchorKey(KeyOrNode: number | undefined): SelectionState;
+	setAnchorKey(KeyOrNode: number | BaseNode | undefined): SelectionState {
+		this.anchorKey = isBaseNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
 		return this;
 	}
 
-	setFocusKey(key: number | undefined): SelectionState {
-		this.focusKey = key;
+	setFocusKey(KeyOrNode: BaseNode): SelectionState;
+	setFocusKey(KeyOrNode: number | undefined): SelectionState;
+	setFocusKey(KeyOrNode: number | BaseNode | undefined): SelectionState {
+		this.focusKey = isBaseNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
 		return this;
 	}
 
-	setNodeKey(key: number | undefined): SelectionState {
-		this.focusKey = key;
-		this.anchorKey = key;
+	setNodeKey(KeyOrNode: BaseNode): SelectionState;
+	setNodeKey(KeyOrNode: number | undefined): SelectionState;
+	setNodeKey(KeyOrNode: number | BaseNode | undefined): SelectionState {
+		const isNode = isBaseNode(KeyOrNode);
+		this.focusKey = isNode ? KeyOrNode.key : KeyOrNode;
+		this.anchorKey = isNode ? KeyOrNode.key : KeyOrNode;
 		return this;
 	}
 
@@ -352,23 +359,23 @@ class SelectionState {
 	 * @returns SelectionState - Self return
 	 */
 	moveSelectionToNextSibling(): SelectionState {
-		let anchorBlock: BlockNode = (this.anchorNode as BaseNode).__parent as BlockNode;
+		let anchorBlock: BlockNode = (this.anchorNode as BaseNode).parent as BlockNode;
 		let nextNode;
 		let shouldSearch = false;
 
 		let currentNode = anchorBlock.getNodeByKey(this.anchorKey ?? -1) as BaseNode;
-		currentNode = (currentNode ? currentNode.nextSibling() : anchorBlock._children[this.anchorPath.getLastIndex() + 1]) as BaseNode;
+		currentNode = (currentNode ? currentNode.nextSibling() : anchorBlock.children[this.anchorPath.getLastIndex() + 1]) as BaseNode;
 
 		if (isLeafNode(anchorBlock) && !currentNode) {
 			const index = anchorBlock.getSelfIndex();
-			anchorBlock = anchorBlock.__parent as BlockNode;
+			anchorBlock = anchorBlock.parent as BlockNode;
 			nextNode = anchorBlock.getChildrenByIndex(index + 1);
 			if (!nextNode) shouldSearch = true;
 		} else if (isLeafNode(currentNode)) {
 			anchorBlock = currentNode as BlockNode;
 			nextNode = anchorBlock.getFirstChild();
 		} else if (currentNode) {
-			anchorBlock = currentNode.__parent as BlockNode;
+			anchorBlock = currentNode.parent as BlockNode;
 			nextNode = currentNode;
 		} else {
 			shouldSearch = true;
@@ -510,23 +517,23 @@ class SelectionState {
 	 * @returns SelectionState - Self return
 	 */
 	moveSelectionToPreviousSibling(): SelectionState {
-		let anchorBlock: BlockNode = (this.anchorNode as BaseNode).__parent as BlockNode;
+		let anchorBlock: BlockNode = (this.anchorNode as BaseNode).parent as BlockNode;
 		let nextNode;
 		let shouldSearch = false;
 
 		let currentNode = anchorBlock.getNodeByKey(this.anchorKey ?? -1) as BaseNode;
-		currentNode = (currentNode ? currentNode.previousSibling() : anchorBlock._children[this.anchorPath.getLastIndex() - 1]) as BaseNode;
+		currentNode = (currentNode ? currentNode.previousSibling() : anchorBlock.children[this.anchorPath.getLastIndex() - 1]) as BaseNode;
 
 		if (isLeafNode(anchorBlock) && !currentNode) {
 			const index = anchorBlock.getSelfIndex();
-			anchorBlock = anchorBlock.__parent as BlockNode;
+			anchorBlock = anchorBlock.parent as BlockNode;
 			nextNode = anchorBlock.getChildrenByIndex(index - 1);
 			if (!nextNode) shouldSearch = true;
 		} else if (isLeafNode(currentNode)) {
 			anchorBlock = currentNode as BlockNode;
 			nextNode = anchorBlock.getLastChild();
 		} else if (currentNode) {
-			anchorBlock = currentNode.__parent as BlockNode;
+			anchorBlock = currentNode.parent as BlockNode;
 			nextNode = currentNode;
 		} else {
 			shouldSearch = true;
@@ -693,9 +700,9 @@ class SelectionState {
 	/**
 	 * Gets data from selected node
 	 * @param  {Node} node - node which data should be getted
-	 * @returns block_childrenExtended
+	 * @returns blockchildrenExtended
 	 */
-	__getBlockNode(node: AiteHTML): block_childrenExtended {
+	__getBlockNode(node: AiteHTML): blockchildrenExtended {
 		let currentBlockData = this.getPathToNodeByNode(node as AiteHTMLNode);
 		if (currentBlockData !== undefined) {
 			let ElementType = null;
@@ -705,7 +712,7 @@ class SelectionState {
 				ElementType = node.$$AiteNodeType ? node.$$AiteNodeType : this.$getNodeType(node);
 			}
 
-			let Result: block_childrenExtended = {
+			let Result: blockchildrenExtended = {
 				node: currentBlockData.node,
 				nodePath: currentBlockData.nodePath,
 				elementType: ElementType,

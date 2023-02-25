@@ -24,12 +24,12 @@ type DOMattr = {
 
 abstract class BaseNode extends HeadNode {
 	protected __status: 0 | 1;
-	__parent: BlockNode | BaseNode | null;
+	parent: BlockNode | BaseNode | null;
 
 	constructor(type: NodeKeyTypes, parent?: BlockNode) {
 		super(type);
 		this.__status = 1;
-		this.__parent = parent ?? null;
+		this.parent = parent ?? null;
 	}
 
 	getType(): string {
@@ -44,22 +44,22 @@ abstract class BaseNode extends HeadNode {
 	}
 
 	previousSibling(): NodeTypes | null {
-		if (!this.__parent) return null;
-		if (isBlockNode(this.__parent)) {
-			const index = this.__parent._children.indexOf(this as any);
+		if (!this.parent) return null;
+		if (isBlockNode(this.parent)) {
+			const index = this.parent.children.indexOf(this as any);
 			if (index > -1) {
-				return this.__parent._children[index - 1];
+				return this.parent.children[index - 1];
 			}
 		}
 		return null;
 	}
 
 	nextSibling(): NodeTypes | null {
-		if (!this.__parent) return null;
-		if (isBlockNode(this.__parent)) {
-			const index = this.__parent._children.indexOf(this as any);
+		if (!this.parent) return null;
+		if (isBlockNode(this.parent)) {
+			const index = this.parent.children.indexOf(this as any);
 			if (index > -1) {
-				return this.__parent._children[index + 1];
+				return this.parent.children[index + 1];
 			}
 		}
 		return null;

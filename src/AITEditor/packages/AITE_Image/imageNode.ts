@@ -97,15 +97,15 @@ class imageNode extends BaseNode {
 					BlockNodes: [
 						new BlockNode({
 							blockInlineStyles: ['text_aligment_center'],
-							_children: chardata,
+							children: chardata,
 						}),
 						new BlockNode({
 							blockWrapper: 'standart',
-							_children: [createLinkNode('https://yandex.ru').append(createTextNode('Hello '), createTextNode('World '))],
+							children: [createLinkNode('https://yandex.ru').append(createTextNode('Hello '), createTextNode('World '))],
 						}),
 						new BlockNode({
 							blockWrapper: 'standart',
-							_children: [new TextNode({plainText: `предмет листа 2`})],
+							children: [new TextNode({plainText: `предмет листа 2`})],
 						}),
 					],
 			  });
@@ -122,7 +122,7 @@ class imageNode extends BaseNode {
 				BlockNodes: [
 					new BlockNode({
 						allowedToInsert: 'text',
-						_children: [new TextNode()],
+						children: [new TextNode()],
 					}),
 				],
 			});
@@ -199,9 +199,9 @@ class imageNode extends BaseNode {
 
 		let imageElements = [imageNode];
 
-		if (this.ContentNode !== undefined && this.ContentNode._children.length > 0 && this.imageConf.captionEnabled) {
+		if (this.ContentNode !== undefined && this.ContentNode.children.length > 0 && this.imageConf.captionEnabled) {
 			let captionBlockNodes: Array<AiteNode> = [];
-			this.ContentNode._children.forEach((node) => {
+			this.ContentNode.children.forEach((node) => {
 				captionBlockNodes.push(node.$getNodeState());
 			});
 

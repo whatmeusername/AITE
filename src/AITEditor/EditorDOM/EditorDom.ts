@@ -81,7 +81,7 @@ function returnSingleDOMNode(CurrentState: AiteNodes | AiteNodes[]): AiteHTMLNod
 }
 
 function createAITEContentNode(ContentNode: ContentNode, options?: AiteNodeOptions): Array<AiteNode> {
-	let BlockNodes = ContentNode._children;
+	let BlockNodes = ContentNode.children;
 	let BlockArray: Array<AiteNode> = [];
 	for (let i = 0; i < BlockNodes.length; i++) {
 		BlockArray.push(BlockNodes[i].$getNodeState({...options}));

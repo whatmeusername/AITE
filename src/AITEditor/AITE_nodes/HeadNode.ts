@@ -15,27 +15,27 @@ abstract class HeadNode {
 	getSelfIndexPath(): number[] {
 		const path = [];
 		let node: any = this;
-		while (node.__parent) {
+		while (node.parent) {
 			path.unshift(node.getSelfIndex());
-			node = node.__parent;
+			node = node.parent;
 		}
 		return path;
 	}
 
 	getContentNode(): {contentNode: ContentNode | undefined; index: number} {
 		let c: BaseNode | BlockNode = this as unknown as BaseNode;
-		while (c.__parent) {
-			if (isContentNode(c.__parent)) {
-				return {contentNode: c.__parent, index: c.__parent._children.indexOf(c as BlockType)};
+		while (c.parent) {
+			if (isContentNode(c.parent)) {
+				return {contentNode: c.parent, index: c.parent.children.indexOf(c as BlockType)};
 			}
-			c = c.__parent;
+			c = c.parent;
 		}
 		return {contentNode: undefined, index: -1};
 	}
 
 	getSelfIndex(): number {
-		if (!(this as any)?.__parent) return -1;
-		return (this as any).__parent._children.indexOf(this as any);
+		if (!(this as any)?.parent) return -1;
+		return (this as any).parent.children.indexOf(this as any);
 	}
 
 	getActualType(): string {
@@ -45,7 +45,7 @@ abstract class HeadNode {
 	remove(): void {
 		let DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
 		if (DOMnode !== undefined && this.key) {
-			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$$ref as BaseNode).__parent;
+			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$$ref as BaseNode).parent;
 			if (parentRef && (parentRef instanceof BlockNode || parentRef instanceof ContentNode || parentRef instanceof LinkNode)) {
 				this.status = 0;
 				unmountNode(this);

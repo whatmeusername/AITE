@@ -35,20 +35,20 @@ function isContentNode(node: any): node is ContentNode {
 function isBreakLine(node: any): node is BlockNode {
 	if (isLeafNode(node)) return false;
 	return (
-		node._children.length <= 1 &&
-		(node._children[0].getType() === BREAK_LINE_TYPE || (node._children[0].getType() === TEXT_NODE_TYPE && node._children[0].getContentLength() === 0))
+		node.children.length <= 1 &&
+		(node.children[0].getType() === BREAK_LINE_TYPE || (node.children[0].getType() === TEXT_NODE_TYPE && node.children[0].getContentLength() === 0))
 	);
 }
 
 class ContentNode {
 	blocksLength: () => number;
-	_children: Array<BlockType>;
+	children: Array<BlockType>;
 
 	constructor(initData?: contentNodeConf) {
 		this.blocksLength = () => {
-			return this._children.length;
+			return this.children.length;
 		};
-		this._children = initData?.BlockNodes ?? [
+		this.children = initData?.BlockNodes ?? [
 			createBlockNode({blockWrapper: 'header-two'}).append(createTextNode('Тестовый текст для редактора')),
 			createHorizontalRule(),
 			createHorizontalRule(),
@@ -73,14 +73,14 @@ class ContentNode {
 			),
 			// 	new BlockNode({
 			// 		blockWrapper: 'header-six',
-			// 		_children: [createTextNode(`совсем `), createTextNode(`не видимый `, ['ITALIC']), createTextNode(`текст`)],
+			// 		children: [createTextNode(`совсем `), createTextNode(`не видимый `, ['ITALIC']), createTextNode(`текст`)],
 			// 	}),
 			// 	new BlockNode({
 			// 		blockWrapper: 'standart',
-			// 		_children: [new BreakLine() as any],
+			// 		children: [new BreakLine() as any],
 			// 	}),
 			// 	new BlockNode({
-			// 		_children: [
+			// 		children: [
 			// 			createImageNode({
 			// 				src: 'https://i.gifer.com/2GU.gif',
 			// 				captionEnabled: true,
@@ -95,7 +95,7 @@ class ContentNode {
 			// 	}),
 			// 	new BlockNode({
 			// 		blockWrapper: 'blockquote',
-			// 		_children: [
+			// 		children: [
 			// 			createTextNode(
 			// 				`В некоторых языках вместо машинного кода генерируется интерпретируемый двоичный код «виртуальной машины», также называемый байт-кодом (byte-code). Такой подход применяется в Forth, некоторых реализациях Lisp, Java, Perl, Python, языках для .NET Framework.`,
 			// 			),
@@ -104,19 +104,19 @@ class ContentNode {
 			// 	new HorizontalRuleNode(),
 			// 	new BlockNode({
 			// 		blockWrapper: 'list-ordered-item',
-			// 		_children: [createTextNode(`предмет листа 1`)],
+			// 		children: [createTextNode(`предмет листа 1`)],
 			// 	}),
 			// 	new BlockNode({
 			// 		blockWrapper: 'list-ordered-item',
-			// 		_children: [createTextNode(`предмет листа 2`)],
+			// 		children: [createTextNode(`предмет листа 2`)],
 			// 	}),
 			// 	new BlockNode({
 			// 		blockWrapper: 'list-ordered-item',
-			// 		_children: [createTextNode(`предмет листа 3`)],
+			// 		children: [createTextNode(`предмет листа 3`)],
 			// 	}),
 			// 	new BlockNode({
 			// 		blockWrapper: 'header-five',
-			// 		_children: [
+			// 		children: [
 			// 			createTextNode(`предмет листа 4`),
 			// 			createImageNode({
 			// 				src: 'https://i.gifer.com/2GU.gif',
@@ -126,16 +126,16 @@ class ContentNode {
 			// 	}),
 			// 	new BlockNode({
 			// 		blockWrapper: 'list-unordered-item',
-			// 		_children: [createTextNode(`предмет листа 5`)],
+			// 		children: [createTextNode(`предмет листа 5`)],
 			// 	}),
 			// 	new BlockNode({
 			// 		blockWrapper: 'list-ordered-item',
-			// 		_children: [createTextNode(`предмет листа 5`)],
+			// 		children: [createTextNode(`предмет листа 5`)],
 			// 	}),
 		];
 
-		this._children.forEach((node) => {
-			node.__parent = this;
+		this.children.forEach((node) => {
+			node.parent = this;
 		});
 	}
 
@@ -143,19 +143,19 @@ class ContentNode {
 		let slicedNodes: Array<BlockType> = [];
 		if (end === undefined) {
 			if (startFromZero === false) {
-				slicedNodes = this._children.slice(0, start);
-				this._children = this._children.slice(start);
+				slicedNodes = this.children.slice(0, start);
+				this.children = this.children.slice(start);
 			} else if (startFromZero === true) {
-				slicedNodes = this._children.slice(start);
-				this._children = this._children.slice(0, start);
+				slicedNodes = this.children.slice(start);
+				this.children = this.children.slice(0, start);
 			}
 		} else if (end !== undefined) {
 			if (startFromZero === false) {
-				slicedNodes = [...this._children.slice(0, start), ...this._children.slice(end)];
-				this._children = this._children.slice(start, end);
+				slicedNodes = [...this.children.slice(0, start), ...this.children.slice(end)];
+				this.children = this.children.slice(start, end);
 			} else {
-				slicedNodes = this._children.slice(start, end);
-				this._children = [...this._children.slice(0, start), ...this._children.slice(end)];
+				slicedNodes = this.children.slice(start, end);
+				this.children = [...this.children.slice(0, start), ...this.children.slice(end)];
 			}
 		}
 		if (slicedNodes.length > 0) {
@@ -167,7 +167,7 @@ class ContentNode {
 
 	insertNodeBefore(index: number, node: BlockType): BlockType {
 		let insertOffset = index > 0 ? index - 1 : index;
-		let previousSibling = this._children[index];
+		let previousSibling = this.children[index];
 		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
 		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
 		return node;
@@ -175,7 +175,7 @@ class ContentNode {
 
 	insertNodeAfter(index: number, node: BlockType): BlockType {
 		let insertOffset = index + 1;
-		let previousSibling = this._children[index];
+		let previousSibling = this.children[index];
 
 		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
 		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
@@ -185,14 +185,14 @@ class ContentNode {
 	insertNode(node: BlockType, index: number | 'last' | 'first', direction: NodeInsertionDeriction) {
 		if (index < 0) return;
 
-		node.__parent = this;
-		let blocksLength = this._children.length - 1;
+		node.parent = this;
+		let blocksLength = this.children.length - 1;
 		if ((index === 0 && direction !== 'after') || index === 'first') {
 			this.insertNodeBefore(0, node);
 		} else if (index === blocksLength || index === 'last') {
 			this.insertNodeAfter(blocksLength, node);
 		} else {
-			let previousSibling = this._children[index];
+			let previousSibling = this.children[index];
 			index = direction === 'after' ? index + 1 : (index as number);
 			this.insertBlockNodeBetween(node, index, index);
 			if (previousSibling) mountNode(previousSibling, node, direction);
@@ -235,14 +235,14 @@ class ContentNode {
 		if (path.length === 0) {
 			return this;
 		} else if (path.length === 1) {
-			return this._children[path[0]];
+			return this.children[path[0]];
 		} else {
-			let currentBlock: any = this._children[path[0]];
+			let currentBlock: any = this.children[path[0]];
 			for (let i = 1; i < path.length; i++) {
-				if (currentBlock instanceof BlockNode || currentBlock?._children !== undefined) {
-					currentBlock = currentBlock._children[path[i]];
+				if (currentBlock instanceof BlockNode || currentBlock?.children !== undefined) {
+					currentBlock = currentBlock.children[path[i]];
 				} else if (!(currentBlock instanceof BlockNode)) {
-					currentBlock = currentBlock.ContentNode !== undefined ? currentBlock.ContentNode._children[path[i]] : currentBlock?._children[path[i]];
+					currentBlock = currentBlock.ContentNode !== undefined ? currentBlock.ContentNode.children[path[i]] : currentBlock?.children[path[i]];
 				}
 			}
 			return currentBlock;
@@ -253,22 +253,22 @@ class ContentNode {
 	// 	if (keyPath.length === 0) {
 	// 		return this;
 	// 	} else if (keyPath.length === 1) {
-	// 		return this._children[this._children.findIndex((obj) => obj.key === keyPath[0])];
+	// 		return this.children[this.children.findIndex((obj) => obj.key === keyPath[0])];
 	// 	} else {
-	// 		let index = this._children.findIndex((obj) => obj.key === keyPath[0]);
-	// 		let currentNode: any = this._children[index];
+	// 		let index = this.children.findIndex((obj) => obj.key === keyPath[0]);
+	// 		let currentNode: any = this.children[index];
 
 	// 		for (let i = 1; i < keyPath.length; i++) {
 	// 			if (currentNode instanceof BlockNode) {
-	// 				let index = currentNode._children.findIndex((obj) => obj.key === keyPath[i]);
-	// 				currentNode = currentNode._children[index];
+	// 				let index = currentNode.children.findIndex((obj) => obj.key === keyPath[i]);
+	// 				currentNode = currentNode.children[index];
 	// 			} else if (currentNode instanceof ContentNode) {
-	// 				let index = currentNode._children.findIndex((obj) => obj.key === keyPath[i]);
-	// 				currentNode = currentNode._children[index];
+	// 				let index = currentNode.children.findIndex((obj) => obj.key === keyPath[i]);
+	// 				currentNode = currentNode.children[index];
 	// 			} else if (currentNode && !(currentNode instanceof BlockNode) && !(currentNode instanceof ContentNode)) {
 	// 				if (currentNode.ContentNode) {
-	// 					let index = currentNode.ContentNode._children.findIndex((obj: BlockNode) => obj.key === keyPath[i]);
-	// 					currentNode = currentNode.ContentNode._children[index];
+	// 					let index = currentNode.ContentNode.children.findIndex((obj: BlockNode) => obj.key === keyPath[i]);
+	// 					currentNode = currentNode.ContentNode.children[index];
 	// 				} else if (currentNode.getChildren) {
 	// 					let index = currentNode.getChildren().findIndex((obj: BlockNode) => obj.key === keyPath[i]);
 	// 					currentNode = currentNode.getChildren()[index];
@@ -328,15 +328,15 @@ class ContentNode {
 	// 		const lastConnectingNodeLength = lastConnectingNode.getContentLength();
 	// 		const connectingMaxSize = connectingBlock.countToIndex(connectingBlockLength - 1);
 
-	// 		connectingBlock._children = [...connectingBlock._children, ...joiningBlock._children];
+	// 		connectingBlock.children = [...connectingBlock.children, ...joiningBlock.children];
 
-	// 		if (BlockNodes instanceof ContentNode) BlockNodes._children.splice(AnchorIndex.getBlockIndex(), 1);
+	// 		if (BlockNodes instanceof ContentNode) BlockNodes.children.splice(AnchorIndex.getBlockIndex(), 1);
 	// 		else BlockNodes.splice(AnchorIndex.getBlockIndex(), 1);
 
 	// 		joiningBlock.remove();
 	// 		connectingBlock.remount();
 
-	// 		if (connectingBlock._children.length <= connectingBlockLength) {
+	// 		if (connectingBlock.children.length <= connectingBlockLength) {
 	// 			let updatexAnchorNode = connectingBlock.findNodeByOffset(connectingMaxSize);
 
 	// 			anchorNodeIndex = updatexAnchorNode.offsetKey;
@@ -361,7 +361,7 @@ class ContentNode {
 	// 		const joiningBlock = this.getBlockByPath(AnchorIndex.getBlockPath()) as BlockNode;
 
 	// 		lastConnectingNode = connectingBlock.getLastChild();
-	// 		connectingBlock._children = [...connectingBlock._children, ...joiningBlock._children];
+	// 		connectingBlock.children = [...connectingBlock.children, ...joiningBlock.children];
 
 	// 		if (BlockNodes instanceof ContentNode) {
 	// 			BlockNodes.removeBlock(AnchorIndex.getBlockIndex());
@@ -396,23 +396,23 @@ class ContentNode {
 	// }
 
 	removeNodeByKey(key: number) {
-		let index = this._children.findIndex((block) => block.key === key);
-		if (index !== -1) this._children.splice(index, 1);
+		let index = this.children.findIndex((block) => block.key === key);
+		if (index !== -1) this.children.splice(index, 1);
 	}
 
 	removeBlock(blockIndex: number): void {
-		this._children.splice(blockIndex, 1);
+		this.children.splice(blockIndex, 1);
 	}
 
 	sliceBlockFromContent(start: number, end?: number): void {
-		this._children = [...this._children.slice(0, start), ...this._children.slice(end ?? start)];
+		this.children = [...this.children.slice(0, start), ...this.children.slice(end ?? start)];
 	}
 
 	insertBlockNodeBetween(block: BlockType, start: number, end?: number): void {
 		if (end !== undefined) {
-			this._children = [...this._children.slice(0, start), block, ...this._children.slice(end ?? start)];
+			this.children = [...this.children.slice(0, start), block, ...this.children.slice(end ?? start)];
 		} else {
-			this._children = [...this._children.slice(0, start), block];
+			this.children = [...this.children.slice(0, start), block];
 		}
 	}
 
@@ -437,11 +437,11 @@ class ContentNode {
 		let startFound = false;
 		let nodes: BlockType[] = [];
 
-		let startKey = isLeafNode(startNode) ? (startNode.__parent as BlockNode).key : startNode.key;
-		let endKey = isLeafNode(endNode) ? (endNode.__parent as BlockNode).key : startNode.key;
+		let startKey = isLeafNode(startNode) ? (startNode.parent as BlockNode).key : startNode.key;
+		let endKey = isLeafNode(endNode) ? (endNode.parent as BlockNode).key : startNode.key;
 
-		for (let i = 0; i < this._children.length; i++) {
-			const node = this._children[i];
+		for (let i = 0; i < this.children.length; i++) {
+			const node = this.children[i];
 			const nodeKey = node.key;
 			if (nodeKey === startKey) {
 				startFound = !startFound;
@@ -452,16 +452,16 @@ class ContentNode {
 			if (startFound || startKey === -1) nodes.push(node);
 		}
 
-		return returnAllIfNotFound && nodes.length === 0 ? this._children : nodes;
+		return returnAllIfNotFound && nodes.length === 0 ? this.children : nodes;
 	}
 
 	MergeBlockNode(connectingNode: BlockNode, joinNode: BlockNode, selectionState: SelectionState): void {
-		connectingNode = (isLeafNode(connectingNode) ? connectingNode.__parent : connectingNode) as BlockNode;
-		joinNode = (isLeafNode(joinNode) ? joinNode.__parent : joinNode) as BlockNode;
+		connectingNode = (isLeafNode(connectingNode) ? connectingNode.parent : connectingNode) as BlockNode;
+		joinNode = (isLeafNode(joinNode) ? joinNode.parent : joinNode) as BlockNode;
 
 		if (isBlockNode(connectingNode) && isBlockNode(joinNode)) {
-			const applyChilds = joinNode._children;
-			connectingNode._children = [...connectingNode._children, ...applyChilds];
+			const applyChilds = joinNode.children;
+			connectingNode.children = [...connectingNode.children, ...applyChilds];
 			connectingNode.remount();
 			joinNode.remove();
 		}
@@ -472,35 +472,51 @@ class ContentNode {
 		let key = isRemove ? '' : KeyBoardEvent ? KeyBoardEvent.key : '';
 		const selectionState = getSelectionState();
 
-		let anchorNodeData: BaseNode = selectionState.anchorNode as BaseNode;
-		let focusNodeData: BaseNode = selectionState.focusNode as BaseNode;
+		let anchorNode: BaseNode = selectionState.anchorNode as BaseNode;
+		let focusNode: BaseNode = selectionState.focusNode as BaseNode;
 
-		let anchorBlockNode: BlockNode = anchorNodeData.__parent as BlockNode;
-		let focusBlockNode: BlockNode = focusNodeData.__parent as BlockNode;
+		let anchorBlock: BlockNode = anchorNode.parent as BlockNode;
+		let focusBlock: BlockNode = focusNode.parent as BlockNode;
 
 		const isSelectionOnSameNode = selectionState.isNodesSame();
 
 		let SliceFrom = selectionState.anchorOffset;
 		let SliceTo = selectionState.focusOffset;
 
-		const {contentNode}: {contentNode: ContentNode | undefined} = anchorNodeData.getContentNode();
+		if (selectionState.anchorType === 'breakline' && isBlockNode(anchorNode)) {
+			const textNode = createTextNode('');
+			anchorNode.children = [textNode];
+			anchorNode.remount();
+			anchorNode = textNode;
+			selectionState.setNodeKey(textNode);
+		}
+		if (selectionState.focusType === 'breakline' && !selectionState.isCollapsed && isBlockNode(focusNode)) {
+			const textNode = createTextNode('');
+			focusNode.children = [textNode];
+			focusNode.remount();
+			focusNode = textNode;
+			selectionState.setNodeKey(textNode);
+		}
+
+		const {contentNode}: {contentNode: ContentNode | undefined} = anchorNode.getContentNode();
 
 		const handleOffsetStart = () => {
-			const previousBlock = anchorBlockNode.previousSibling();
+			const previousBlock = anchorBlock.previousSibling();
+
 			if (!previousBlock) return;
 
 			if (isHorizontalRuleNode(previousBlock) || (isBlockNode(previousBlock) && isBreakLine(previousBlock))) {
 				previousBlock.remove();
 			} else if (isBlockNode(previousBlock)) {
 				if (contentNode) {
-					this.MergeBlockNode(previousBlock, anchorBlockNode, selectionState);
+					this.MergeBlockNode(previousBlock, anchorBlock, selectionState);
 				}
 			}
 		};
 
 		if (selectionState.isCollapsed && isRemove && selectionState.isOffsetOnStart()) {
 			handleOffsetStart();
-		} else if (selectionState.sameBlock && (selectionState.isCollapsed || isSelectionOnSameNode) && isTextNode(anchorNodeData)) {
+		} else if (selectionState.sameBlock && (selectionState.isCollapsed || isSelectionOnSameNode) && isTextNode(anchorNode)) {
 			SliceFrom = isRemove && selectionState.isCollapsed ? selectionState.anchorOffset - 1 : selectionState.anchorOffset;
 
 			if (selectionState.isCollapsed) {
@@ -514,43 +530,43 @@ class ContentNode {
 				if (!isRemove) selectionState.moveSelectionForward();
 			}
 
-			anchorNodeData.sliceContent(SliceFrom, SliceTo, key);
+			anchorNode.sliceContent(SliceFrom, SliceTo, key);
 
-			const isBR = isBreakLine(anchorBlockNode);
-			if (isBR) selectionState.toggleCollapse().setNodeKey(anchorBlockNode.getFirstChild().key);
-			else if (anchorNodeData.status === 0) selectionState.moveSelectionToPreviousSibling();
-		} else if (selectionState.sameBlock && isTextNode(anchorNodeData) && isTextNode(focusNodeData)) {
-			const nodesBetween = anchorBlockNode.getNodesBetween(anchorNodeData.key, focusNodeData.key);
+			const isBR = isBreakLine(anchorBlock);
+			if (isBR) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild().key);
+			else if (anchorNode.status === 0) selectionState.moveSelectionToPreviousSibling();
+		} else if (selectionState.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
+			const nodesBetween = anchorBlock.getNodesBetween(anchorNode.key, focusNode.key);
 			nodesBetween.forEach((node) => node.remove());
 
-			anchorNodeData.sliceContent(SliceFrom, -1, key);
-			focusNodeData.sliceContent(SliceTo);
+			anchorNode.sliceContent(SliceFrom, -1, key);
+			focusNode.sliceContent(SliceTo);
 
-			if (isBreakLine(anchorBlockNode)) selectionState.toggleCollapse().setNodeKey(anchorBlockNode.getFirstChild().key);
-			else if (focusNodeData.status === 0 && anchorNodeData.status === 0) selectionState.moveSelectionToNextSibling();
+			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild().key);
+			else if (anchorNode.status === 0 && anchorNode.status === 0) selectionState.moveSelectionToNextSibling();
 			else {
 				selectionState.toggleCollapse();
 				if (!isRemove) selectionState.moveSelectionForward();
 			}
 		} else if (!selectionState.sameBlock) {
-			const blocksBetween = this.getBlockNodesBetween(anchorBlockNode, focusBlockNode);
+			const blocksBetween = this.getBlockNodesBetween(anchorBlock, focusBlock);
 
-			if (isTextNode(anchorNodeData)) {
-				anchorBlockNode.getNodesBetween(anchorNodeData.key).forEach((node) => node.remove());
-				anchorNodeData.sliceContent(SliceFrom, -1, key);
-			} else anchorNodeData.remove();
+			if (isTextNode(anchorNode)) {
+				anchorBlock.getNodesBetween(anchorNode.key).forEach((node) => node.remove());
+				anchorNode.sliceContent(SliceFrom, -1, key);
+			} else anchorNode.remove();
 
-			if (isTextNode(focusNodeData)) {
-				focusBlockNode.getNodesBetween(-1, focusNodeData.key).forEach((node) => node.remove());
-				focusNodeData.sliceContent(SliceTo);
-			} else focusNodeData.remove();
+			if (isTextNode(focusNode)) {
+				focusBlock.getNodesBetween(-1, focusNode.key).forEach((node) => node.remove());
+				focusNode.sliceContent(SliceTo);
+			} else focusNode.remove();
 
 			blocksBetween.forEach((node) => node.remove());
 
-			this.MergeBlockNode(anchorBlockNode, focusBlockNode, selectionState);
-			selectionState.toggleCollapse(!anchorNodeData.status ? true : false);
-			if (!anchorNodeData.status && focusNodeData.status) selectionState.offsetToZero();
-			else if (!focusNodeData.status && !anchorNodeData.status) selectionState.moveSelectionToPreviousSibling();
+			this.MergeBlockNode(anchorBlock, focusBlock, selectionState);
+			selectionState.toggleCollapse(!anchorNode.status ? true : false);
+			if (!anchorNode.status && focusNode.status) selectionState.offsetToZero();
+			else if (!focusNode.status && !anchorNode.status) selectionState.moveSelectionToPreviousSibling();
 			else if (!isRemove) selectionState.moveSelectionForward();
 		}
 	}
@@ -839,7 +855,7 @@ class ContentNode {
 	// 				CurrentBlock.getLastChild()?.key === anchorNode.key &&
 	// 				anchorNode?.getContentLength() === selectionState.anchorOffset
 	// 			) {
-	// 				let newBlockNode = new BlockNode({_children: [new BreakLine()]}, this);
+	// 				let newBlockNode = new BlockNode({children: [new BreakLine()]}, this);
 	// 				ContentNode.insertNode(newBlockNode, ContentNodeData.NodePath.getBlockIndex(), NodeInsertionDeriction.after);
 	// 				selectionState.setNodeKey(newBlockNode.key).offsetToZero().toggleCollapse();
 	// 				return;
@@ -849,7 +865,7 @@ class ContentNode {
 	// 			CurrentBlock.getLastChild()?.key === anchorNode.key &&
 	// 			anchorNode?.getContentLength() === selectionState.anchorOffset
 	// 		) {
-	// 			let newBlockNode = new BlockNode({_children: [new BreakLine()]}, this);
+	// 			let newBlockNode = new BlockNode({children: [new BreakLine()]}, this);
 	// 			ContentNode.insertNode(newBlockNode, ContentNodeData.NodePath.getBlockIndex(), NodeInsertionDeriction.after);
 	// 			selectionState.setNodeKey(newBlockNode.key).offsetToZero().toggleCollapse();
 	// 			return;
@@ -874,7 +890,7 @@ class ContentNode {
 
 	// 		let SliceCharNodes;
 	// 		if (isDecorator && CurrentBlock instanceof LinkNode) {
-	// 			SliceCharNodes = CurrentBlock._children.slice(anchorNodeSlice);
+	// 			SliceCharNodes = CurrentBlock.children.slice(anchorNodeSlice);
 	// 			CurrentBlock.splitChild(true, anchorNodeSlice);
 
 	// 			if (SlicedNode) SlicedNode = CurrentBlock.createSelfNode().append(SlicedNode, ...SliceCharNodes);
@@ -882,7 +898,7 @@ class ContentNode {
 
 	// 			let ParentNode = this.getBlockByPath(anchorPath.getContentNode());
 
-	// 			let BlockSliceNodes = ParentNode?._children?.slice(anchorPath.getBlockIndex() + 1);
+	// 			let BlockSliceNodes = ParentNode?.children?.slice(anchorPath.getBlockIndex() + 1);
 	// 			if (BlockSliceNodes.length > 0) ParentNode.splitChild(true, anchorPath.getBlockIndex() + 1);
 	// 			if (BlockSliceNodes) SliceCharNodes = [...SliceCharNodes, ...BlockSliceNodes];
 
@@ -890,7 +906,7 @@ class ContentNode {
 
 	// 			anchorPath = new NodePath(anchorPath.getContentNode());
 	// 		} else {
-	// 			SliceCharNodes = CurrentBlock._children.slice(anchorNodeSlice);
+	// 			SliceCharNodes = CurrentBlock.children.slice(anchorNodeSlice);
 	// 			if (SliceCharNodes.length > 0) CurrentBlock.splitChild(true, anchorNodeSlice);
 	// 			if (SlicedNode !== undefined) SliceCharNodes = [SlicedNode ?? [], ...SliceCharNodes];
 
@@ -901,7 +917,7 @@ class ContentNode {
 
 	// 		let newBlockNode = new BlockNode(
 	// 			{
-	// 				_children: SliceCharNodes,
+	// 				children: SliceCharNodes,
 	// 				blockWrapper: CurrentBlock.blockWrapper,
 	// 			},
 	// 			this,
@@ -944,7 +960,7 @@ class ContentNode {
 	// 				} else focusNodeSlice += 1;
 	// 			}
 
-	// 			let SliceCharNodes = AnchorBlock._children.slice(focusNodeSlice);
+	// 			let SliceCharNodes = AnchorBlock.children.slice(focusNodeSlice);
 	// 			if (SlicedTextNode !== undefined && SlicedTextNode.getContentLength() > 0) {
 	// 				SliceCharNodes = [SlicedTextNode, ...SliceCharNodes];
 	// 			}
@@ -961,7 +977,7 @@ class ContentNode {
 
 	// 			let newBlockNode = new BlockNode(
 	// 				{
-	// 					_children: SliceCharNodes,
+	// 					children: SliceCharNodes,
 	// 					blockType: AnchorBlock.blockType,
 	// 				},
 	// 				this,

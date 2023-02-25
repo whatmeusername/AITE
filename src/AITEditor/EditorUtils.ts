@@ -91,21 +91,21 @@ function getIndexPathFromKeyPath(keyPath: Array<number>) {
 	if (keyPath.length === 0) {
 		return [];
 	} else if (keyPath.length === 1) {
-		return [contentNode._children.findIndex((obj) => obj.key === keyPath[0])];
+		return [contentNode.children.findIndex((obj) => obj.key === keyPath[0])];
 	} else {
-		let index = contentNode._children.findIndex((obj) => obj.key === keyPath[0]);
-		let currentNode: any = contentNode._children[index];
+		let index = contentNode.children.findIndex((obj) => obj.key === keyPath[0]);
+		let currentNode: any = contentNode.children[index];
 
 		indexArray.push(index);
 
 		for (let i = 1; i < keyPath.length; i++) {
 			if (currentNode instanceof BlockNode) {
-				let index = currentNode._children.findIndex((obj) => obj.key === keyPath[i]);
-				currentNode = currentNode._children[index];
+				let index = currentNode.children.findIndex((obj) => obj.key === keyPath[i]);
+				currentNode = currentNode.children[index];
 				indexArray.push(index);
 			} else if (currentNode instanceof ContentNode) {
-				let index = currentNode._children.findIndex((obj) => obj.key === keyPath[i]);
-				currentNode = currentNode._children[index];
+				let index = currentNode.children.findIndex((obj) => obj.key === keyPath[i]);
+				currentNode = currentNode.children[index];
 				indexArray.push(index);
 			} else if (currentNode && !(currentNode instanceof BlockNode) && !(currentNode instanceof ContentNode)) {
 				if (currentNode.ContentNode) {
@@ -125,8 +125,8 @@ function getIndexPathFromKeyPath(keyPath: Array<number>) {
 
 function findEditorRoot(node: HTMLElement): HTMLElement | undefined {
 	while (true) {
-		let _childrenSet = (node.parentNode as HTMLElement)?.dataset;
-		if (_childrenSet.aite_editor_root !== undefined) {
+		let childrenSet = (node.parentNode as HTMLElement)?.dataset;
+		if (childrenSet.aite_editor_root !== undefined) {
 			return node.parentNode as HTMLDivElement;
 		} else if (node.tagName === 'BODY') break;
 		node = node.parentNode as HTMLElement;
@@ -245,9 +245,9 @@ function findStyle(StyleKey: string) {
 }
 
 function getDecoratorNode(node: AiteHTMLNode): AiteHTMLNode {
-	let _childrenset = node.dataset;
-	if (!_childrenset.aite_decorator_node) {
-		_childrenset = node.dataset;
+	let childrenset = node.dataset;
+	if (!childrenset.aite_decorator_node) {
+		childrenset = node.dataset;
 		while ((node.parentNode as AiteHTMLNode)?.dataset?.aite_editor_root === undefined) {
 			node = node.parentNode as AiteHTMLNode;
 			if (node.dataset.aite_decorator_node) {

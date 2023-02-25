@@ -3,13 +3,13 @@ import type {AiteNode, AiteNodeOptions} from '../index';
 import {BlockNode, NodeTypes} from '../BlockNode';
 import {isDefined} from '../EditorUtils';
 
-type stringURL = `https://${string}` | `http://prefix${string}`;
+type stringURL = `https://${string}` | `http://${string}`;
 
 class LeafNode extends BlockNode {
-	_children: NodeTypes[];
+	children: NodeTypes[];
 	constructor(parent?: BlockNode) {
 		super(undefined, parent, 'link/leaf');
-		this._children = [];
+		this.children = [];
 	}
 }
 
@@ -21,25 +21,25 @@ class LinkNode extends LeafNode {
 	}
 
 	removeNodeByKey(key: number): void {
-		let index = this._children.findIndex((node) => node.key === key);
+		let index = this.children.findIndex((node) => node.key === key);
 		if (index !== -1) {
-			this._children.splice(index, 1);
+			this.children.splice(index, 1);
 		}
-		if (this._children.length === 0) {
+		if (this.children.length === 0) {
 			this.remove();
 		}
 	}
 
 	splitChild(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes | Array<NodeTypes>): void {
-		let StartSlice = startFromZero === true ? this._children.slice(0, start) : this._children.slice(start);
+		let StartSlice = startFromZero === true ? this.children.slice(0, start) : this.children.slice(start);
 
-		let EndSlice = isDefined(end) ? this._children.slice(end) : [];
+		let EndSlice = isDefined(end) ? this.children.slice(end) : [];
 
-		if (node === undefined) this._children = [...StartSlice, ...EndSlice];
+		if (node === undefined) this.children = [...StartSlice, ...EndSlice];
 		else {
 			if (Array.isArray(node)) {
-				this._children = [...StartSlice, ...node, ...EndSlice];
-			} else this._children = [...StartSlice, node, ...EndSlice];
+				this.children = [...StartSlice, ...node, ...EndSlice];
+			} else this.children = [...StartSlice, node, ...EndSlice];
 		}
 	}
 
@@ -47,19 +47,19 @@ class LinkNode extends LeafNode {
 		let slicedNodes: Array<NodeTypes> = [];
 		if (end === undefined) {
 			if (startFromZero === false) {
-				slicedNodes = this._children.slice(0, start);
-				this._children = this._children.slice(start);
+				slicedNodes = this.children.slice(0, start);
+				this.children = this.children.slice(start);
 			} else if (startFromZero === true) {
-				slicedNodes = this._children.slice(start);
-				this._children = this._children.slice(0, start);
+				slicedNodes = this.children.slice(start);
+				this.children = this.children.slice(0, start);
 			}
 		} else if (end !== undefined) {
 			if (startFromZero === false) {
-				slicedNodes = [...this._children.slice(0, start), ...this._children.slice(end)];
-				this._children = this._children.slice(start, end);
+				slicedNodes = [...this.children.slice(0, start), ...this.children.slice(end)];
+				this.children = this.children.slice(start, end);
 			} else {
-				slicedNodes = this._children.slice(start, end);
-				this._children = [...this._children.slice(0, start), ...this._children.slice(end)];
+				slicedNodes = this.children.slice(start, end);
+				this.children = [...this.children.slice(0, start), ...this.children.slice(end)];
 			}
 		}
 		if (slicedNodes.length > 0) {
@@ -67,7 +67,7 @@ class LinkNode extends LeafNode {
 				unmountNode(node);
 			});
 		}
-		if (this._children.length === 0) {
+		if (this.children.length === 0) {
 			this.remove();
 		}
 	}
@@ -81,23 +81,23 @@ class LinkNode extends LeafNode {
 	}
 
 	getLastChild() {
-		return this._children[this._children.length - 1];
+		return this.children[this.children.length - 1];
 	}
 
 	getFirstChild() {
-		return this._children[0];
+		return this.children[0];
 	}
 
 	getChildren(): NodeTypes[] {
-		return this._children;
+		return this.children;
 	}
 
 	getChildrenByIndex(index: number): NodeTypes {
-		return this._children[index];
+		return this.children[index];
 	}
 
 	getChildrenIndexByKey(key: number): number {
-		return this._children.findIndex((node) => node.key === key);
+		return this.children.findIndex((node) => node.key === key);
 	}
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode {
@@ -109,7 +109,7 @@ class LinkNode extends LeafNode {
 		};
 
 		let children: Array<AiteNode> = [];
-		this._children.forEach((node) => {
+		this.children.forEach((node) => {
 			let $node = node.$getNodeState({...options});
 			if ($node) children.push($node);
 		});
@@ -133,7 +133,7 @@ function URLvalidator(url: stringURL): boolean {
 function createLinkNode(url: stringURL): LinkNode {
 	if (URLvalidator(url)) {
 		return new LinkNode(url);
-	} else return new LinkNode('https://');
+	} else return new LinkNode('http://');
 }
 
 export {LinkNode, createLinkNode, LeafNode};

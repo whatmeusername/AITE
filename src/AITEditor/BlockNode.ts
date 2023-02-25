@@ -2,7 +2,7 @@ import defaultBlocks from './defaultStyles/defaultBlocks';
 import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from './ConstVariables';
 import {ClassVariables} from './Interfaces';
 
-import {TextNode, LinkNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes} from './AITE_nodes/index';
+import {TextNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes, LeafNode, BaseNode, LinkNode} from './AITE_nodes/index';
 import type {imageNode} from './packages/AITE_Image/imageNode';
 
 import {createAiteNode, unmountNode, mountNode, ContentNode, NodeInsertionDeriction} from './index';
@@ -24,38 +24,50 @@ type allowedToInsert = 'all' | 'element' | 'text';
 
 function createBlockNode(initData?: BlockNodeVariables) {
 	initData = initData ?? {};
-	if (initData === undefined || initData?._children?.length === 0) {
-		initData._children = [new BreakLine()];
+	if (initData === undefined || initData?.children?.length === 0) {
+		initData.children = [new BreakLine()];
 	}
 	return new BlockNode(initData);
+}
+
+function filterNode(this: BlockNode, ...nodes: NodeTypes[]): NodeTypes[] {
+	const res: NodeTypes[] = [];
+	for (let i = 0; i < nodes.length; i++) {
+		let node = nodes[i];
+		if (isBaseNode(node) || isLeafNode(node)) {
+			node.parent = this;
+			res.push(node);
+		}
+	}
+	return res;
 }
 
 abstract class BaseBlockNode extends HeadNode {
 	blockType: BlockTypes;
 	blockInlineStyles: Array<string>;
-	__parent: ContentNode | BlockNode | null;
+	parent: ContentNode | BlockNode | null;
 
 	constructor(blockType?: BlockTypes, blockInlineStyles?: Array<string>, parent?: ContentNode | BlockNode, type?: 'block' | NodeKeyTypes) {
 		super(type ?? 'block');
 		this.blockType = blockType ?? STANDART_BLOCK_TYPE;
 		this.blockInlineStyles = blockInlineStyles ?? [];
-		this.__parent = parent ?? null;
+		this.parent = parent ?? null;
 	}
 
 	previousSibling(): NodeTypes | BlockType | null {
-		if (!this.__parent) return null;
-		const index = this.__parent?._children.indexOf(this as any);
+		if (!this.parent) return null;
+		const index = this.parent?.children.findIndex((n) => n.key === this.key);
 		if (index > -1) {
-			return this.__parent._children[index - 1];
+			return this.parent.children[index - 1];
 		}
 		return null;
 	}
 
 	nextSibling(): NodeTypes | BlockType | null {
-		if (!this.__parent) return null;
-		const index = this.__parent?._children.indexOf(this as any);
+		if (!this.parent) return null;
+		const index = this.parent?.children.findIndex((n) => n.key === this.key);
 		if (index > -1) {
-			return this.__parent._children[index + 1];
+			return this.parent.children[index + 1];
 		}
 		return null;
 	}
@@ -64,29 +76,38 @@ abstract class BaseBlockNode extends HeadNode {
 class BlockNode extends BaseBlockNode {
 	plainText: string;
 	blockWrapper: string;
-	_children: NodeTypes[];
+	children: NodeTypes[];
 	allowedToInsert: allowedToInsert | 'all';
 
 	constructor(initData?: BlockNodeVariables, parent?: ContentNode | BlockNode, type?: 'block' | NodeKeyTypes | null) {
 		super(initData?.blockType, initData?.blockInlineStyles, parent, type ?? 'block');
 		this.plainText = initData?.plainText ?? '';
 		this.blockWrapper = initData?.blockWrapper ?? 'unstyled';
-		this._children = initData?._children ?? [];
+		this.children = initData?.children ?? [];
 		this.allowedToInsert = initData?.allowedToInsert ?? 'all';
 
-		this._children.forEach((child) => {
-			child.__parent = this;
+		this.children.forEach((child) => {
+			child.parent = this;
+		});
+
+		return new Proxy(this, {
+			set(target: BlockNode, key: string, value: any) {
+				if (key === 'children') {
+					target.children = filterNode.apply(target, value);
+					target.children.forEach((node) => {
+						node.parent = target;
+					});
+				} else {
+					(target as any)[key] = value;
+				}
+				return true;
+			},
 		});
 	}
 
 	append(...nodes: NodeTypes[]) {
-		for (let i = 0; i < nodes.length; i++) {
-			let node = nodes[i];
-			if (isBaseNode(node) || isLeafNode(node)) {
-				node.__parent = this;
-				this._children.push(node);
-			}
-		}
+		const filteredNodes = filterNode.apply(this, nodes);
+		this.children.push(...filteredNodes);
 		return this;
 	}
 
@@ -94,16 +115,16 @@ class BlockNode extends BaseBlockNode {
 		let startFound = false;
 		let nodes: NodeTypes[] = [];
 
-		const block = !r ? (isLeafNode(this) ? (this.__parent as BlockNode) : this) : this;
+		const block = !r ? (isLeafNode(this) ? (this.parent as BlockNode) : this) : this;
 
-		for (let i = 0; i < block._children.length; i++) {
-			const node = block._children[i];
+		for (let i = 0; i < block.children.length; i++) {
+			const node = block.children[i];
 			const nodeKey = node.key;
 			const isDecorator = isLeafNode(node);
 			if (endKey && isDecorator) {
 				const nb = node.getNodesBetween(-1, endKey, false, true);
 				nodes = [...nodes, ...nb];
-				if (nb.length !== node._children.length) {
+				if (nb.length !== node.children.length) {
 					break;
 				}
 			}
@@ -118,11 +139,11 @@ class BlockNode extends BaseBlockNode {
 			if (!isDecorator && (startFound || startKey === -1)) nodes.push(node);
 		}
 
-		return returnAllIfNotFound && nodes.length === 0 ? block._children : nodes;
+		return returnAllIfNotFound && nodes.length === 0 ? block.children : nodes;
 	}
 
 	isBreakLine() {
-		return this._children.length === 1 && this._children[0] instanceof BreakLine;
+		return this.children.length === 1 && this.children[0] instanceof BreakLine;
 	}
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode {
@@ -145,7 +166,7 @@ class BlockNode extends BaseBlockNode {
 		};
 
 		let children: Array<AiteNode> = [];
-		this._children.forEach((node, index) => {
+		this.children.forEach((node, index) => {
 			let $node = node.$getNodeState({...options});
 			if ($node) children.push($node);
 		});
@@ -154,39 +175,39 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	swapNodePosition(FirPosition: number, SecPosition: number): void {
-		let CharP1 = this._children[FirPosition];
-		this._children[FirPosition] = this._children[SecPosition];
-		this._children[SecPosition] = CharP1;
+		let CharP1 = this.children[FirPosition];
+		this.children[FirPosition] = this.children[SecPosition];
+		this.children[SecPosition] = CharP1;
 	}
 
 	replaceNode(index: number, newNode: NodeTypes): void {
-		this._children[index] = newNode;
+		this.children[index] = newNode;
 	}
 
 	insertBreakLine() {
-		if (this._children.length === 0) {
+		if (this.children.length === 0) {
 			let breakLine = new BreakLine();
-			this._children = [];
+			this.children = [];
 			this.replaceNode(0, breakLine);
 			this.remount();
 		}
 	}
 
 	removeNodeByKey(key: number): void {
-		let index = this._children.findIndex((node) => node.key === key);
+		let index = this.children.findIndex((node) => node.key === key);
 		if (index !== -1) {
-			this._children.splice(index, 1);
+			this.children.splice(index, 1);
 		}
-		if (this._children.length === 0) {
+		if (this.children.length === 0) {
 			this.insertBreakLine();
 		}
 	}
 
 	insertNodeBetween(block: NodeTypes, start: number, end?: number): void {
 		if (end !== undefined) {
-			this._children = [...this._children.slice(0, start), block, ...this._children.slice(end ?? start)];
+			this.children = [...this.children.slice(0, start), block, ...this.children.slice(end ?? start)];
 		} else {
-			this._children = [...this._children.slice(0, start), block];
+			this.children = [...this.children.slice(0, start), block];
 		}
 	}
 
@@ -195,7 +216,7 @@ class BlockNode extends BaseBlockNode {
 			this.replaceNode(0, node);
 		} else {
 			let insertOffset = index > 0 ? index - 1 : index;
-			let previousSibling = this._children[index];
+			let previousSibling = this.children[index];
 			this.insertNodeBetween(node, insertOffset, insertOffset);
 			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
 		}
@@ -207,7 +228,7 @@ class BlockNode extends BaseBlockNode {
 			this.replaceNode(0, node);
 		} else {
 			let insertOffset = index > 0 ? index - 1 : index;
-			let previousSibling = this._children[index];
+			let previousSibling = this.children[index];
 			this.insertNodeBetween(node, insertOffset, insertOffset);
 			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
 		}
@@ -216,13 +237,13 @@ class BlockNode extends BaseBlockNode {
 
 	insertNode(node: NodeTypes, index: number | 'last' | 'first', direction: NodeInsertionDeriction) {
 		index = index >= 0 ? index : 0;
-		let blocksLength = this._children.length - 1;
+		let blocksLength = this.children.length - 1;
 		if (index === 0 || index === 'first') {
 			this.insertNodeBefore(0, node);
 		} else if (index === blocksLength || index === 'last') {
 			this.insertNodeAfter(blocksLength, node);
 		} else {
-			let previousSibling = this._children[index + 1];
+			let previousSibling = this.children[index + 1];
 			this.insertNodeBetween(node, index, index + 1);
 			if (previousSibling) mountNode(previousSibling, node, direction);
 		}
@@ -230,15 +251,15 @@ class BlockNode extends BaseBlockNode {
 
 	insertNodeBetweenText(nodeIndex: number, offset: number, node: NodeTypes): NodeTypes | undefined {
 		nodeIndex = nodeIndex >= 0 ? nodeIndex : 0;
-		let textNode = this._children[nodeIndex];
+		let textNode = this.children[nodeIndex];
 		if (textNode instanceof TextNode && !(node instanceof BreakLine)) {
 			let textContentLength = textNode.getContentLength();
 			if (offset !== 0 && offset !== textContentLength) {
-				let Text_children = textNode.getData(true);
+				let Textchildren = textNode.getData(true);
 				node = (node as imageNode).createSelfNode((node as imageNode).getData()) as imageNode;
 
-				let leftSideTextNode = createTextNode(textNode.getSlicedContent(true, offset), Text_children.getStyles());
-				let rightSideTextNode = createTextNode(textNode.getSlicedContent(false, offset), Text_children.getStyles());
+				let leftSideTextNode = createTextNode(textNode.getSlicedContent(true, offset), Textchildren.getStyles());
+				let rightSideTextNode = createTextNode(textNode.getSlicedContent(false, offset), Textchildren.getStyles());
 
 				this.splitChild(true, nodeIndex, nodeIndex + 1, [leftSideTextNode, node, rightSideTextNode]);
 				return node;
@@ -257,19 +278,19 @@ class BlockNode extends BaseBlockNode {
 		let slicedNodes: Array<NodeTypes> = [];
 		if (end === undefined) {
 			if (startFromZero === false) {
-				slicedNodes = this._children.slice(0, start);
-				this._children = this._children.slice(start);
+				slicedNodes = this.children.slice(0, start);
+				this.children = this.children.slice(start);
 			} else if (startFromZero === true) {
-				slicedNodes = this._children.slice(start);
-				this._children = this._children.slice(0, start);
+				slicedNodes = this.children.slice(start);
+				this.children = this.children.slice(0, start);
 			}
 		} else if (end !== undefined) {
 			if (startFromZero === false) {
-				slicedNodes = [...this._children.slice(0, start), ...this._children.slice(end)];
-				this._children = this._children.slice(start, end);
+				slicedNodes = [...this.children.slice(0, start), ...this.children.slice(end)];
+				this.children = this.children.slice(start, end);
 			} else {
-				slicedNodes = this._children.slice(start, end);
-				this._children = [...this._children.slice(0, start), ...this._children.slice(end)];
+				slicedNodes = this.children.slice(start, end);
+				this.children = [...this.children.slice(0, start), ...this.children.slice(end)];
 			}
 		}
 
@@ -278,23 +299,23 @@ class BlockNode extends BaseBlockNode {
 				unmountNode(node);
 			});
 		}
-		if (this._children.length === 0) {
+		if (this.children.length === 0) {
 			this.insertBreakLine();
 		}
 	}
 
 	splitChild(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes | Array<NodeTypes>): void {
-		let StartSlice = startFromZero === true ? this._children.slice(0, start) : this._children.slice(start);
+		let StartSlice = startFromZero === true ? this.children.slice(0, start) : this.children.slice(start);
 
-		let EndSlice = isDefined(end) ? this._children.slice(end) : [];
+		let EndSlice = isDefined(end) ? this.children.slice(end) : [];
 
-		if (node === undefined) this._children = [...StartSlice, ...EndSlice];
+		if (node === undefined) this.children = [...StartSlice, ...EndSlice];
 		else {
 			if (Array.isArray(node)) {
-				this._children = [...StartSlice, ...node, ...EndSlice];
-			} else this._children = [...StartSlice, node, ...EndSlice];
+				this.children = [...StartSlice, ...node, ...EndSlice];
+			} else this.children = [...StartSlice, node, ...EndSlice];
 		}
-		if (this._children.length === 0) {
+		if (this.children.length === 0) {
 			this.insertBreakLine();
 		}
 	}
@@ -323,29 +344,29 @@ class BlockNode extends BaseBlockNode {
 			return C instanceof TextNode && N instanceof TextNode && NodeStylesEqual(C, N);
 		};
 
-		let new_children: NodeTypes[] = [];
-		let currentNode = this._children[0];
-		new_children.push(currentNode);
+		let newchildren: NodeTypes[] = [];
+		let currentNode = this.children[0];
+		newchildren.push(currentNode);
 
-		for (let i = 1; i < this._children.length; i++) {
-			let nextNode = this._children[i];
+		for (let i = 1; i < this.children.length; i++) {
+			let nextNode = this.children[i];
 			if (isSameTextNode(currentNode, nextNode)) {
 				(currentNode as TextNode).appendContent((nextNode as TextNode).getContent());
 			} else {
-				currentNode = this._children[i];
-				new_children.push(currentNode);
+				currentNode = this.children[i];
+				newchildren.push(currentNode);
 			}
 		}
-		this._children = new_children;
+		this.children = newchildren;
 	}
 
 	countToIndex(index: number): number {
 		let Count = 0;
 		index = index < 0 ? 1 : index;
 
-		for (let CharIndex = 0; CharIndex < this._children.length; CharIndex++) {
+		for (let CharIndex = 0; CharIndex < this.children.length; CharIndex++) {
 			if (CharIndex <= index) {
-				let CurrentElement = this._children[CharIndex];
+				let CurrentElement = this.children[CharIndex];
 				Count += CurrentElement.getContentLength();
 			}
 		}
@@ -355,8 +376,8 @@ class BlockNode extends BaseBlockNode {
 	findNodeByOffset(offset: number): findNodeOffsetData {
 		let data: findNodeOffsetData = {offsetKey: 0, letterIndex: 0, key: undefined};
 		let letterCount = 0;
-		for (let i = 0; i < this._children.length; i++) {
-			let currentNode = this._children[i];
+		for (let i = 0; i < this.children.length; i++) {
+			let currentNode = this.children[i];
 			let currentLetterCount = currentNode.getContentLength();
 			letterCount += currentLetterCount;
 			if (letterCount >= offset) {
@@ -370,35 +391,44 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	getLastChildIndex(): number {
-		return this._children.length - 1;
+		return this.children.length - 1;
 	}
 
 	getLastChild() {
-		return this._children[this._children.length - 1];
+		return this.children[this.children.length - 1];
 	}
 
-	getFirstChild() {
-		return this._children[0];
+	getFirstChild(depth: true): NodeTypes;
+	getFirstChild(depth?: undefined): NodeTypes | LeafNode;
+	getFirstChild(depth?: boolean): NodeTypes | LeafNode {
+		if (depth) {
+			const node = this.children[0];
+			if (isLeafNode(node)) {
+				return node.getFirstChild();
+			}
+			return node;
+		}
+		return this.children[0];
 	}
 
 	nextNodeSibling(index: number): NodeTypes | undefined {
-		let nextSibling = this._children[index + 1];
+		let nextSibling = this.children[index + 1];
 		if (nextSibling !== undefined) return nextSibling;
 		else return undefined;
 	}
 
 	previousNodeSibling(index: number): NodeTypes | undefined {
-		let previousSibling = this._children[index - 1];
+		let previousSibling = this.children[index - 1];
 		if (previousSibling !== undefined) return previousSibling;
 		else return undefined;
 	}
 
 	getChildrenByIndex(index: number): NodeTypes {
-		return this._children[index];
+		return this.children[index];
 	}
 
 	getNodeByKey(key: number): NodeTypes | undefined {
-		return this._children.find((node) => node.key === key);
+		return this.children.find((node) => node.key === key);
 	}
 
 	getType(): string {
@@ -410,7 +440,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	getLength(): number {
-		return this._children.length;
+		return this.children.length;
 	}
 }
 
