@@ -230,8 +230,13 @@ class SelectionState {
 	 * Checks if selection focus and anchor is on begging of block
 	 * @returns boolean
 	 */
-	isOffsetOnStart(): boolean {
-		return this.anchorPath.getLastIndex() <= 0 && this.anchorOffset <= 0 && this.focusPath.getLastIndex() <= 0 && this.focusOffset <= 0;
+	isOffsetOnStart(forceBlock?: BlockNode): boolean {
+		if (!this.isCollapsed || (this.anchorOffset > 0 && this.focusOffset > 0)) return false;
+
+		let firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.anchorNode?.getContentNode().blockNode?.getFirstChild();
+		if (!firstNode) return false;
+
+		return this.anchorNode?.key === firstNode.key;
 	}
 
 	// DEPRECATED / TODO: REMOVE

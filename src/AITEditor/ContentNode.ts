@@ -460,7 +460,7 @@ class ContentNode {
 			}
 		};
 
-		if (selectionState.isCollapsed && isRemove && selectionState.isOffsetOnStart()) {
+		if (selectionState.isCollapsed && isRemove && selectionState.isOffsetOnStart(blockNode)) {
 			handleOffsetStart();
 		} else if (selectionState.sameBlock && (selectionState.isCollapsed || isSelectionOnSameNode) && isTextNode(anchorNode)) {
 			SliceFrom = isRemove && selectionState.isCollapsed ? selectionState.anchorOffset - 1 : selectionState.anchorOffset;
