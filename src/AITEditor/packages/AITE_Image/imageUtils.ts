@@ -1,15 +1,10 @@
 import {getEditorState} from "../../index";
 import type {floatType, imageNode} from "./imageNode";
 import {IMAGE_NODE_TYPE} from "../../ConstVariables";
-import {getBlockNodeWithNode} from "../../EditorUtils";
 
 export function setImageFloatDirection(direction: floatType): void {
 	const EditorState = getEditorState();
 	const activeEditorState = EditorState.EditorActiveElementState;
-
-	const CurrentNodeData = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined);
-	const BlockNode = CurrentNodeData?.block;
-	const ImageNode = CurrentNodeData?.node;
 
 	// if (BlockNode?.node !== undefined) {
 	// 	if (ImageNode.node.getActualType() === 'image/gif') {
@@ -46,14 +41,14 @@ export function setImageFloatDirection(direction: floatType): void {
 }
 
 export function toggleImageCaption(): void {
-	const activeEditorState = getEditorState().EditorActiveElementState;
-	if (activeEditorState.activeNodeType === IMAGE_NODE_TYPE) {
-		const CurrentNode = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)?.node;
-		if (CurrentNode && CurrentNode.node.getActualType() === IMAGE_NODE_TYPE) {
-			(CurrentNode.node as imageNode).toggleCaptition();
-			CurrentNode.node.remount();
-		}
-	}
+	// const activeEditorState = getEditorState().EditorActiveElementState;
+	// if (activeEditorState.activeNodeType === IMAGE_NODE_TYPE) {
+	// 	const CurrentNode = getBlockNodeWithNode(activeEditorState.pathToActiveNode, undefined)?.node;
+	// 	if (CurrentNode && CurrentNode.node.getActualType() === IMAGE_NODE_TYPE) {
+	// 		(CurrentNode.node as imageNode).toggleCaptition();
+	// 		CurrentNode.node.remount();
+	// 	}
+	// }
 }
 
 export function validateImageURL(imageURL: string): boolean {

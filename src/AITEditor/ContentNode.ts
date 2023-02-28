@@ -1,9 +1,8 @@
-import {BREAK_LINE_TYPE, TEXT_NODE_TYPE} from "./ConstVariables";
 import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, BreakLine} from "./nodes/index";
 
 import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
-import {unmountNode, BlockType, NodePath, BlockNode, HorizontalRuleNode, getSelectionState, mountNode, NodeInsertionDeriction} from "./index";
+import {BlockType, NodePath, BlockNode, HorizontalRuleNode, getSelectionState, mountNode, NodeInsertionDeriction} from "./index";
 import {isLeafNode} from "./EditorUtils";
 
 interface contentNodeConf {

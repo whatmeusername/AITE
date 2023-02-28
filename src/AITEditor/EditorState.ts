@@ -3,7 +3,8 @@ import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 import {editorWarning} from "./EditorUtils";
 import {onKeyDownEvent, onKeyUpEvent} from "./EditorEvents";
 
-import {EditorDOMState, getMutatedSelection, SelectionState, insertSelection, EditorCommands, ContentNode} from "./index";
+import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, ContentNode} from "./index";
+import {ClassVariables} from "./Interfaces";
 
 interface editorConf {
 	ContentNode: ContentNode;
@@ -118,7 +119,7 @@ class EditorState {
 	focus: boolean;
 	__readOnly: boolean;
 	editorEventsActive: boolean;
-	__previousSelection: insertSelection | undefined;
+	__previousSelection: ClassVariables<SelectionState> | undefined;
 
 	constructor(initData?: editorConf) {
 		updateActiveEditor(this);
@@ -138,7 +139,7 @@ class EditorState {
 
 	replaceActiveSelectionWithPrevious(): void {
 		if (this.__previousSelection) {
-			this.selectionState.insertSelectionData(this.__previousSelection);
+			//this.selectionState.insertSelectionData(this.__previousSelection);
 			this.selectionState.setCaretPosition();
 		} else editorWarning(true, "tried to set selection by previous selection data, when it undefined");
 	}

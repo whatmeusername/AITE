@@ -40,31 +40,6 @@ function isNodesPathEqual(P1: NodePath | Array<number>, P2: NodePath | Array<num
 	return true;
 }
 
-function getBlockNodeWithNode(
-	forcedPath: NodePath | undefined,
-	from: "anchor" | "focus" | undefined,
-): {block: {node: BlockType; path: Array<number>}; node: {node: NodeTypes; path: Array<number>} | undefined} | undefined {
-	const editorState = getEditorState();
-	const ContentNode = editorState.contentNode;
-	const nodePath = forcedPath ?? editorState.selectionState[`${from ?? "anchor"}Path`];
-
-	if (nodePath instanceof NodePath) {
-		const blockNode: BlockType = ContentNode.getBlockByPath(nodePath.getBlockPath());
-		let Node;
-		if (blockNode instanceof BlockNode) {
-			Node = blockNode.getChildrenByIndex(nodePath.getLastIndex());
-		}
-		return {
-			block: {
-				node: blockNode,
-				path: nodePath.getBlockPath(),
-			},
-			node: Node === undefined ? undefined : {node: Node, path: nodePath.get()},
-		};
-	}
-	return undefined;
-}
-
 function isLeafNode(node: any): node is LeafNode {
 	return node instanceof LeafNode;
 }
@@ -256,7 +231,6 @@ function DiffNodeState(previousState: {[K: string]: any}, nextState: {[K: string
 export {
 	getIndexPathFromKeyPath,
 	getChildrenNodes,
-	getBlockNodeWithNode,
 	getDecoratorNode,
 	keyCodeValidator,
 	DiffNodeState,
