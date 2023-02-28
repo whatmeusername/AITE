@@ -149,7 +149,7 @@ class EditorCommands {
 		const EditorDOM = getEditorState().__editorDOMState.getRootHTMLNode();
 		Object.entries(this.rootCommands).map(([eventname, event]) => {
 			if (event !== undefined) {
-				let eventData = {eventname: undefined, event: undefined} as {eventname: undefined | string; event: undefined | ((...args: any) => void)};
+				let eventData: {eventname: undefined | string; event: undefined | ((...args: any) => void)} = {eventname: undefined, event: undefined};
 				eventData = (() => {
 					switch (eventname) {
 						case "COPY_COMMAND":

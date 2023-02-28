@@ -1,4 +1,4 @@
-import {TextNode} from "../AITE_nodes/index";
+import {TextNode} from "../nodes/index";
 
 import type {ContentNode} from "../index";
 import {EditorState} from "../index";

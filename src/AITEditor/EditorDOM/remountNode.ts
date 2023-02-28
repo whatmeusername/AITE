@@ -1,4 +1,4 @@
-import {HeadNode} from "../AITE_nodes";
+import {HeadNode} from "../nodes";
 import {AiteHTML} from "./interface";
 import {createDOMElement, returnSingleDOMNode} from "./EditorDom";
 import {getEditorState} from "../index";

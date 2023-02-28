@@ -1,4 +1,4 @@
-import {HeadNode} from "../AITE_nodes";
+import {HeadNode} from "../nodes";
 import {getEditorState} from "../EditorState";
 import {AiteHTML, AiteHTMLNode} from "./interface";
 

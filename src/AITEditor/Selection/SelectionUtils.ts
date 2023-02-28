@@ -5,7 +5,7 @@ import {AiteHTML, getKeyPathNodeByNode, isBlockNode, isTextNode} from "../index"
 
 import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from "../index";
 
-import {BaseNode, BreakLine, HeadNode, TextNode} from "../AITE_nodes/index";
+import {BaseNode, BreakLine, HeadNode, TextNode} from "../nodes/index";
 
 interface blockchildrenExtended {
 	node: AiteHTMLNode;
@@ -742,6 +742,7 @@ class SelectionState {
 	 */
 	getCaretPosition(forceRange?: Range): void {
 		const selection = getSelection();
+
 		if (forceRange === undefined && (!selection.anchorNode || !selection.focusNode)) return;
 
 		const range = forceRange ?? selection.getRangeAt(0);
@@ -810,7 +811,11 @@ class SelectionState {
 			const EditorState = getEditorState();
 
 			const anchorNode = EditorState?.__editorDOMState.getNodeFromMap(this.anchorKey);
-			if (anchorNode === undefined) return;
+
+			if (anchorNode === undefined) {
+				this.getCaretPosition();
+				return;
+			}
 
 			this.anchorNode = anchorNode.$$ref;
 
@@ -891,11 +896,9 @@ class SelectionState {
 
 		if (SelectionData.anchorPath && Array.isArray(SelectionData.anchorPath) && !SelectionData.anchorPath.some(isNaN))
 			this.anchorPath.set(SelectionData.anchorPath);
-		if (SelectionData.focusPath && Array.isArray(SelectionData.focusPath) && !SelectionData.focusPath.some(isNaN))
-			this.focusPath.set(SelectionData.focusPath);
+		if (SelectionData.focusPath && Array.isArray(SelectionData.focusPath) && !SelectionData.focusPath.some(isNaN)) this.focusPath.set(SelectionData.focusPath);
 
-		if (SelectionData.anchorType && (SelectionData.anchorType === "text" || SelectionData.anchorType === "element"))
-			this.anchorType = SelectionData.anchorType;
+		if (SelectionData.anchorType && (SelectionData.anchorType === "text" || SelectionData.anchorType === "element")) this.anchorType = SelectionData.anchorType;
 		if (SelectionData.focusType && (SelectionData.focusType === "text" || SelectionData.focusType === "element")) this.focusType = SelectionData.focusType;
 
 		this.isCollapsed = SelectionData.isCollapsed ?? this.isCollapsed;

@@ -6,7 +6,7 @@ import {HeadNode} from "./index";
 
 type NodeKeyTypes = typeof TEXT_NODE_TYPE | typeof IMAGE_NODE_TYPE | typeof LINK_NODE_TYPE | typeof BREAK_LINE_TYPE | typeof LIST_NODE_TYPE;
 
-interface DOMhtml {
+interface DOMNodeData {
 	key?: string;
 	target?: "_blank" | "_self" | "_parent" | "_top";
 }
@@ -32,18 +32,18 @@ abstract class BaseNode extends HeadNode {
 		this.parent = parent ?? null;
 	}
 
-	getType(): string {
+	public getType(): string {
 		if (this.__type === TEXT_NODE_TYPE || this.__type === LINK_NODE_TYPE) {
 			return TEXT_NODE_TYPE;
 		} else if (this.__type === BREAK_LINE_TYPE) return BREAK_LINE_TYPE;
 		return "element";
 	}
 
-	getStatus(): number {
+	public getStatus(): number {
 		return this.__status;
 	}
 
-	previousSibling(): NodeTypes | null {
+	public previousSibling(): NodeTypes | null {
 		if (!this.parent) return null;
 		if (isBlockNode(this.parent)) {
 			const index = this.parent.children.indexOf(this as any);
@@ -54,7 +54,7 @@ abstract class BaseNode extends HeadNode {
 		return null;
 	}
 
-	nextSibling(): NodeTypes | null {
+	public nextSibling(): NodeTypes | null {
 		if (!this.parent) return null;
 		if (isBlockNode(this.parent)) {
 			const index = this.parent.children.indexOf(this as any);
@@ -68,4 +68,4 @@ abstract class BaseNode extends HeadNode {
 
 export {BaseNode};
 
-export type {DOMattr, DOMhtml, NodeKeyTypes};
+export type {DOMattr, DOMNodeData, NodeKeyTypes};

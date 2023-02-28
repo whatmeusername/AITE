@@ -1,6 +1,6 @@
-import {TextNode, createTextNode, createLinkNode} from "../../AITE_nodes/index";
+import {TextNode, createTextNode, createLinkNode} from "../../nodes/index";
 
-import {BaseNode} from "../../AITE_nodes/index";
+import {BaseNode} from "../../nodes/index";
 
 //eslint-disable-next-line
 import BlockResizeElemets from "./imageResizeElements";

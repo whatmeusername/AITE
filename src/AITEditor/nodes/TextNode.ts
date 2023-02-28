@@ -1,24 +1,11 @@
-import {BaseNode, DOMhtml} from "./index";
+import {BaseNode} from "./index";
 import {findStyle, DiffNodeState} from "../EditorUtils";
 
 import {createAiteNode} from "../index";
 import type {AiteNode, AiteNodeOptions} from "../index";
 
 import {updateTextNodeContent} from "../index";
-
-interface DOMTextAttr extends DOMhtml {
-	className?: string;
-	"data-aite-node"?: boolean;
-}
-
-interface textNodeConf {
-	plainText: string;
-	styles?: Array<string>;
-}
-
-interface updateOptions {
-	removeIfEmpty?: boolean;
-}
+import {NodeUpdateOptions, TextNodeAttr} from "./interface";
 
 function createTextNode(text: string = "", styles?: Array<string>) {
 	return new TextNode({plainText: text, styles: styles ?? []});
@@ -30,7 +17,7 @@ class TextNode extends BaseNode {
 	[TEXT_NODE_CONTENT_KEY]: string;
 	_styles: Array<string>;
 
-	constructor(initData?: textNodeConf) {
+	constructor(initData?: TextNodeAttr) {
 		super("text");
 		this.__content = initData?.plainText ?? "";
 		this._styles = initData?.styles ?? [];
@@ -56,7 +43,7 @@ class TextNode extends BaseNode {
 	}
 
 	// DEPRECATED REPLACED WITH PROXY
-	update(func: (textNode: TextNode) => void, options?: updateOptions): number {
+	update(func: (textNode: TextNode) => void, options?: NodeUpdateOptions): number {
 		const copiedState = {...this};
 
 		func(this);
@@ -127,7 +114,7 @@ class TextNode extends BaseNode {
 		else return this.__content.slice(start);
 	}
 
-	createSelfNode(data: textNodeConf) {
+	createSelfNode(data: TextNodeAttr) {
 		return new TextNode(data);
 	}
 
@@ -157,5 +144,3 @@ class TextNode extends BaseNode {
 }
 
 export {createTextNode, TextNode};
-
-export type {DOMTextAttr, textNodeConf};

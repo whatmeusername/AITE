@@ -8,7 +8,7 @@ class BreakLine extends BaseNode {
 		super(BREAK_LINE_TYPE);
 	}
 
-	$getNodeState(options?: AiteNodeOptions): AiteNode {
+	public $getNodeState(options?: AiteNodeOptions): AiteNode {
 		const className = "AITE_breakline";
 		const props = {
 			className: className,
@@ -20,11 +20,11 @@ class BreakLine extends BaseNode {
 		return createAiteNode(this, "br", props, null, {...options, isAiteWrapper: false});
 	}
 
-	getContentLength() {
+	public getContentLength() {
 		return 0;
 	}
 
-	createSelfNode() {
+	public createSelfNode() {
 		return new BreakLine();
 	}
 }

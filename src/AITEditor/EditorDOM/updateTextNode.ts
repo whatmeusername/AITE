@@ -1,4 +1,4 @@
-import {TextNode} from "../AITE_nodes";
+import {TextNode} from "../nodes";
 import {HTML_TEXT_NODE} from "../ConstVariables";
 import {getEditorState} from "../EditorState";
 import {AiteHTMLTextNode} from "./interface";

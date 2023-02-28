@@ -1,5 +1,5 @@
 import {BREAK_LINE_TYPE, TEXT_NODE_TYPE} from "./ConstVariables";
-import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine} from "./AITE_nodes/index";
+import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, BreakLine} from "./nodes/index";
 
 import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
@@ -34,10 +34,7 @@ function isContentNode(node: any): node is ContentNode {
 
 function isBreakLine(node: any): node is BlockNode {
 	if (isLeafNode(node)) return false;
-	return (
-		node.children.length <= 1 &&
-		(node.children[0].getType() === BREAK_LINE_TYPE || (node.children[0].getType() === TEXT_NODE_TYPE && node.children[0].getContentLength() === 0))
-	);
+	return node.children.length === 1 && (node.children[0] instanceof BreakLine || (node.children[0] as TextNode).__content === "");
 }
 
 class ContentNode {
@@ -81,32 +78,6 @@ class ContentNode {
 		this.children.forEach((node) => {
 			node.parent = this;
 		});
-	}
-
-	removeDomNodes(startFromZero: boolean = true, start: number, end?: number): void {
-		let slicedNodes: Array<BlockType> = [];
-		if (end === undefined) {
-			if (startFromZero === false) {
-				slicedNodes = this.children.slice(0, start);
-				this.children = this.children.slice(start);
-			} else if (startFromZero === true) {
-				slicedNodes = this.children.slice(start);
-				this.children = this.children.slice(0, start);
-			}
-		} else if (end !== undefined) {
-			if (startFromZero === false) {
-				slicedNodes = [...this.children.slice(0, start), ...this.children.slice(end)];
-				this.children = this.children.slice(start, end);
-			} else {
-				slicedNodes = this.children.slice(start, end);
-				this.children = [...this.children.slice(0, start), ...this.children.slice(end)];
-			}
-		}
-		if (slicedNodes.length > 0) {
-			slicedNodes.forEach((node: BlockType) => {
-				unmountNode(node);
-			});
-		}
 	}
 
 	insertNodeBefore<T extends BlockType>(index: number, node: T): T {
@@ -420,6 +391,7 @@ class ContentNode {
 		const SliceTo = selectionState.focusOffset;
 
 		const isRemove = KeyBoardEvent === undefined;
+
 		let key = isRemove ? "" : KeyBoardEvent ? KeyBoardEvent.key : "";
 
 		let anchorNode: BaseNode = selectionState.anchorNode as BaseNode;
@@ -448,14 +420,16 @@ class ContentNode {
 				return;
 			}
 
-			const previousBlock = anchorBlock.previousSibling();
+			if (!blockNode) return;
+
+			const previousBlock = blockNode?.previousSibling();
 			if (!previousBlock) return;
 
 			if (isHorizontalRuleNode(previousBlock) || (isBlockNode(previousBlock) && isBreakLine(previousBlock))) {
 				previousBlock.remove();
 			} else if (isBlockNode(previousBlock)) {
 				if (contentNode) {
-					this.MergeBlockNode(previousBlock, anchorBlock);
+					this.MergeBlockNode(previousBlock, blockNode);
 				}
 			}
 		};
@@ -476,13 +450,15 @@ class ContentNode {
 				if (!isRemove) selectionState.moveSelectionForward();
 			}
 
+			const isOffsetOnStart = selectionState.isOffsetOnStart(blockNode);
 			anchorNode.sliceContent(SliceFrom, SliceTo, key);
 
 			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
-			else if (anchorNode.status === 0) selectionState.moveSelectionToPreviousSibling();
+			else if (anchorNode.status === 0 && !isOffsetOnStart) {
+				selectionState.moveSelectionToPreviousSibling();
+			}
 		} else if (selectionState.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
-			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key).forEach((node) => node.remove());
-
+			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key, false, true).forEach((node) => node.remove());
 			anchorNode.sliceContent(SliceFrom, -1, key);
 			focusNode.sliceContent(SliceTo);
 

@@ -2,7 +2,7 @@ import defaultBlocks from "./defaultStyles/defaultBlocks";
 import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from "./ConstVariables";
 import {ClassVariables} from "./Interfaces";
 
-import {TextNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes, LeafNode, LinkNode} from "./AITE_nodes/index";
+import {TextNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes, LeafNode, LinkNode} from "./nodes/index";
 import type {imageNode} from "./packages/AITE_Image/imageNode";
 
 import {createAiteNode, unmountNode, mountNode, ContentNode, NodeInsertionDeriction} from "./index";
@@ -124,7 +124,7 @@ class BlockNode extends BaseBlockNode {
 			const node = block.children[i];
 			const nodeKey = node.key;
 			const isDecorator = isLeafNode(node);
-			if (endKey && isDecorator) {
+			if (startFound && endKey && isDecorator) {
 				const nb = node.getNodesBetween(-1, endKey, false, true);
 				nodes = [...nodes, ...nb];
 				if (nb.length !== node.children.length) {
@@ -133,7 +133,7 @@ class BlockNode extends BaseBlockNode {
 			}
 
 			if (nodeKey === startKey) {
-				startFound = !startFound;
+				startFound = true;
 				continue;
 			} else if (nodeKey === endKey) {
 				break;
@@ -286,36 +286,6 @@ class BlockNode extends BaseBlockNode {
 			this.replaceNode(0, node);
 		}
 		return;
-	}
-
-	removeDomNodes(startFromZero: boolean = true, start: number, end?: number): void {
-		let slicedNodes: Array<NodeTypes> = [];
-		if (end === undefined) {
-			if (startFromZero === false) {
-				slicedNodes = this.children.slice(0, start);
-				this.children = this.children.slice(start);
-			} else if (startFromZero === true) {
-				slicedNodes = this.children.slice(start);
-				this.children = this.children.slice(0, start);
-			}
-		} else if (end !== undefined) {
-			if (startFromZero === false) {
-				slicedNodes = [...this.children.slice(0, start), ...this.children.slice(end)];
-				this.children = this.children.slice(start, end);
-			} else {
-				slicedNodes = this.children.slice(start, end);
-				this.children = [...this.children.slice(0, start), ...this.children.slice(end)];
-			}
-		}
-
-		if (slicedNodes.length > 0) {
-			slicedNodes.forEach((node: NodeTypes) => {
-				unmountNode(node);
-			});
-		}
-		if (this.children.length === 0) {
-			this.insertBreakLine();
-		}
 	}
 
 	splitChild(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes | Array<NodeTypes>): void {

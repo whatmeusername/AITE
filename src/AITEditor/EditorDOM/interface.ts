@@ -1,4 +1,4 @@
-import type {TextNode, HeadNode} from "../AITE_nodes/index";
+import type {TextNode, HeadNode} from "../nodes/index";
 import {Nullable} from "../Interfaces";
 import type {AiteNode, AiteTextNode} from "./index";
 

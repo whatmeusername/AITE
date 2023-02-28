@@ -1,4 +1,4 @@
-import {TextNode} from "../AITE_nodes";
+import {TextNode} from "../nodes";
 import {Nullable} from "../Interfaces";
 import {AiteHTMLTextNode} from "./interface";
 

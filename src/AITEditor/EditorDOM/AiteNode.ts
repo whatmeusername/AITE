@@ -1,4 +1,4 @@
-import {HeadNode} from "../AITE_nodes";
+import {HeadNode} from "../nodes";
 import {isTextNode} from "../ContentNode";
 import {Nullable} from "../Interfaces";
 import {AiteTextNode} from "./AiteTextNode";
