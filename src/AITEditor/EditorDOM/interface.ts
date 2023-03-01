@@ -15,7 +15,7 @@ interface AiteHTMLNode extends HTMLElement {
 
 interface AiteHTMLTextNode extends Text {
 	$$AiteNodeType: string;
-	$$AiteNodeKey: Nullable<string>;
+	$$AiteNodeKey: Nullable<number>;
 	$$isAiteNode: true;
 	$$isAiteTextNode: true;
 	$$ref: Nullable<TextNode>;

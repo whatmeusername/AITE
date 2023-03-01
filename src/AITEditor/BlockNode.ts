@@ -5,7 +5,7 @@ import {ClassVariables} from "./Interfaces";
 import {TextNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes, LeafNode, LinkNode} from "./nodes/index";
 import type {imageNode} from "./packages/AITE_Image/imageNode";
 
-import {createAiteNode, unmountNode, mountNode, ContentNode, NodeInsertionDeriction} from "./index";
+import {createAiteNode, mountNode, ContentNode, NodeInsertionDeriction} from "./index";
 import type {AiteNode, AiteNodeOptions} from "./index";
 import {isBaseNode, isLeafNode, isDefined} from "./EditorUtils";
 
@@ -114,32 +114,34 @@ class BlockNode extends BaseBlockNode {
 		return this;
 	}
 
-	getNodesBetween(startKey: number, endKey?: number, returnAllIfNotFound?: boolean, r?: boolean): NodeTypes[] {
-		let startFound = false;
+	getNodesBetween(startKey: number, endKey?: number, returnAllIfNotFound?: boolean, leaf?: boolean, forceStatus?: {s: boolean}): NodeTypes[] {
+		const startFound = forceStatus ?? {s: false};
 		let nodes: NodeTypes[] = [];
 
-		const block = !r ? (isLeafNode(this) ? (this.parent as BlockNode) : this) : this;
+		const block = (!leaf ? (isLeafNode(this) ? this.parent : this) : this) as BlockNode;
+		if (!block) return [];
 
 		for (let i = 0; i < block.children.length; i++) {
 			const node = block.children[i];
-			const nodeKey = node.key;
 			const isDecorator = isLeafNode(node);
-			if (startFound && endKey && isDecorator) {
-				const nb = node.getNodesBetween(-1, endKey, false, true);
-				nodes = [...nodes, ...nb];
-				if (nb.length !== node.children.length) {
-					break;
+
+			if (endKey && isDecorator) {
+				const subNodes = node.getNodesBetween(startFound.s ? -1 : startKey, endKey, false, true, startFound);
+				if (subNodes.length !== node.children.length) {
+					nodes = [...nodes, ...subNodes];
+				} else {
+					nodes.push(node);
 				}
 			}
 
-			if (nodeKey === startKey) {
-				startFound = true;
+			if (node.key === startKey) {
+				startFound.s = true;
 				continue;
-			} else if (nodeKey === endKey) {
+			} else if (node.key === endKey) {
 				break;
 			}
 
-			if (!isDecorator && (startFound || startKey === -1)) nodes.push(node);
+			if (!isDecorator && (startFound.s || startKey === -1)) nodes.push(node);
 		}
 
 		return returnAllIfNotFound && nodes.length === 0 ? block.children : nodes;
@@ -200,9 +202,7 @@ class BlockNode extends BaseBlockNode {
 
 	insertBreakLine() {
 		if (this.children.length === 0) {
-			const breakLine = new BreakLine();
-			this.children = [];
-			this.replaceNode(0, breakLine);
+			this.children = [new BreakLine()];
 			this.remount();
 		}
 	}

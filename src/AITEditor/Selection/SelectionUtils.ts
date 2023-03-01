@@ -7,9 +7,8 @@ import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from "../index";
 
 import {BaseNode, BreakLine, HeadNode, TextNode} from "../nodes/index";
 
-interface blockchildrenExtended {
+interface SelectedNodeData {
 	node: AiteHTMLNode;
-	nodePath: Array<number>;
 	elementType: string | null;
 	nodeKey: Nullable<number>;
 }
@@ -655,11 +654,18 @@ class SelectionState {
 	/**
 	 * Gets data from selected node
 	 * @param  {Node} node - node which data should be getted
-	 * @returns blockchildrenExtended
+	 * @returns SelectedNodeData type
 	 */
-	__getBlockNode(node: AiteHTML): blockchildrenExtended {
-		const currentBlockData = this.getPathToNodeByNode(node as AiteHTMLNode);
-		if (currentBlockData !== undefined) {
+	getNodeData(node: AiteHTML): SelectedNodeData {
+		if ((node as AiteHTMLNode)?.dataset?.["aite_editor_root"]) {
+			node = node.firstChild as AiteHTML;
+		}
+
+		if (node instanceof Text) {
+			node = node.parentNode as AiteHTMLNode;
+		}
+
+		if (node !== undefined) {
 			let ElementType = null;
 			if (node?.firstChild?.nodeName === BREAK_LINE_TAGNAME) {
 				ElementType = BREAK_LINE_TYPE;
@@ -667,11 +673,10 @@ class SelectionState {
 				ElementType = node.$$AiteNodeType ? node.$$AiteNodeType : this.$getNodeType(node);
 			}
 
-			const Result: blockchildrenExtended = {
-				node: currentBlockData.node,
-				nodePath: currentBlockData.nodePath,
+			const Result: SelectedNodeData = {
+				node: node,
 				elementType: ElementType,
-				nodeKey: currentBlockData.nodeKey,
+				nodeKey: node.$$AiteNodeKey,
 			};
 			return Result;
 			// TODO: REPLACE WITH onError METHOD
@@ -707,7 +712,7 @@ class SelectionState {
 
 			this.anchorNode = anchorNode.$$ref;
 			this.anchorIndex = anchorNode.$$ref?.getSelfIndex() ?? -1;
-			const anchorNodeData = this.__getBlockNode(anchorNode);
+			const anchorNodeData = this.getNodeData(anchorNode);
 
 			if (anchorNodeData) {
 				this.anchorKey = anchorNodeData.nodeKey;
@@ -723,7 +728,7 @@ class SelectionState {
 			} else {
 				this.focusNode = focusNode.$$ref;
 				this.focusIndex = focusNode.$$ref?.getSelfIndex() ?? -1;
-				const focusNodeData = this.__getBlockNode(focusNode);
+				const focusNodeData = this.getNodeData(focusNode);
 
 				this.focusKey = focusNodeData.nodeKey;
 				this.focusType = focusNodeData.elementType;
@@ -780,7 +785,7 @@ class SelectionState {
 				this.focusNode = this.anchorNode;
 				this.focusIndex = this.anchorIndex;
 			} else {
-				const focusNode = EditorState?.__editorDOMState.getNodeFromMap(this.focusKey);
+				focusNode = EditorState?.__editorDOMState.getNodeFromMap(this.focusKey);
 				if (focusNode === undefined) return;
 
 				this.focusNode = focusNode.$$ref;
@@ -797,7 +802,7 @@ class SelectionState {
 					range.setStart(anchorNode?.firstChild as Node, this.anchorOffset);
 				}
 			} else if (anchorType === ELEMENT_NODE_TYPE || anchorType === BREAK_LINE_TYPE) {
-				range.setStart(anchorNode as HTMLElement as Node, this.anchorOffset);
+				range.setStart(anchorNode as HTMLElement as Node, 0);
 			}
 
 			if (focusType === TEXT_NODE_TYPE) {
@@ -809,7 +814,7 @@ class SelectionState {
 					range.setEnd(focusNode?.firstChild as Node, this.focusOffset);
 				}
 			} else if (focusType === ELEMENT_NODE_TYPE || focusType === BREAK_LINE_TYPE) {
-				range.setEnd(focusNode as HTMLElement as Node, this.focusOffset);
+				range.setEnd(focusNode as HTMLElement, 0);
 			}
 
 			selection.removeAllRanges();

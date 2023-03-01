@@ -102,12 +102,11 @@ function AITEditor(): JSX.Element {
 				dataTransfer.setDragImage(img, 0, 0);
 				dataTransfer.setData("text/plain", "");
 
-				const nodeData = EditorState.selectionState.__getBlockNode(getDecoratorNode(event.target));
+				const nodeData = EditorState.selectionState.getNodeData(getDecoratorNode(event.target));
 				dataTransfer.setData(
 					"application/aite-drag-event",
 					JSON.stringify({
 						data: {
-							nodePath: nodeData.nodePath,
 							nodeType: nodeData.elementType,
 						},
 					}),

@@ -377,9 +377,12 @@ class ContentNode {
 
 		if (isBlockNode(connectingNode) && isBlockNode(joinNode)) {
 			const applyChilds = joinNode.children;
+			if (joinNode.isBreakLine) {
+				joinNode.remove();
+				return;
+			}
 			connectingNode.children = [...connectingNode.children, ...applyChilds];
 			connectingNode.remount();
-			joinNode.remove();
 		}
 	}
 
@@ -457,7 +460,7 @@ class ContentNode {
 				selectionState.moveSelectionToPreviousSibling();
 			}
 		} else if (selectionState.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
-			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key, false, true).forEach((node) => node.remove());
+			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key, false).forEach((node) => node.remove());
 			anchorNode.sliceContent(SliceFrom, -1, key);
 			focusNode.sliceContent(SliceTo);
 
@@ -484,6 +487,7 @@ class ContentNode {
 
 			this.MergeBlockNode(anchorBlock, focusBlock);
 			selectionState.toggleCollapse(!anchorNode.status ? true : false);
+
 			if (!anchorNode.status && focusNode.status) selectionState.offsetToZero();
 			else if (!focusNode.status && !anchorNode.status) selectionState.moveSelectionToPreviousSibling();
 			else if (!isRemove) selectionState.moveSelectionForward();
