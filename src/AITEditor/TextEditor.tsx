@@ -49,11 +49,11 @@ function getDropCaretRange(event: DropEvent): Range | null {
 
 function canDropElement(event: DropEvent): boolean {
 	const target = event.target as AiteHTMLNode;
-	if (target && target.$$isAiteNode) {
+	if (target && target.$isAiteNode) {
 		const firstChild: AiteHTMLTextNode | AiteHTMLNode = target.firstChild as any;
-		if ((firstChild as AiteHTMLTextNode).$$isAiteTextNode || (firstChild as AiteHTMLNode).$$AiteNodeType === "breakline") {
+		if ((firstChild as AiteHTMLTextNode).$isTextNode || (firstChild as AiteHTMLNode).$AiteNodeType === "breakline") {
 			return true;
-		} else if ((firstChild.firstChild as AiteHTMLTextNode).$$isAiteTextNode) {
+		} else if ((firstChild.firstChild as AiteHTMLTextNode).$isTextNode) {
 			return true;
 		}
 	}

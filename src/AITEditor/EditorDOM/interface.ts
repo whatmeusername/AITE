@@ -6,19 +6,21 @@ type StringNumberBool = string | number | boolean;
 type AiteNodes = AiteNode | AiteTextNode;
 
 interface AiteHTMLNode extends HTMLElement {
-	$$AiteNodeType: string;
-	$$AiteNodeKey: Nullable<number>;
-	$$isAiteNode: true;
-	$$isAiteWrapper: boolean;
-	$$ref: Nullable<HeadNode>;
+	$AiteNodeType: string;
+	$AiteNodeKey: Nullable<number>;
+	$isAiteNode: true;
+	$ref: Nullable<HeadNode>;
+
+	firstChild: AiteHTML;
+	parentNode: AiteHTMLNode;
 }
 
 interface AiteHTMLTextNode extends Text {
-	$$AiteNodeType: string;
-	$$AiteNodeKey: Nullable<number>;
-	$$isAiteNode: true;
-	$$isAiteTextNode: true;
-	$$ref: Nullable<TextNode>;
+	$AiteNodeType: string;
+	$AiteNodeKey: Nullable<number>;
+	$isAiteNode: true;
+	$isTextNode: true;
+	$ref: Nullable<TextNode>;
 }
 
 type AiteNodeTypes = "text" | "breakline" | "element" | "unsigned" | "image/gif";

@@ -1,6 +1,6 @@
 import {KeyboardEventCommand} from "./editorCommandsTypes";
 
-import {getEditorState, BlockNode, NodeTypes, BlockType, NodePath, AiteHTMLNode, ContentNode, HorizontalRuleNode} from "./index";
+import {getEditorState, BlockNode, AiteHTMLNode, ContentNode, HorizontalRuleNode} from "./index";
 import {BaseNode, BreakLine, LeafNode, TextNode} from "./nodes/index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
@@ -20,24 +20,6 @@ function getChildrenNodes(blockNode: HTMLElement): Array<HTMLElement> {
 		}
 	}
 	return childrens;
-}
-
-function isNodesPathEqual(P1: NodePath | Array<number>, P2: NodePath | Array<number>): boolean {
-	if (P1 instanceof NodePath) {
-		P1 = P1.get();
-	}
-	if (P2 instanceof NodePath) {
-		P2 = P2.get();
-	}
-
-	if (P1.length !== P2.length) {
-		return false;
-	} else {
-		for (let i = 0; i < P1.length; i++) {
-			if (P1[i] !== P2[i]) return false;
-		}
-	}
-	return true;
 }
 
 function isLeafNode(node: any): node is LeafNode {
@@ -264,7 +246,6 @@ export {
 	isArrowRight,
 	isArrowUp,
 	isArrowDown,
-	isNodesPathEqual,
 	isDefined,
 	isBaseNode,
 	isTextNode,

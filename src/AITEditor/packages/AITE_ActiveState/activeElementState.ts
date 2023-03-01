@@ -1,17 +1,17 @@
-import {NodePath} from "../../Selection";
 import {AiteHTMLNode} from "../../index";
 
+// DEPREACTED - REWRITE
 export default class ActiveElementState {
 	allowedAllements: Array<string>;
 	isActive: boolean;
-	pathToActiveNode: NodePath;
+	pathToActiveNode: null;
 	activeNodeKey: number | undefined;
 	activeNodeType: string | undefined;
 
 	constructor() {
 		this.allowedAllements = ["image/gif"];
 		this.isActive = false;
-		this.pathToActiveNode = new NodePath();
+		this.pathToActiveNode = null;
 		this.activeNodeKey = undefined;
 		this.activeNodeType = undefined;
 	}
@@ -30,7 +30,6 @@ export default class ActiveElementState {
 	}
 	resetActiveData(): void {
 		this.isActive = false;
-		this.pathToActiveNode.set([]);
 		this.activeNodeKey = undefined;
 	}
 

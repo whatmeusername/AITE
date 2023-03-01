@@ -53,11 +53,10 @@ function createAiteNode(
 function createAiteDomNode(node: AiteNode): AiteHTMLNode {
 	const htmlNode: AiteHTMLNode = document.createElement(node.type) as AiteHTMLNode;
 	setProps(htmlNode, node.props);
-	htmlNode.$$isAiteNode = true;
-	htmlNode.$$AiteNodeKey = node._key;
-	htmlNode.$$AiteNodeType = node.AiteNodeType;
-	htmlNode.$$isAiteWrapper = node.isAiteWrapper ?? false;
-	htmlNode.$$ref = node.ref;
+	htmlNode.$isAiteNode = true;
+	htmlNode.$AiteNodeKey = node._key;
+	htmlNode.$AiteNodeType = node.AiteNodeType;
+	htmlNode.$ref = node.ref;
 
 	if (node._key) {
 		__nodeMap.set(node._key.toString(), htmlNode);

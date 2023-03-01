@@ -47,7 +47,7 @@ abstract class HeadNode {
 	remove(): void {
 		const DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
 		if (DOMnode !== undefined && this.key) {
-			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$$ref as BaseNode).parent;
+			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$ref as BaseNode).parent;
 			if (parentRef && (parentRef instanceof BlockNode || parentRef instanceof ContentNode || parentRef instanceof LinkNode)) {
 				this.status = 0;
 				unmountNode(this);

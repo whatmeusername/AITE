@@ -1,6 +1,5 @@
 import type {BlockNode} from "../BlockNode";
 import type {ContentNode} from "../ContentNode";
-import {mountNode} from "../EditorDOM";
 
 function ObservableChildren<T extends ContentNode | BlockNode, U extends T["children"]>(parent: T, children: U): U {
 	const childrenProxyObject = new Proxy(children, {

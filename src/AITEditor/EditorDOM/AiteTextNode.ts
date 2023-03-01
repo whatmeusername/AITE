@@ -17,10 +17,10 @@ class AiteTextNode {
 
 function createAiteText(string: string, ref?: Nullable<TextNode>): AiteHTMLTextNode {
 	const textNode: AiteHTMLTextNode = document.createTextNode(string) as AiteHTMLTextNode;
-	textNode.$$isAiteNode = true;
-	textNode.$$isAiteTextNode = true;
-	textNode.$$AiteNodeType = "text";
-	textNode.$$ref = ref ?? null;
+	textNode.$isAiteNode = true;
+	textNode.$isTextNode = true;
+	textNode.$AiteNodeType = "text";
+	textNode.$ref = ref ?? null;
 	return textNode;
 }
 
