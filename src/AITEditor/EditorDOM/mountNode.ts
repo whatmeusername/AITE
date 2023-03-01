@@ -3,7 +3,7 @@ import {getEditorState} from "../EditorState";
 import {NodeInsertionDeriction} from "./interface";
 import {createDOMElement} from "./EditorDom";
 
-function mountNode(siblingNode: NodeTypes | BlockType, node: NodeTypes | BlockType, insertDirection: NodeInsertionDeriction = NodeInsertionDeriction.before) {
+function mountNode(siblingNode: NodeTypes | BlockType, node: NodeTypes | BlockType, insertDirection: NodeInsertionDeriction = NodeInsertionDeriction.BEFORE) {
 	const currentDOMElement = getEditorState().__editorDOMState.getNodeFromMap(siblingNode.key);
 	if (currentDOMElement && node.status === 1) {
 		if (insertDirection === "after") {

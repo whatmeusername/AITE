@@ -10,26 +10,6 @@ import {Nullable} from "../Interfaces";
 
 export const __nodeMap: NodeMap = new Map();
 
-function getKeyPathNodeByNode(node: AiteHTMLNode) {
-	const pathToNode = [];
-
-	if (node instanceof Text) {
-		node = node.parentNode as AiteHTMLNode;
-	}
-
-	if (node.$$AiteNodeKey && node.$$isAiteNode) {
-		pathToNode.unshift(node.$$AiteNodeKey);
-		while (node?.dataset.aite_editor_root === undefined) {
-			node = node.parentNode as AiteHTMLNode;
-			if (node.$$AiteNodeKey) {
-				pathToNode.unshift(node.$$AiteNodeKey);
-			}
-		}
-		return pathToNode;
-	}
-	return [];
-}
-
 function createDOMElementWithoutChildren(node: AiteNode): AiteHTMLNode;
 function createDOMElementWithoutChildren(node: string): AiteHTMLTextNode;
 function createDOMElementWithoutChildren(node: AiteNode | string): AiteHTMLNode | AiteHTMLTextNode {
@@ -122,4 +102,4 @@ class EditorDOMState {
 	}
 }
 
-export {EditorDOMState, getKeyPathNodeByNode, returnSingleDOMNode, createDOMElement, createAITEContentNode};
+export {EditorDOMState, returnSingleDOMNode, createDOMElement, createAITEContentNode};

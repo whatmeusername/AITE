@@ -33,8 +33,8 @@ interface AiteNodeOptions {
 }
 
 enum NodeInsertionDeriction {
-	after = "after",
-	before = "before",
+	AFTER = "after",
+	BEFORE = "before",
 }
 
 enum ClassAttribute {

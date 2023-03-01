@@ -79,7 +79,9 @@ class BlockNode extends BaseBlockNode {
 	plainText: string;
 	blockWrapper: string;
 	children: NodeTypes[];
-	allowedToInsert: allowedToInsert | "all";
+
+	// TODO: IMPLEMENT VALIDATOR
+	allowedToInsert: allowedToInsert;
 
 	constructor(initData?: BlockNodeVariables, parent?: ContentNode | BlockNode, type?: "block" | NodeKeyTypes | null) {
 		super(initData?.blockType, initData?.blockInlineStyles, parent, type ?? "block");
@@ -95,7 +97,7 @@ class BlockNode extends BaseBlockNode {
 		return new Proxy(this, {
 			set(target: BlockNode, key: string, value: any) {
 				if (key === "children") {
-					target.children = filterNode.apply(target, value);
+					target.children = ObservableChildren(target, filterNode.apply(target, value));
 				} else {
 					(target as any)[key] = value;
 				}
@@ -229,7 +231,7 @@ class BlockNode extends BaseBlockNode {
 			const insertOffset = index > 0 ? index - 1 : index;
 			const previousSibling = this.children[index];
 			this.insertNodeBetween(node, insertOffset, insertOffset);
-			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
+			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.BEFORE);
 		}
 		return node;
 	}
@@ -241,7 +243,7 @@ class BlockNode extends BaseBlockNode {
 			const insertOffset = index > 0 ? index - 1 : index;
 			const previousSibling = this.children[index];
 			this.insertNodeBetween(node, insertOffset, insertOffset);
-			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
+			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.BEFORE);
 		}
 		return node;
 	}

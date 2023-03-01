@@ -1,5 +1,6 @@
 import type {BlockNode} from "../BlockNode";
 import type {ContentNode} from "../ContentNode";
+import {mountNode} from "../EditorDOM";
 
 function ObservableChildren<T extends ContentNode | BlockNode, U extends T["children"]>(parent: T, children: U): U {
 	const childrenProxyObject = new Proxy(children, {
@@ -13,7 +14,7 @@ function ObservableChildren<T extends ContentNode | BlockNode, U extends T["chil
 						}
 					});
 				};
-			} else if (key === "push" || key === "unshift" || key === "concat") {
+			} else if (key === "push" || key === "unshift") {
 				return function (...items: U) {
 					items.forEach((node) => {
 						node.parent = parent;

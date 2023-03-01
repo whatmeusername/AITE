@@ -62,7 +62,7 @@ class ContentNode {
 		const insertOffset = index > 0 ? index - 1 : index;
 		const previousSibling = this.children[index];
 		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
-		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
+		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.BEFORE);
 		return node;
 	}
 
@@ -71,7 +71,7 @@ class ContentNode {
 		const previousSibling = this.children[index];
 
 		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
-		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.before);
+		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.BEFORE);
 		return node;
 	}
 
@@ -351,9 +351,7 @@ class ContentNode {
 				return;
 			} else {
 				const applyChilds = joinNode.children;
-				console.log(connectingNode.children);
-				connectingNode.children = [...connectingNode.children, ...applyChilds];
-				console.log(connectingNode.children);
+				connectingNode.children.push(...applyChilds);
 				connectingNode.remount();
 				joinNode.remove();
 			}
@@ -427,6 +425,7 @@ class ContentNode {
 			}
 
 			const isOffsetOnStart = selectionState.isOffsetOnStart(blockNode);
+
 			anchorNode.sliceContent(SliceFrom, SliceTo, key);
 
 			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
@@ -487,7 +486,7 @@ class ContentNode {
 			const newBreakLine = createBreakLine();
 			const {contentNode, index} = anchorNode.getContentNode();
 			if (contentNode) {
-				contentNode.insertNode(newBreakLine, index, NodeInsertionDeriction.before);
+				contentNode.insertNode(newBreakLine, index, NodeInsertionDeriction.BEFORE);
 			}
 		}
 	}

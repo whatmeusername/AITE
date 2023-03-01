@@ -1,7 +1,7 @@
 import {ClassVariables, Nullable} from "../Interfaces";
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
-import {getIndexPathFromKeyPath, isLeafNode, isBaseNode, isTextNode, isBlockNode} from "../EditorUtils";
-import {AiteHTML, getKeyPathNodeByNode} from "../index";
+import {isLeafNode, isBaseNode, isTextNode, isBlockNode} from "../EditorUtils";
+import {AiteHTML} from "../index";
 
 import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from "../index";
 
@@ -273,51 +273,6 @@ class SelectionState {
 		this.anchorOffset = 0;
 		this.focusOffset = 0;
 		return this;
-	}
-
-	/**
-	 * Finding path to node, that can used in Object Nodes
-	 * @param  {AiteHTMLNode} node  - Node which requires path
-	 * @returns selectionData - self return
-	 */
-	getPathToNodeByNode(node: AiteHTMLNode): selectionData | undefined {
-		if (node.$$isAiteNode === true) {
-			if (node.dataset?.aite_decorator_node === undefined) {
-				node = node.firstChild ? (node.firstChild as AiteHTMLNode) : node;
-			}
-
-			if (node instanceof Text) {
-				node = node.parentNode as AiteHTMLNode;
-			}
-
-			const data: selectionData = {
-				nodeKey: node.$$AiteNodeKey,
-				node: node,
-				nodePath: getIndexPathFromKeyPath(getKeyPathNodeByNode(node)) ?? [],
-			};
-
-			return data;
-
-			// while(node !== undefined) {
-			// 	let parentNode = node.parentNode as AiteHTMLNode
-			// 	if(parentNode?.dataset?.aite_editor_root !== undefined){
-			// 		let nodeIndex = Array.from(parentNode.children).indexOf(node);
-			// 		data.nodePath.unshift(nodeIndex)
-			// 		return data
-			// 	}
-			// 	if(parentNode.$$isAiteWrapper === false){
-			// 		if(node.dataset.aite_content_node === undefined){
-			// 			let nodeIndex = Array.from(parentNode.children).indexOf(node);
-			// 			data.nodePath.unshift(nodeIndex)
-			// 		}
-			// 		if(parentNode?.dataset?.aite_editor_root !== undefined){
-			// 			return data
-			// 		}
-			// 	}
-			// 	node = parentNode
-			// }
-		}
-		return undefined;
 	}
 
 	setAnchorKey(KeyOrNode: BaseNode): SelectionState;
