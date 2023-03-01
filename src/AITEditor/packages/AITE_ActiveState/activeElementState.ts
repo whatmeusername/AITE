@@ -1,11 +1,5 @@
-import {getDecoratorNode, isNodesPathEqual} from "../../EditorUtils";
-
-import {NodePath, getSelection} from "../../Selection";
-import {getEditorState, getSelectionState} from "../../index";
+import {NodePath} from "../../Selection";
 import {AiteHTMLNode} from "../../index";
-
-type mouseEvent = React.MouseEvent | MouseEvent;
-type EditorNodeSelectedData = {node: Node | HTMLElement; index: number} | undefined;
 
 export default class ActiveElementState {
 	allowedAllements: Array<string>;

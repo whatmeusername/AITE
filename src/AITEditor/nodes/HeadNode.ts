@@ -1,4 +1,5 @@
-import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, isContentNode, BlockType} from "../index";
+import {isContentNode} from "../EditorUtils";
+import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, BlockType} from "../index";
 import {BaseNode, LinkNode, NodeKeyTypes} from "./index";
 
 abstract class HeadNode {

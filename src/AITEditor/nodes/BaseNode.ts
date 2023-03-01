@@ -1,6 +1,6 @@
 import {BlockNode, NodeTypes} from "../BlockNode";
 import {TEXT_NODE_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE, IMAGE_NODE_TYPE, LIST_NODE_TYPE} from "../ConstVariables";
-import {isBlockNode} from "../ContentNode";
+import {isBlockNode} from "../EditorUtils";
 
 import {HeadNode} from "./index";
 
@@ -26,10 +26,10 @@ abstract class BaseNode extends HeadNode {
 	protected __status: 0 | 1;
 	parent: BlockNode | BaseNode | null;
 
-	constructor(type: NodeKeyTypes, parent?: BlockNode) {
+	constructor(type: NodeKeyTypes) {
 		super(type);
 		this.__status = 1;
-		this.parent = parent ?? null;
+		this.parent = null;
 	}
 
 	public getType(): string {

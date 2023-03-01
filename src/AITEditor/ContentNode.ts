@@ -1,9 +1,10 @@
-import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, BreakLine} from "./nodes/index";
+import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine} from "./nodes/index";
 
 import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
-import {BlockType, NodePath, BlockNode, HorizontalRuleNode, getSelectionState, mountNode, NodeInsertionDeriction} from "./index";
-import {isLeafNode} from "./EditorUtils";
+import {BlockType, NodePath, BlockNode, getSelectionState, mountNode, NodeInsertionDeriction} from "./index";
+import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "./EditorUtils";
+import {ObservableChildren} from "./observers";
 
 interface contentNodeConf {
 	BlockNodes?: Array<BlockType>;
@@ -15,27 +16,6 @@ function createContentNode(initData?: contentNodeConf) {
 	return new ContentNode(initData);
 }
 
-function isTextNode(node: any): node is TextNode {
-	return node instanceof TextNode;
-}
-
-function isHorizontalRuleNode(node: any): node is HorizontalRuleNode {
-	return node instanceof HorizontalRuleNode;
-}
-
-function isBlockNode(node: any): node is BlockNode {
-	return node instanceof BlockNode;
-}
-
-function isContentNode(node: any): node is ContentNode {
-	return node instanceof ContentNode;
-}
-
-function isBreakLine(node: any): node is BlockNode {
-	if (isLeafNode(node)) return false;
-	return node.children.length === 1 && (node.children[0] instanceof BreakLine || (node.children[0] as TextNode).__content === "");
-}
-
 class ContentNode {
 	blocksLength: () => number;
 	children: Array<BlockType>;
@@ -44,39 +24,38 @@ class ContentNode {
 		this.blocksLength = () => {
 			return this.children.length;
 		};
-		this.children = initData?.BlockNodes ?? [
-			createBlockNode({blockWrapper: "header-two"}).append(createTextNode("Тестовый текст для редактора")),
-			createHorizontalRule(),
-			createHorizontalRule(),
-			createHorizontalRule(),
-			createBreakLine(),
-			createBlockNode({blockWrapper: "standart"}).append(
-				createTextNode(
-					"Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.",
-					["ITALIC"],
+		this.children = ObservableChildren(
+			this,
+			initData?.BlockNodes ?? [
+				createBlockNode({blockWrapper: "header-two"}).append(createTextNode("Тестовый текст для редактора")),
+				createHorizontalRule(),
+				createHorizontalRule(),
+				createHorizontalRule(),
+				createBreakLine(),
+				createBlockNode({blockWrapper: "standart"}).append(
+					createTextNode(
+						"Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.",
+						["ITALIC"],
+					),
+					createTextNode("some amazing text number 1 ", ["ITALIC", "BOLD"]),
+					createTextNode("some amazing text number 2", ["ITALIC", "UNDERLINE", "BOLD"]),
 				),
-				createTextNode("some amazing text number 1 ", ["ITALIC", "BOLD"]),
-				createTextNode("some amazing text number 2", ["ITALIC", "UNDERLINE", "BOLD"]),
-			),
-			createBlockNode({blockWrapper: "header-one"}).append(
-				createLinkNode("https://yandex.ru").append(
-					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
-					createTextNode("середина ", []),
-					createTextNode("конец", ["UNDERLINE"]),
+				createBlockNode({blockWrapper: "header-one"}).append(
+					createLinkNode("https://yandex.ru").append(
+						createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
+						createTextNode("середина ", []),
+						createTextNode("конец", ["UNDERLINE"]),
+					),
+					createTextNode("Языки программирования", ["STRIKETHROUGH", "UNDERLINE"]),
+					createLinkNode("https://yandex.ru").append(
+						createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
+						createTextNode("середина ", []),
+						createTextNode("конец", ["UNDERLINE"]),
+					),
+					createTextNode(" текст после ссылки", ["ITALIC", "UNDERLINE"]),
 				),
-				createTextNode("Языки программирования", ["STRIKETHROUGH", "UNDERLINE"]),
-				createLinkNode("https://yandex.ru").append(
-					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
-					createTextNode("середина ", []),
-					createTextNode("конец", ["UNDERLINE"]),
-				),
-				createTextNode(" текст после ссылки", ["ITALIC", "UNDERLINE"]),
-			),
-		];
-
-		this.children.forEach((node) => {
-			node.parent = this;
-		});
+			],
+		);
 	}
 
 	insertNodeBefore<T extends BlockType>(index: number, node: T): T {
@@ -99,7 +78,6 @@ class ContentNode {
 	insertNode(node: BlockType, index: number | "last" | "first", direction: NodeInsertionDeriction) {
 		if (index < 0) return;
 
-		node.parent = this;
 		const blocksLength = this.children.length - 1;
 		if ((index === 0 && direction !== "after") || index === "first") {
 			this.insertNodeBefore(0, node);
@@ -316,14 +294,6 @@ class ContentNode {
 		if (index !== -1) this.children.splice(index, 1);
 	}
 
-	removeBlock(blockIndex: number): void {
-		this.children.splice(blockIndex, 1);
-	}
-
-	sliceBlockFromContent(start: number, end?: number): void {
-		this.children = [...this.children.slice(0, start), ...this.children.slice(end ?? start)];
-	}
-
 	insertBlockNodeBetween(block: BlockType, start: number, end?: number): void {
 		if (end !== undefined) {
 			this.children = [...this.children.slice(0, start), block, ...this.children.slice(end ?? start)];
@@ -376,13 +346,17 @@ class ContentNode {
 		joinNode = (isLeafNode(joinNode) ? joinNode.parent : joinNode) as BlockNode;
 
 		if (isBlockNode(connectingNode) && isBlockNode(joinNode)) {
-			const applyChilds = joinNode.children;
 			if (joinNode.isBreakLine) {
 				joinNode.remove();
 				return;
+			} else {
+				const applyChilds = joinNode.children;
+				console.log(connectingNode.children);
+				connectingNode.children = [...connectingNode.children, ...applyChilds];
+				console.log(connectingNode.children);
+				connectingNode.remount();
+				joinNode.remove();
 			}
-			connectingNode.children = [...connectingNode.children, ...applyChilds];
-			connectingNode.remount();
 		}
 	}
 
@@ -494,239 +468,6 @@ class ContentNode {
 		}
 	}
 
-	// insertLetterIntoTextNode(KeyBoardEvent?: KeyboardEvent): void {
-	// 	const remove = KeyBoardEvent === undefined;
-	// 	let Key = remove ? '' : KeyBoardEvent ? KeyBoardEvent.key : '';
-
-	// 	const selectionState = getSelectionState();
-	// 	const anchorPath = selectionState.anchorPath;
-	// 	const focusPath = selectionState.focusPath;
-
-	// 	let anchorBlockNode = this.getBlockByPath(anchorPath.getBlockPath()) as BlockNode;
-	// 	let focusBlockNode;
-
-	// 	let anchorNodeData = anchorBlockNode.getChildrenByIndex ? anchorBlockNode.getChildrenByIndex(anchorPath.getLastIndex()) : undefined;
-	// 	let focusNodeData: NodeTypes | undefined;
-
-	// 	const handleOffsetStart = () => {
-	// 		if (selectionState.isOffsetOnStart()) {
-	// 			let isDecoratorAnchor = isDecoratorNode(anchorBlockNode);
-	// 			if (focusPath.getBlockIndex() !== 0 || (isDecoratorAnchor && focusPath.getContentNodeIndex() !== 0)) {
-	// 				if (isDecoratorAnchor) {
-	// 					anchorPath.set(selectionState.anchorPath.getBlockPath());
-	// 					anchorBlockNode = this.getBlockByPath(anchorPath.getBlockPath());
-	// 				}
-
-	// 				let previousBlockPath = new NodePath([...selectionState.anchorPath.get()]);
-	// 				previousBlockPath.addOrRemoveToBlock('dec', 1);
-
-	// 				let previousBlock = this.getBlockByPath(previousBlockPath.getBlockPath());
-
-	// 				if (!(previousBlock instanceof BlockNode)) {
-	// 					previousBlock.remove();
-	// 					selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
-	// 					selectionState.setAnchorKey(anchorBlockNode.getFirstChild().key).offsetToZero();
-	// 				} else if (
-	// 					(anchorBlockNode.isBreakLine() && previousBlock.isBreakLine()) ||
-	// 					(anchorBlockNode.isBreakLine() === false && previousBlock.isBreakLine())
-	// 				) {
-	// 					previousBlock.remove();
-	// 					selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
-	// 					selectionState.setAnchorKey(anchorBlockNode.getFirstChild().key).toggleCollapse();
-	// 				} else if (anchorBlockNode.isBreakLine() && previousBlock.isBreakLine() === false) {
-	// 					selectionState.moveSelectionToPreviousBlock(this);
-	// 					anchorBlockNode.remove();
-	// 				} else {
-	// 					let currentContentNode: ContentNode | undefined = undefined;
-	// 					if (selectionState.anchorPath.length() === 1) currentContentNode = this;
-	// 					else currentContentNode = this.getBlockByPath(anchorPath.getContentNode());
-
-	// 					currentContentNode = (currentContentNode as any).ContentNode ?? currentContentNode;
-
-	// 					if (currentContentNode) {
-	// 						selectionState.anchorPath.addOrRemoveToBlock('dec', 1);
-	// 						this.MergeBlocks(currentContentNode.BlockNodes, 'up', 'backward');
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	};
-
-	// 	// DOING SOME WORK TO OPTIMIZE FUNCTION AND REPLACING BREAK LINES IF SELECTED
-	// 	if (anchorNodeData?.getType() === BREAK_LINE_TYPE && !remove) {
-	// 		anchorNodeData = createTextNode();
-	// 		anchorBlockNode.replaceNode(0, anchorNodeData);
-	// 		selectionState.setAnchorKey(anchorBlockNode.getFirstChild().key);
-	// 		anchorBlockNode.remount();
-	// 	}
-	// 	if (selectionState.isCollapsed === false) {
-	// 		if (selectionState.isNodesPathEqual() === false) {
-	// 			focusBlockNode = this.getBlockByPath(focusPath.getBlockPath()) as BlockNode;
-	// 			focusNodeData = focusBlockNode.getChildrenByIndex ? focusBlockNode.getChildrenByIndex(focusPath.getLastIndex()) : undefined;
-	// 		} else {
-	// 			focusBlockNode = anchorBlockNode;
-	// 			focusNodeData = anchorBlockNode.getChildrenByIndex(focusPath.getLastIndex());
-	// 		}
-	// 		if (focusNodeData && focusNodeData.getType() === BREAK_LINE_TYPE && !remove) {
-	// 			focusNodeData = createTextNode();
-	// 			selectionState.focusKey = focusNodeData.key;
-	// 			focusBlockNode.replaceNode(anchorPath.getLastIndex(), focusNodeData);
-	// 		}
-	// 	} else {
-	// 		focusBlockNode = anchorBlockNode;
-	// 		focusNodeData = anchorNodeData;
-	// 	}
-	// 	if (anchorNodeData === undefined) return;
-
-	// 	if (selectionState.isCollapsed) {
-	// 		if (anchorNodeData instanceof TextNode) {
-	// 			let SliceFrom = remove ? selectionState.anchorOffset - 1 : selectionState.anchorOffset;
-	// 			let SliceTo = selectionState.focusOffset;
-
-	// 			if (Key === ' ' && KeyBoardEvent?.which === 229) {
-	// 				Key = '.';
-	// 				SliceFrom -= 1;
-	// 			} else if (!remove) selectionState.moveSelectionForward();
-
-	// 			anchorNodeData.update((textNode) => {
-	// 				textNode.sliceText(SliceFrom, SliceTo, Key);
-	// 			});
-
-	// 			if (remove) {
-	// 				if (selectionState.isOffsetOnStart()) {
-	// 					handleOffsetStart();
-	// 				} else {
-	// 					if (anchorBlockNode?.isBreakLine && anchorBlockNode?.isBreakLine()) {
-	// 						selectionState.offsetToZero().toggleCollapse().setNodeKey(anchorBlockNode.getFirstChild()?.key);
-	// 					} else if (anchorNodeData.getContent() === '') {
-	// 						selectionState.moveSelectionToPreviousSibling(this);
-	// 					} else selectionState.moveSelectionBackward();
-	// 				}
-	// 			}
-	// 		} else if (selectionState.isOffsetOnStart() && remove) {
-	// 			handleOffsetStart();
-	// 		}
-	// 	} else if (selectionState.sameBlock) {
-	// 		if (selectionState.isNodesSame() === false) {
-	// 			let NodeSplitStart = anchorPath.getLastIndex() + 1;
-	// 			let NodeSplitEnd = focusPath.getLastIndex();
-
-	// 			if (anchorNodeData instanceof TextNode) {
-	// 				anchorNodeData.update(() => {
-	// 					this.TextNodeSlice(anchorNodeData as TextNode, Key, selectionState.anchorOffset);
-	// 				});
-	// 				if (anchorNodeData.$getNodeStatus() === 0) NodeSplitStart += 1;
-	// 			} else {
-	// 				let previousSibling = anchorBlockNode.previousNodeSibling(anchorPath.getLastIndex());
-	// 				if (previousSibling !== undefined && previousSibling instanceof TextNode) {
-	// 					previousSibling.update(() => {
-	// 						this.TextNodeSlice(previousSibling as TextNode, Key, -1);
-	// 					});
-	// 					if (previousSibling.$getNodeStatus() === 0) NodeSplitStart += 1;
-	// 				} else NodeSplitStart -= 1;
-	// 			}
-
-	// 			if (focusNodeData instanceof TextNode) {
-	// 				focusNodeData.update(() => {
-	// 					this.TextNodeSlice(focusNodeData as TextNode, '', selectionState.focusOffset, -1);
-	// 				});
-	// 			} else NodeSplitEnd += 1;
-
-	// 			const anchorIsDecorator = isDecoratorNode(anchorBlockNode);
-	// 			if (NodeSplitEnd - NodeSplitStart > 0 && anchorPath.length() === focusPath.length()) {
-	// 				anchorBlockNode.removeDomNodes(true, NodeSplitStart, NodeSplitEnd);
-	// 			} else if (NodeSplitEnd - NodeSplitStart > 0) {
-	// 				if (NodeSplitStart > 0) {
-	// 					if (anchorIsDecorator === false) {
-	// 						NodeSplitStart += isDecoratorNode(focusBlockNode) ? 1 : 0;
-	// 						anchorBlockNode.removeDomNodes(true, NodeSplitStart, NodeSplitStart);
-	// 					} else anchorBlockNode.removeDomNodes(true, NodeSplitStart);
-	// 				}
-	// 				if (NodeSplitEnd > 0) focusBlockNode.removeDomNodes(anchorIsDecorator ? true : false, NodeSplitEnd + 1);
-	// 			}
-
-	// 			if (anchorBlockNode instanceof BlockNode && anchorBlockNode.isBreakLine()) {
-	// 				selectionState.setAnchorKey(anchorBlockNode.getFirstChild().key).toggleCollapse();
-	// 			} else selectionState.moveSelectionForward().toggleCollapse();
-	// 		} else {
-	// 			if (anchorNodeData instanceof TextNode) {
-	// 				anchorNodeData.update(() => {
-	// 					this.TextNodeSlice(anchorNodeData as TextNode, Key, selectionState.anchorOffset, selectionState.focusOffset);
-	// 				});
-	// 				if (remove) {
-	// 					if (anchorBlockNode instanceof BlockNode && anchorBlockNode.isBreakLine()) {
-	// 						selectionState.offsetToZero().setNodeKey(anchorBlockNode?.getFirstChild()?.key);
-	// 					} else selectionState.toggleCollapse();
-	// 				} else selectionState.toggleCollapse().moveSelectionForward();
-	// 			} else anchorNodeData.remove();
-	// 		}
-	// 	} else if (selectionState.sameBlock === false) {
-	// 		let NodeSplitStart = anchorPath.getLastIndex() + 1;
-	// 		let NodeSplitEnd = focusPath.getLastIndex();
-
-	// 		if (isDefined(anchorNodeData)) {
-	// 			if (anchorNodeData instanceof TextNode) {
-	// 				this.TextNodeSlice(anchorNodeData, Key, selectionState.anchorOffset);
-	// 			} else {
-	// 				let previousSibling = anchorBlockNode.previousNodeSibling(anchorPath.getBlockIndex());
-	// 				if (previousSibling instanceof TextNode) {
-	// 					this.TextNodeSlice(previousSibling, Key, -1);
-	// 				} else anchorBlockNode.splitChild(false, NodeSplitStart, NodeSplitStart + 1, createTextNode());
-	// 				NodeSplitStart -= 1;
-	// 			}
-
-	// 			if (NodeSplitStart > 0 && !isDecoratorNode(anchorBlockNode)) {
-	// 				anchorBlockNode.splitChild(true, NodeSplitStart);
-	// 			} else {
-	// 				if (isDecoratorNode(anchorBlockNode)) {
-	// 					if (NodeSplitStart > 0) anchorBlockNode.splitChild(true, NodeSplitStart);
-	// 					if (anchorPath.getBlockIndex() > 0) {
-	// 						this.getBlockByPath(anchorPath.getContentNode()).splitChild(true, anchorPath.getBlockIndex());
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-
-	// 		if (isDefined(focusNodeData)) {
-	// 			if (focusNodeData instanceof TextNode) {
-	// 				this.TextNodeSlice(focusNodeData, anchorNodeData === undefined ? Key : '', selectionState.focusOffset, -1);
-	// 			} else NodeSplitEnd += 1;
-
-	// 			if (NodeSplitEnd > 0 && !isDecoratorNode(focusBlockNode)) {
-	// 				focusBlockNode.splitChild(false, NodeSplitEnd);
-	// 			} else {
-	// 				if (isDecoratorNode(focusBlockNode)) {
-	// 					if (NodeSplitEnd > 0) focusBlockNode.splitChild(false, NodeSplitEnd);
-	// 					if (focusPath.getBlockIndex() > 0 && NodeSplitEnd <= focusPath.getBlockIndex()) {
-	// 						this.getBlockByPath(focusPath.getContentNode()).splitChild(false, focusPath.getBlockIndex());
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 		if (isDefined(anchorNodeData) && isDefined(focusNodeData)) {
-	// 			let ParentNode;
-	// 			let anchorBlockSlice;
-	// 			let focusBlockSlice = isDecoratorNode(focusBlockNode) ? focusPath.getContentNodeIndex() : focusPath.getBlockIndex();
-
-	// 			if (isDecoratorNode(anchorBlockNode)) {
-	// 				ParentNode = this;
-	// 				anchorBlockSlice = anchorPath.getContentNodeIndex() + 1;
-	// 			} else {
-	// 				ParentNode = this.getBlockByPath(anchorPath.getContentNode());
-	// 				anchorBlockSlice = anchorPath.getBlockIndex() + 1;
-	// 			}
-
-	// 			let ParentContentNode: ContentNode = ParentNode.ContentNode ? ParentNode.ContentNode : ParentNode;
-	// 			if (focusBlockSlice - anchorBlockSlice > 0) {
-	// 				ParentContentNode.removeDomNodes(true, anchorBlockSlice, focusBlockSlice);
-	// 			}
-
-	// 			this.MergeBlocks(ParentContentNode, 'up', 'forward');
-	// 			selectionState.moveSelectionForward();
-	// 		} else if (anchorNodeData !== undefined) selectionState.moveSelectionForward();
-	// 		else if (focusNodeData !== undefined) selectionState.offsetToZero().toggleCollapse(true);
-	// 	}
-	// }
 	/**
 	 * Removing letters from nodes and updates them
 	 * @param  {SelectionState} selectionState
@@ -915,4 +656,4 @@ class ContentNode {
 	// }
 }
 
-export {createContentNode, ContentNode, isTextNode, isBlockNode, isContentNode};
+export {createContentNode, ContentNode};

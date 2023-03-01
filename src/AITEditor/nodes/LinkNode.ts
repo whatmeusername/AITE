@@ -49,18 +49,6 @@ class LinkNode extends LeafNode {
 	}
 }
 
-function URLvalidator(url: stringURL): boolean {
-	let urlString: URL | string = url;
-
-	try {
-		urlString = new URL(url);
-	} catch (_) {
-		return false;
-	}
-
-	return urlString.protocol === "http:" || urlString.protocol === "https:";
-}
-
 function createLinkNode(url: stringURL): LinkNode {
 	let res = false;
 	try {

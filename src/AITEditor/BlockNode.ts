@@ -8,6 +8,7 @@ import type {imageNode} from "./packages/AITE_Image/imageNode";
 import {createAiteNode, mountNode, ContentNode, NodeInsertionDeriction} from "./index";
 import type {AiteNode, AiteNodeOptions} from "./index";
 import {isBaseNode, isLeafNode, isDefined} from "./EditorUtils";
+import {ObservableChildren} from "./observers";
 
 type CoreNodes = TextNode | BreakLine;
 
@@ -37,7 +38,6 @@ function filterNode(this: BlockNode, ...nodes: NodeTypes[]): NodeTypes[] {
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i];
 		if (isBaseNode(node) || isLeafNode(node)) {
-			node.parent = this;
 			res.push(node);
 		}
 	}
@@ -85,7 +85,7 @@ class BlockNode extends BaseBlockNode {
 		super(initData?.blockType, initData?.blockInlineStyles, parent, type ?? "block");
 		this.plainText = initData?.plainText ?? "";
 		this.blockWrapper = initData?.blockWrapper ?? "unstyled";
-		this.children = initData?.children ?? [];
+		this.children = ObservableChildren(this, initData?.children ?? []);
 		this.allowedToInsert = initData?.allowedToInsert ?? "all";
 
 		this.children.forEach((child) => {
@@ -96,9 +96,6 @@ class BlockNode extends BaseBlockNode {
 			set(target: BlockNode, key: string, value: any) {
 				if (key === "children") {
 					target.children = filterNode.apply(target, value);
-					target.children.forEach((node) => {
-						node.parent = target;
-					});
 				} else {
 					(target as any)[key] = value;
 				}

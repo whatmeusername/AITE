@@ -1,7 +1,7 @@
 import {KeyboardEventCommand} from "./editorCommandsTypes";
 
-import {getEditorState, BlockNode, NodeTypes, BlockType, NodePath, AiteHTMLNode, ContentNode} from "./index";
-import {BaseNode, LeafNode} from "./nodes/index";
+import {getEditorState, BlockNode, NodeTypes, BlockType, NodePath, AiteHTMLNode, ContentNode, HorizontalRuleNode} from "./index";
+import {BaseNode, BreakLine, LeafNode, TextNode} from "./nodes/index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
 
@@ -133,9 +133,25 @@ function editorWarning(shoudThrow: boolean, message: string): void {
 	}
 }
 
-// eslint-disable-next-line
-function editorError(shoudThrow: boolean, message: string): void {
-	if (shoudThrow) throw new Error(`AITE internal error: ${message}`);
+function isTextNode(node: any): node is TextNode {
+	return node instanceof TextNode;
+}
+
+function isHorizontalRuleNode(node: any): node is HorizontalRuleNode {
+	return node instanceof HorizontalRuleNode;
+}
+
+function isBlockNode(node: any): node is BlockNode {
+	return node instanceof BlockNode;
+}
+
+function isContentNode(node: any): node is ContentNode {
+	return node instanceof ContentNode;
+}
+
+function isBreakLine(node: any): node is BlockNode {
+	if (isLeafNode(node)) return false;
+	return node.children.length === 1 && (node.children[0] instanceof BreakLine || (node.children[0] as TextNode).__content === "");
 }
 
 function isDefined(obj: any): boolean {
@@ -251,4 +267,9 @@ export {
 	isNodesPathEqual,
 	isDefined,
 	isBaseNode,
+	isTextNode,
+	isHorizontalRuleNode,
+	isBlockNode,
+	isContentNode,
+	isBreakLine,
 };

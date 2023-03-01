@@ -1,7 +1,7 @@
 import {ClassVariables, Nullable} from "../Interfaces";
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
-import {getIndexPathFromKeyPath, isLeafNode, isBaseNode} from "../EditorUtils";
-import {AiteHTML, getKeyPathNodeByNode, isBlockNode, isTextNode} from "../index";
+import {getIndexPathFromKeyPath, isLeafNode, isBaseNode, isTextNode, isBlockNode} from "../EditorUtils";
+import {AiteHTML, getKeyPathNodeByNode} from "../index";
 
 import {getEditorState, AiteHTMLNode, BlockNode, ContentNode} from "../index";
 
