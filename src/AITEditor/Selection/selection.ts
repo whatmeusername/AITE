@@ -124,7 +124,7 @@ class SelectionState {
 	isOffsetOnStart(forceBlock?: BlockNode): boolean {
 		if (!this.isCollapsed || (this.anchorOffset > 0 && this.focusOffset > 0)) return false;
 
-		const firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.anchorNode?.getContentNode().blockNode?.getFirstChild();
+		const firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.anchorNode?.getContentNode().blockNode?.getFirstChild(true);
 		if (!firstNode) return false;
 
 		return this.anchorNode?.key === firstNode.key;
@@ -464,7 +464,7 @@ class SelectionState {
 			const range = document.createRange();
 			const EditorState = getEditorState();
 
-			const anchorNode = EditorState?.__editorDOMState.getNodeFromMap(this.anchorKey);
+			const anchorNode = EditorState?.EditorDOMState.getNodeFromMap(this.anchorKey);
 
 			if (anchorNode === undefined) {
 				this.getCaretPosition();
@@ -484,7 +484,7 @@ class SelectionState {
 				this.focusNode = this.anchorNode;
 				this.focusIndex = this.anchorIndex;
 			} else {
-				focusNode = EditorState?.__editorDOMState.getNodeFromMap(this.focusKey);
+				focusNode = EditorState?.EditorDOMState.getNodeFromMap(this.focusKey);
 				if (focusNode === undefined) return;
 
 				this.focusNode = focusNode.$ref;

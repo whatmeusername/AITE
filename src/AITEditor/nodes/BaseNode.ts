@@ -1,10 +1,10 @@
-import {BlockNode, NodeTypes} from "../BlockNode";
+import {BaseBlockNode, BlockNode, NodeTypes} from "../BlockNode";
 import {TEXT_NODE_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE, IMAGE_NODE_TYPE, LIST_NODE_TYPE} from "../ConstVariables";
 import {isBlockNode} from "../EditorUtils";
 
 import {HeadNode} from "./index";
 
-type NodeKeyTypes = typeof TEXT_NODE_TYPE | typeof IMAGE_NODE_TYPE | typeof LINK_NODE_TYPE | typeof BREAK_LINE_TYPE | typeof LIST_NODE_TYPE;
+type NodeKeyTypes = typeof TEXT_NODE_TYPE | typeof IMAGE_NODE_TYPE | typeof LINK_NODE_TYPE | typeof BREAK_LINE_TYPE | typeof LIST_NODE_TYPE | "contentNode";
 
 interface DOMNodeData {
 	key?: string;

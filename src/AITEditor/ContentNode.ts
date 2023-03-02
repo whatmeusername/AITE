@@ -1,4 +1,4 @@
-import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine} from "./nodes/index";
+import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, HeadNode} from "./nodes/index";
 
 import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
@@ -6,21 +6,16 @@ import {BlockType, BlockNode, getSelectionState, mountNode, NodeInsertionDericti
 import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "./EditorUtils";
 import {ObservableChildren} from "./observers";
 
-interface contentNodeConf {
+interface ContentNodeInit {
 	BlockNodes?: Array<BlockType>;
 }
 
-//eslint-disable-next-line
-
-function createContentNode(initData?: contentNodeConf) {
-	return new ContentNode(initData);
-}
-
-class ContentNode {
+class ContentNode extends HeadNode {
 	blocksLength: () => number;
 	children: Array<BlockType>;
 
-	constructor(initData?: contentNodeConf) {
+	constructor(initData?: ContentNodeInit) {
+		super("contentNode");
 		this.blocksLength = () => {
 			return this.children.length;
 		};
@@ -62,7 +57,8 @@ class ContentNode {
 		const insertOffset = index > 0 ? index - 1 : index;
 		const previousSibling = this.children[index];
 		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
-		if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.BEFORE);
+		if (previousSibling) node.mount();
+		//mountNode(previousSibling, node, NodeInsertionDeriction.BEFORE);
 		return node;
 	}
 
@@ -157,6 +153,7 @@ class ContentNode {
 		return returnAllIfNotFound && nodes.length === 0 ? this.children : nodes;
 	}
 
+	// TODO: MOVE METHOD TO BLOCK NODE AS METHOD
 	MergeBlockNode(connectingNode: BlockNode, joinNode: BlockNode): void {
 		connectingNode = (isLeafNode(connectingNode) ? connectingNode.parent : connectingNode) as BlockNode;
 		joinNode = (isLeafNode(joinNode) ? joinNode.parent : joinNode) as BlockNode;
@@ -174,6 +171,7 @@ class ContentNode {
 		}
 	}
 
+	// TODO: MOVE METHOD TO SELECTION AS METHOD
 	insertLetter(KeyBoardEvent?: KeyboardEvent) {
 		const selectionState = getSelectionState();
 		const isSelectionOnSameNode = selectionState.isSameNode;
@@ -288,6 +286,7 @@ class ContentNode {
 	 * @param  {SelectionState} selectionState
 	 * @returns void
 	 */
+	// TODO: MOVE METHOD TO SELECTION AS METHOD
 	removeLetter(): void {
 		this.insertLetter(undefined);
 	}
@@ -306,6 +305,10 @@ class ContentNode {
 			}
 		}
 	}
+}
+
+function createContentNode(initData?: ContentNodeInit) {
+	return new ContentNode(initData);
 }
 
 export {createContentNode, ContentNode};

@@ -146,7 +146,7 @@ class EditorCommands {
 			this.removeHandles["selectionchange"] = () => document.removeEventListener("selectionchange", SelectionEvent);
 		}
 
-		const EditorDOM = getEditorState().__editorDOMState.getRootHTMLNode();
+		const EditorDOM = getEditorState().EditorDOMState.getRootHTMLNode();
 		Object.entries(this.rootCommands).map(([eventname, event]) => {
 			if (event !== undefined) {
 				let eventData: {eventname: undefined | string; event: undefined | ((...args: any) => void)} = {eventname: undefined, event: undefined};

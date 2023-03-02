@@ -1,5 +1,5 @@
 import {isContentNode} from "../EditorUtils";
-import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, BlockType} from "../index";
+import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, BlockType, internalMountNode} from "../index";
 import {BaseNode, LinkNode, NodeKeyTypes} from "./index";
 
 abstract class HeadNode {
@@ -27,8 +27,11 @@ abstract class HeadNode {
 		let c: BaseNode | BlockNode = this as unknown as BaseNode;
 		while (c.parent) {
 			if (isContentNode(c.parent)) {
-				const index = c.parent.children.indexOf(c as BlockType);
-				return {contentNode: c.parent, blockNode: c as BlockNode, index: index};
+				return {
+					contentNode: c.parent,
+					blockNode: c as BlockNode,
+					index: c.parent.children.findIndex((n) => n.key === c.key),
+				};
 			}
 			c = c.parent;
 		}
@@ -44,20 +47,27 @@ abstract class HeadNode {
 		return this.__type;
 	}
 
-	remove(): void {
-		const DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
+	remove(): number {
+		const DOMnode = getEditorState().EditorDOMState.getNodeFromMap(this.key);
 		if (DOMnode !== undefined && this.key) {
-			const parentRef: BlockNode | BaseNode | ContentNode | null = (DOMnode.$ref as BaseNode).parent;
+			const parentRef = (DOMnode.$ref as BaseNode).parent;
 			if (parentRef && (parentRef instanceof BlockNode || parentRef instanceof ContentNode || parentRef instanceof LinkNode)) {
 				this.status = 0;
 				unmountNode(this);
 				parentRef.removeNodeByKey(this.key);
 			}
 		}
+		return this.status;
 	}
 
-	remount(): void {
-		const DOMnode = getEditorState().__editorDOMState.getNodeFromMap(this.key);
+	mount(): number {
+		// TEMPERARY ANY TYPE
+		internalMountNode(this as any);
+		return this.status;
+	}
+
+	remount(): number {
+		const DOMnode = getEditorState().EditorDOMState.getNodeFromMap(this.key);
 		// HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE $getNodeState
 		if (DOMnode !== undefined && this.key !== undefined && (this as any).$getNodeState) {
 			// if((this as any).collectSameNodes){
@@ -65,6 +75,7 @@ abstract class HeadNode {
 			// }
 			remountNode(this);
 		}
+		return this.status;
 	}
 }
 

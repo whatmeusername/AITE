@@ -144,7 +144,7 @@ function AITEditor(): JSX.Element {
 				}
 			});
 
-			EditorState.__editorDOMState.__setDOMElement(EditorRef.current as any as AiteHTMLNode);
+			EditorState.EditorDOMState.__setDOMElement(EditorRef.current as any as AiteHTMLNode);
 		}
 	}, []); //eslint-disable-line
 

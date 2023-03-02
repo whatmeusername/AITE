@@ -112,7 +112,7 @@ class EditorState {
 	EditorCommands: EditorCommands;
 
 	EditorActiveElementState: ActiveElementState;
-	__editorDOMState: EditorDOMState;
+	EditorDOMState: EditorDOMState;
 
 	// __onError?: (...rest: any) => void
 
@@ -133,7 +133,7 @@ class EditorState {
 		this.editorEventsActive = true;
 
 		this.__readOnly = false;
-		this.__editorDOMState = new EditorDOMState(this);
+		this.EditorDOMState = new EditorDOMState(this);
 		this.__previousSelection = undefined;
 	}
 
