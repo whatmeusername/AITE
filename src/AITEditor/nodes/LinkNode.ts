@@ -15,10 +15,6 @@ class LinkNode extends LeafNode {
 		return new LinkNode(this.__url);
 	}
 
-	public getLastChild() {
-		return this.children[this.children.length - 1];
-	}
-
 	public getChildren(): NodeTypes[] {
 		return this.children;
 	}
@@ -45,7 +41,7 @@ class LinkNode extends LeafNode {
 			if ($node) children.push($node);
 		});
 
-		return createAiteNode(this, "a", props, children, {...options, isAiteWrapper: false});
+		return createAiteNode(this, "a", props, children, {...options});
 	}
 }
 

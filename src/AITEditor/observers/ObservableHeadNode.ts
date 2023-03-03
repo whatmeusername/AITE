@@ -1,9 +1,10 @@
-import type {HeadNode} from "../nodes";
+import {BaseBlockNode} from "../BlockNode";
+import type {BaseNode, HeadNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 
 function ObservableHeadNode(node: HeadNode): HeadNode {
 	return new Proxy(node, {
-		get(target: HeadNode, key: keyof HeadNode) {
+		get(target: BaseNode | BaseBlockNode, key: keyof HeadNode) {
 			if (key === "remove") {
 				return function () {
 					target.status = NodeStatus.REMOVED;

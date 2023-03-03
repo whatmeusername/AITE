@@ -1,8 +1,9 @@
-import {BlockType, NodeTypes} from "../BlockNode";
+import {BaseBlockNode, BlockType, NodeTypes} from "../BlockNode";
 import {getEditorState} from "../EditorState";
 import {NodeInsertionDeriction} from "./interface";
 import {createDOMElement} from "./EditorDom";
 import {NodeStatus} from "../nodes/interface";
+import {BaseNode, HeadNode} from "../nodes";
 
 // DEPRECATED
 function mountNode(
@@ -20,7 +21,7 @@ function mountNode(
 	}
 }
 
-function internalMountNode<T extends NodeTypes | BlockType>(node: T): void {
+function internalMountNode(node: BaseNode | BaseBlockNode): void {
 	const prevSibling = node.previousSibling();
 	const siblingNode = prevSibling ? prevSibling : node.nextSibling();
 	const insertDirection: NodeInsertionDeriction = prevSibling ? NodeInsertionDeriction.BEFORE : NodeInsertionDeriction.AFTER;

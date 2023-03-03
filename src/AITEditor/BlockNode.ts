@@ -56,23 +56,7 @@ abstract class BaseBlockNode extends HeadNode {
 		this.parent = parent ?? null;
 	}
 
-	previousSibling(): NodeTypes | BlockType | null {
-		if (!this.parent) return null;
-		const index = this.parent?.children.findIndex((n) => n.key === this.key);
-		if (index > -1) {
-			return this.parent.children[index - 1];
-		}
-		return null;
-	}
-
-	nextSibling(): NodeTypes | BlockType | null {
-		if (!this.parent) return null;
-		const index = this.parent?.children.findIndex((n) => n.key === this.key);
-		if (index > -1) {
-			return this.parent.children[index + 1];
-		}
-		return null;
-	}
+	abstract $getNodeState<T extends AiteNodeOptions>(options?: T): AiteNode;
 }
 
 class BlockNode extends BaseBlockNode {
@@ -186,7 +170,7 @@ class BlockNode extends BaseBlockNode {
 			if ($node) children.push($node);
 		});
 
-		return createAiteNode(this, tag, props, children, {...options, isAiteWrapper: false});
+		return createAiteNode(this, tag, props, children, {...options});
 	}
 
 	swapNodePosition(FirPosition: number, SecPosition: number): void {
@@ -302,6 +286,7 @@ class BlockNode extends BaseBlockNode {
 		}
 	}
 
+	//DEPRECATE
 	collectSameNodes(): void {
 		const NodeStylesEqual = (C1: TextNode, C2: TextNode): boolean => {
 			const C1Styles = C1.getNodeStyle();
@@ -342,6 +327,7 @@ class BlockNode extends BaseBlockNode {
 		this.children = newchildren;
 	}
 
+	//DEPRECATE
 	countToIndex(index: number): number {
 		let Count = 0;
 		index = index < 0 ? 1 : index;
@@ -355,6 +341,7 @@ class BlockNode extends BaseBlockNode {
 		return Count;
 	}
 
+	//DEPRECATE
 	findNodeByOffset(offset: number): findNodeOffsetData {
 		const data: findNodeOffsetData = {offsetKey: 0, letterIndex: 0, key: undefined};
 		let letterCount = 0;
@@ -372,11 +359,16 @@ class BlockNode extends BaseBlockNode {
 		return data;
 	}
 
-	getLastChildIndex(): number {
-		return this.children.length - 1;
-	}
-
-	getLastChild() {
+	getLastChild(depth: true): CoreNodes;
+	getLastChild(depth?: undefined): NodeTypes | LeafNode;
+	getLastChild(depth?: boolean): NodeTypes | LeafNode {
+		if (depth) {
+			const node = this.children[0];
+			if (isLeafNode(node)) {
+				return node.getLastChild();
+			}
+			return node;
+		}
 		return this.children[this.children.length - 1];
 	}
 
@@ -413,10 +405,6 @@ class BlockNode extends BaseBlockNode {
 		return this.children.find((node) => node.key === key);
 	}
 
-	getType(): string {
-		return this.blockType;
-	}
-
 	getWrapper(): string {
 		return this.blockWrapper;
 	}
@@ -431,20 +419,13 @@ class HorizontalRuleNode extends BaseBlockNode {
 		super(HORIZONTAL_RULE_BLOCK_TYPE, []);
 	}
 
-	getType() {
-		return this.blockType;
-	}
-
 	$getNodeState(options?: AiteNodeOptions): AiteNode {
 		const className = "AITE_editor_horizontal-rule";
 		const props = {
 			class: className,
 		};
 
-		return createAiteNode(this, "div", {contenteditable: false}, [createAiteNode(null, "hr", props, [])], {
-			...options,
-			isAiteWrapper: false,
-		});
+		return createAiteNode(this, "div", {contenteditable: false}, [createAiteNode(null, "hr", props, [])], {...options});
 	}
 }
 

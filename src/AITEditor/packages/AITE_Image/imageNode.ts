@@ -178,7 +178,7 @@ class imageNode extends BaseNode {
 		};
 	}
 
-	$getNodeState(options?: {path?: Array<number>}): AiteNode {
+	$getNodeState(): AiteNode {
 		const isActive = isNodeActive(this.key);
 
 		const imageNode = new AiteNode(
@@ -192,7 +192,7 @@ class imageNode extends BaseNode {
 				style: this.imageStyle.s,
 			},
 			[],
-			{AiteNodeType: "image/gif", isAiteWrapper: true},
+			{AiteNodeType: "image/gif"},
 		);
 
 		let imageElements = [imageNode];
@@ -214,7 +214,7 @@ class imageNode extends BaseNode {
 					"data-aite_content_node": true,
 				},
 				captionBlockNodes,
-				{AiteNodeType: "image/gif", isAiteWrapper: false},
+				{AiteNodeType: "image/gif"},
 			);
 			imageElements = [...imageElements, captionWrapper];
 		}
@@ -243,7 +243,7 @@ class imageNode extends BaseNode {
 			};
 		}
 
-		return new AiteNode(this, "div", ImageWrapperAttr, imageElements, {AiteNodeType: "image/gif", isAiteWrapper: false});
+		return new AiteNode(this, "div", ImageWrapperAttr, imageElements, {AiteNodeType: "image/gif"});
 	}
 }
 

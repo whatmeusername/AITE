@@ -5,7 +5,7 @@ import {createAiteNode} from "../index";
 import type {AiteNode, AiteNodeOptions} from "../index";
 
 import {updateTextNodeContent} from "../index";
-import {NodeUpdateOptions, TextNodeAttr} from "./interface";
+import {NodeStatus, NodeUpdateOptions, TextNodeAttr} from "./interface";
 
 function createTextNode(text: string = "", styles?: Array<string>) {
 	return new TextNode({plainText: text, styles: styles ?? []});
@@ -23,16 +23,15 @@ class TextNode extends BaseNode {
 		this._styles = initData?.styles ?? [];
 
 		return new Proxy(this, {
-			set(target: TextNode, key: string, value) {
-				const copiedState: TextNode = {...this} as TextNode;
-				(target as any)[key] = value;
+			set(target: TextNode, key: keyof TextNode, value) {
 				if (key === TEXT_NODE_CONTENT_KEY) {
 					if (target[TEXT_NODE_CONTENT_KEY] === "") {
 						target.remove();
-					} else if (target[TEXT_NODE_CONTENT_KEY] !== copiedState[TEXT_NODE_CONTENT_KEY]) {
+					} else if (target[TEXT_NODE_CONTENT_KEY] !== value) {
+						target[TEXT_NODE_CONTENT_KEY] = value;
 						updateTextNodeContent(target);
 					}
-				}
+				} else (target as any)[key] = value;
 				return true;
 			},
 			get(target: TextNode, key: keyof TextNode): TextNode[keyof TextNode] {
@@ -51,7 +50,7 @@ class TextNode extends BaseNode {
 
 		if (this.__content === "" && removeIfEmpty) {
 			this.remove();
-		} else if (this.__status === 1) {
+		} else if (this.status === NodeStatus.MOUNTED) {
 			const diffResult = DiffNodeState(copiedState, this);
 
 			if (Object.keys(diffResult).length > 0) {
@@ -71,30 +70,23 @@ class TextNode extends BaseNode {
 		return this._styles;
 	}
 
-	__prepareStyles() {
-		let classString = "";
-		this._styles.forEach((Style) => {
-			const currentStyle = findStyle(Style);
-			if (currentStyle.class !== undefined) {
-				classString += currentStyle.class + " ";
-			}
-		});
-		return classString;
+	private prepareStyles() {
+		return this._styles.map((style) => findStyle(style)?.class ?? "").join(" ");
 	}
 
 	$getNodeState(options?: AiteNodeOptions): AiteNode {
-		const className = this.__prepareStyles();
 		const props = {
-			className: className,
+			className: this.prepareStyles(),
 			"data-aite-node": true,
 		};
-		return createAiteNode(this, "span", props, [this.__content], {...options, isAiteWrapper: false});
+		return createAiteNode(this, "span", props, [this.__content], {...options});
 	}
 
 	getContent(): string {
 		return this.__content;
 	}
 
+	//DEPRECATED
 	appendContent(string: string): void {
 		this.__content += string;
 	}
