@@ -5,6 +5,7 @@ import {createBlockNode, createHorizontalRule} from "./BlockNode";
 import {BlockType, BlockNode, getSelectionState, mountNode, NodeInsertionDeriction} from "./index";
 import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "./EditorUtils";
 import {ObservableChildren} from "./observers";
+import {NodeStatus} from "./nodes/interface";
 
 interface ContentNodeInit {
 	BlockNodes?: Array<BlockType>;
@@ -243,7 +244,7 @@ class ContentNode extends HeadNode {
 			anchorNode.sliceContent(SliceFrom, SliceTo, key);
 
 			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
-			else if (anchorNode.status === 0 && !isOffsetOnStart) {
+			else if (anchorNode.status === NodeStatus.REMOVED && !isOffsetOnStart) {
 				selectionState.moveSelectionToPreviousSibling();
 			}
 		} else if (selectionState.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
@@ -252,7 +253,7 @@ class ContentNode extends HeadNode {
 			focusNode.sliceContent(SliceTo);
 
 			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
-			else if (anchorNode.status === 0 && anchorNode.status === 0) selectionState.moveSelectionToNextSibling();
+			else if (anchorNode.status === NodeStatus.REMOVED && anchorNode.status === NodeStatus.REMOVED) selectionState.moveSelectionToNextSibling();
 			else {
 				selectionState.toggleCollapse();
 				if (!isRemove) selectionState.moveSelectionForward();

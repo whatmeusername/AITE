@@ -1,26 +1,20 @@
 import {isContentNode} from "../EditorUtils";
 import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, BlockType, internalMountNode} from "../index";
+import {ObservableHeadNode} from "../observers/ObservableHeadNode";
 import {BaseNode, LinkNode, NodeKeyTypes} from "./index";
+import {NodeStatus} from "./interface";
 
 abstract class HeadNode {
-	status: 0 | 1 | 2;
+	status: NodeStatus;
 	key: number;
 	protected __type: NodeKeyTypes | "block";
 
 	constructor(type: NodeKeyTypes | "block") {
-		this.status = 1;
+		this.status = NodeStatus.UNMOUNTED;
 		this.key = generateKey();
 		this.__type = type;
-	}
 
-	getSelfIndexPath(): number[] {
-		const path = [];
-		let node: any = this;
-		while (node.parent) {
-			path.unshift(node.getSelfIndex());
-			node = node.parent;
-		}
-		return path;
+		return ObservableHeadNode(this);
 	}
 
 	getContentNode(): {contentNode: ContentNode | undefined; blockNode: BlockNode | undefined; index: number} {
@@ -52,7 +46,6 @@ abstract class HeadNode {
 		if (DOMnode !== undefined && this.key) {
 			const parentRef = (DOMnode.$ref as BaseNode).parent;
 			if (parentRef && (parentRef instanceof BlockNode || parentRef instanceof ContentNode || parentRef instanceof LinkNode)) {
-				this.status = 0;
 				unmountNode(this);
 				parentRef.removeNodeByKey(this.key);
 			}

@@ -14,4 +14,11 @@ interface NodeUpdateOptions {
 	removeIfEmpty?: boolean;
 }
 
+enum NodeStatus {
+	REMOVED = 0,
+	MOUNTED = 1,
+	UNMOUNTED = 2,
+}
+
+export {NodeStatus};
 export type {DOMTextAttr, TextNodeAttr, NodeUpdateOptions};

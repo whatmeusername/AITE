@@ -29,7 +29,6 @@ class TextNode extends BaseNode {
 				if (key === TEXT_NODE_CONTENT_KEY) {
 					if (target[TEXT_NODE_CONTENT_KEY] === "") {
 						target.remove();
-						target.status = 0;
 					} else if (target[TEXT_NODE_CONTENT_KEY] !== copiedState[TEXT_NODE_CONTENT_KEY]) {
 						updateTextNodeContent(target);
 					}
@@ -52,7 +51,6 @@ class TextNode extends BaseNode {
 
 		if (this.__content === "" && removeIfEmpty) {
 			this.remove();
-			this.status = 0;
 		} else if (this.__status === 1) {
 			const diffResult = DiffNodeState(copiedState, this);
 

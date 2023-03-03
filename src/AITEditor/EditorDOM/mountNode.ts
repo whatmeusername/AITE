@@ -2,6 +2,7 @@ import {BlockType, NodeTypes} from "../BlockNode";
 import {getEditorState} from "../EditorState";
 import {NodeInsertionDeriction} from "./interface";
 import {createDOMElement} from "./EditorDom";
+import {NodeStatus} from "../nodes/interface";
 
 // DEPRECATED
 function mountNode(
@@ -10,7 +11,7 @@ function mountNode(
 	insertDirection: NodeInsertionDeriction = NodeInsertionDeriction.BEFORE,
 ): void {
 	const currentDOMElement = getEditorState().EditorDOMState.getNodeFromMap(siblingNode.key);
-	if (currentDOMElement && node.status === 1) {
+	if (currentDOMElement && node.status === NodeStatus.MOUNTED) {
 		if (insertDirection === NodeInsertionDeriction.AFTER) {
 			currentDOMElement.parentNode?.insertBefore(createDOMElement(node.$getNodeState()), currentDOMElement.nextSibling);
 		} else if (insertDirection === NodeInsertionDeriction.BEFORE) {
@@ -25,7 +26,7 @@ function internalMountNode<T extends NodeTypes | BlockType>(node: T): void {
 	const insertDirection: NodeInsertionDeriction = prevSibling ? NodeInsertionDeriction.BEFORE : NodeInsertionDeriction.AFTER;
 	if (siblingNode) {
 		const siblingDOMElement = getEditorState().EditorDOMState.getNodeFromMap(siblingNode.key);
-		if (siblingDOMElement && node.status === 1) {
+		if (siblingDOMElement && node.status === NodeStatus.MOUNTED) {
 			if (insertDirection === NodeInsertionDeriction.AFTER) {
 				siblingDOMElement.parentNode?.insertBefore(createDOMElement(node.$getNodeState()), siblingDOMElement.nextSibling);
 			} else if (insertDirection === NodeInsertionDeriction.BEFORE) {
@@ -34,7 +35,7 @@ function internalMountNode<T extends NodeTypes | BlockType>(node: T): void {
 		}
 	} else {
 		const parentNode = node.parent;
-		if (parentNode && node.status === 1) {
+		if (parentNode && parentNode.status === NodeStatus.MOUNTED) {
 			parentNode.remount();
 		}
 	}

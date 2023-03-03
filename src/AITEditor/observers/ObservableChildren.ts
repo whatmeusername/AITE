@@ -1,5 +1,6 @@
 import type {BlockNode} from "../BlockNode";
 import type {ContentNode} from "../ContentNode";
+import {NodeStatus} from "../nodes/interface";
 
 function ObservableChildren<T extends ContentNode | BlockNode, U extends T["children"]>(parent: T, children: U): U {
 	const childrenProxyObject = new Proxy(children, {
@@ -8,7 +9,7 @@ function ObservableChildren<T extends ContentNode | BlockNode, U extends T["chil
 				return function (start: number, deleteCount: number, ...items: U) {
 					const removedNodes = (target[key] as (...args: any[]) => U).call(target, start, deleteCount, ...items);
 					removedNodes.forEach((node) => {
-						if (node?.status === 1) {
+						if (node?.status === NodeStatus.MOUNTED) {
 							node.remove();
 						}
 					});

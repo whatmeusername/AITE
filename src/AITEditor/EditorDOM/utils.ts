@@ -1,4 +1,5 @@
 import {AiteNode} from "./AiteNode";
+import {AiteTextNode} from "./AiteTextNode";
 
 const generateKey = (() => {
 	let i = 1;
@@ -15,9 +16,13 @@ function isAiteNode(node: any): node is AiteNode {
 	return node instanceof AiteNode;
 }
 
+function isAiteTextNode(node: any): node is AiteTextNode {
+	return node instanceof AiteTextNode;
+}
+
 function isNotEmpty(value: any): boolean {
 	if (value === null || value === undefined || value === "") return false;
 	return true;
 }
 
-export {generateKey, isEventProp, isAiteNode, isNotEmpty};
+export {generateKey, isEventProp, isAiteNode, isNotEmpty, isAiteTextNode};

@@ -4,7 +4,7 @@ import {createDOMElement, returnSingleDOMNode} from "./EditorDom";
 import {getEditorState} from "../index";
 
 function remountNode(node: HeadNode, childOnly: boolean = true): HeadNode {
-	const nodeState = (node as any)?.$getNodeState() ?? undefined;
+	const nodeState = (node as any)?.$getNodeState();
 	if (nodeState) {
 		const currentDOMElement: AiteHTML | undefined = getEditorState().EditorDOMState.getNodeFromMap(node.key);
 		if (currentDOMElement) {

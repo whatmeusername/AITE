@@ -1,5 +1,9 @@
-import {ClassAttribute, StringNumberBool} from "./interface";
-import {isEventProp, isNotEmpty} from "./utils";
+import {TextNode} from "../nodes";
+import {NodeStatus} from "../nodes/interface";
+import {AiteNode, createAiteDomNode} from "./AiteNode";
+import {AiteTextNode, createAiteText} from "./AiteTextNode";
+import {AiteHTMLNode, AiteHTMLTextNode, ClassAttribute, StringNumberBool} from "./interface";
+import {isAiteTextNode, isEventProp, isNotEmpty} from "./utils";
 
 function addEventListeners<T extends HTMLElement>(target: T, type: string, listener: (...args: any[]) => void): T {
 	if (isEventProp(type)) {
@@ -43,4 +47,14 @@ function removeAttribute<T extends HTMLElement>(target: T, attrName: string, val
 	return target;
 }
 
-export {addEventListeners, setStyles, setProps, setAttribute, removeAttribute};
+function createAiteDOMNode(node: AiteNode | AiteTextNode): AiteHTMLNode | AiteHTMLTextNode {
+	if (node.ref) node.ref.status = NodeStatus.MOUNTED;
+
+	if (isAiteTextNode(node)) {
+		return createAiteText(node.children, node.ref as TextNode);
+	} else {
+		return createAiteDomNode(node);
+	}
+}
+
+export {addEventListeners, setStyles, setProps, setAttribute, removeAttribute, createAiteDOMNode};
