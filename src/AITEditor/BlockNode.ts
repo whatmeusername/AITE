@@ -5,10 +5,11 @@ import {ClassVariables} from "./Interfaces";
 import {TextNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes, LeafNode, LinkNode} from "./nodes/index";
 import type {imageNode} from "./packages/AITE_Image/imageNode";
 
-import {createAiteNode, mountNode, ContentNode, NodeInsertionDeriction} from "./index";
+import {createAiteNode, ContentNode, NodeInsertionDeriction, filterNode} from "./index";
 import type {AiteNode, AiteNodeOptions} from "./index";
-import {isBaseNode, isLeafNode, isDefined} from "./EditorUtils";
+import {isLeafNode, isDefined} from "./EditorUtils";
 import {ObservableChildren} from "./observers";
+import {ObservableChildrenProperty} from "./observers";
 
 type CoreNodes = TextNode | BreakLine;
 
@@ -33,27 +34,16 @@ function createBlockNode(initData?: BlockNodeVariables) {
 	return new BlockNode(initData);
 }
 
-function filterNode(this: BlockNode, ...nodes: NodeTypes[]): NodeTypes[] {
-	const res: NodeTypes[] = [];
-	for (let i = 0; i < nodes.length; i++) {
-		const node = nodes[i];
-		if (isBaseNode(node) || isLeafNode(node)) {
-			res.push(node);
-		}
-	}
-	return res;
-}
-
 abstract class BaseBlockNode extends HeadNode {
 	blockType: BlockTypes;
 	blockInlineStyles: Array<string>;
 	parent: ContentNode | BlockNode | null;
 
-	constructor(blockType?: BlockTypes, blockInlineStyles?: Array<string>, parent?: ContentNode | BlockNode, type?: "block" | NodeKeyTypes) {
+	constructor(blockType?: BlockTypes, blockInlineStyles?: Array<string>, type?: "block" | NodeKeyTypes) {
 		super(type ?? "block");
 		this.blockType = blockType ?? STANDART_BLOCK_TYPE;
 		this.blockInlineStyles = blockInlineStyles ?? [];
-		this.parent = parent ?? null;
+		this.parent = null;
 	}
 
 	abstract $getNodeState<T extends AiteNodeOptions>(options?: T): AiteNode;
@@ -67,27 +57,15 @@ class BlockNode extends BaseBlockNode {
 	// TODO: IMPLEMENT VALIDATOR
 	allowedToInsert: allowedToInsert;
 
-	constructor(initData?: BlockNodeVariables, parent?: ContentNode | BlockNode, type?: "block" | NodeKeyTypes | null) {
-		super(initData?.blockType, initData?.blockInlineStyles, parent, type ?? "block");
+	constructor(initData?: BlockNodeVariables, type?: "block" | NodeKeyTypes | null) {
+		super(initData?.blockType, initData?.blockInlineStyles, type ?? "block");
+
 		this.plainText = initData?.plainText ?? "";
 		this.blockWrapper = initData?.blockWrapper ?? "unstyled";
 		this.children = ObservableChildren(this, initData?.children ?? []);
 		this.allowedToInsert = initData?.allowedToInsert ?? "all";
 
-		this.children.forEach((child) => {
-			child.parent = this;
-		});
-
-		return new Proxy(this, {
-			set(target: BlockNode, key: string, value: any) {
-				if (key === "children") {
-					target.children = ObservableChildren(target, filterNode.apply(target, value));
-				} else {
-					(target as any)[key] = value;
-				}
-				return true;
-			},
-		});
+		return ObservableChildrenProperty(this).value();
 	}
 
 	// ----- NEWEST
@@ -131,7 +109,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	get isBreakLine(): boolean {
-		return this.children.length === 1 && (this.children[0] instanceof BreakLine || (this.children[0] as TextNode).__content === "");
+		return this.children.length === 1 && (this.children[0] instanceof BreakLine || (this.children[0] as TextNode).content === "");
 	}
 
 	convertFromBreakLine(): TextNode;
@@ -213,9 +191,7 @@ class BlockNode extends BaseBlockNode {
 			this.replaceNode(0, node);
 		} else {
 			const insertOffset = index > 0 ? index - 1 : index;
-			const previousSibling = this.children[index];
 			this.insertNodeBetween(node, insertOffset, insertOffset);
-			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.BEFORE);
 		}
 		return node;
 	}
@@ -225,9 +201,7 @@ class BlockNode extends BaseBlockNode {
 			this.replaceNode(0, node);
 		} else {
 			const insertOffset = index > 0 ? index - 1 : index;
-			const previousSibling = this.children[index];
 			this.insertNodeBetween(node, insertOffset, insertOffset);
-			if (previousSibling) mountNode(previousSibling, node, NodeInsertionDeriction.BEFORE);
 		}
 		return node;
 	}
@@ -240,9 +214,7 @@ class BlockNode extends BaseBlockNode {
 		} else if (index === blocksLength || index === "last") {
 			this.insertNodeAfter(blocksLength, node);
 		} else {
-			const previousSibling = this.children[index + 1];
 			this.insertNodeBetween(node, index, index + 1);
-			if (previousSibling) mountNode(previousSibling, node, direction);
 		}
 	}
 
@@ -433,6 +405,6 @@ function createHorizontalRule() {
 	return new HorizontalRuleNode();
 }
 
-export {createBlockNode, createHorizontalRule, BlockNode, HorizontalRuleNode};
+export {createBlockNode, createHorizontalRule, BlockNode, HorizontalRuleNode, BaseBlockNode};
 
-export type {NodeTypes, BlockTypes, BlockType, BaseBlockNode};
+export type {NodeTypes, BlockTypes, BlockType};

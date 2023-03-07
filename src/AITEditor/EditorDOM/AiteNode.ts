@@ -13,7 +13,6 @@ class AiteNode {
 	children: Array<AiteNodes>;
 	childrenLength: number;
 	_key: Nullable<number>;
-	isAiteWrapper: boolean;
 	AiteNodeType: AiteNodeTypes;
 	ref: Nullable<HeadNode>;
 
@@ -22,7 +21,6 @@ class AiteNode {
 		this.props = props ?? {};
 		this.children = children ?? [];
 		this.childrenLength = this.children?.length ?? 0;
-		this.isAiteWrapper = options?.isAiteWrapper ?? false;
 		this._key = ref?.key;
 		this.AiteNodeType = options?.AiteNodeType ?? "unsigned";
 		this.ref = ref;
@@ -41,7 +39,7 @@ function createAiteNode(
 
 		children.forEach((node) => {
 			if (typeof node === "string" && isTextNode(ref)) {
-				mappedChildren.push(new AiteTextNode(ref, node, true));
+				mappedChildren.push(new AiteTextNode(ref, node));
 			} else if (isAiteNode(node)) mappedChildren.push(node);
 		});
 

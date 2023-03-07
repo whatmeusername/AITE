@@ -17,7 +17,7 @@ class BreakLine extends BaseNode {
 		if (options) options.AiteNodeType = "breakline";
 		else options = {AiteNodeType: "breakline"};
 
-		return createAiteNode(this, "br", props, null, {...options, isAiteWrapper: false});
+		return createAiteNode(this, "br", props, null, {...options});
 	}
 
 	public getContentLength() {

@@ -1,10 +1,14 @@
-import {BaseBlockNode} from "../BlockNode";
-import type {BaseNode, HeadNode} from "../nodes";
+import type {HeadNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
+import {Observe, Observable} from "./Observable/Observable";
+import {Handle} from "./Observable/Observer";
+import {get} from "./Observable/traps";
 
-function ObservableHeadNode(node: HeadNode): HeadNode {
-	return new Proxy(node, {
-		get(target: BaseNode | BaseBlockNode, key: keyof HeadNode) {
+function ObservableHeadNode(node: HeadNode | Observable<HeadNode>): Observable<HeadNode> {
+	node = Observe(node) as Observable<HeadNode>;
+
+	node.catch(
+		get((target: HeadNode, key: keyof HeadNode) => {
 			if (key === "remove") {
 				return function () {
 					target.status = NodeStatus.REMOVED;
@@ -18,14 +22,14 @@ function ObservableHeadNode(node: HeadNode): HeadNode {
 				} else {
 					return function () {
 						target.status = NodeStatus.MOUNTED;
-						return target.mount();
+						return (target as any).mount();
 					};
 				}
-			} else {
-				return target[key];
 			}
-		},
-	});
+			return target[key];
+		}),
+	);
+	return node;
 }
 
 export {ObservableHeadNode};

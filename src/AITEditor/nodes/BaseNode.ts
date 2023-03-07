@@ -1,7 +1,6 @@
-import {BaseBlockNode, BlockNode, NodeTypes} from "../BlockNode";
+import {BlockNode} from "../BlockNode";
 import {TEXT_NODE_TYPE, LINK_NODE_TYPE, BREAK_LINE_TYPE, IMAGE_NODE_TYPE, LIST_NODE_TYPE} from "../ConstVariables";
 import {AiteNode, AiteNodeOptions} from "../EditorDOM";
-import {isBlockNode} from "../EditorUtils";
 
 import {HeadNode} from "./index";
 

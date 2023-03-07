@@ -1,6 +1,6 @@
 import {KeyboardEventCommand} from "./editorCommandsTypes";
 
-import {getEditorState, BlockNode, AiteHTMLNode, ContentNode, HorizontalRuleNode} from "./index";
+import {getEditorState, BlockNode, AiteHTMLNode, ContentNode, HorizontalRuleNode, BaseBlockNode} from "./index";
 import {BaseNode, BreakLine, LeafNode, TextNode} from "./nodes/index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
@@ -127,13 +127,17 @@ function isBlockNode(node: any): node is BlockNode {
 	return node instanceof BlockNode;
 }
 
+function isBaseBlockNode(node: any): node is BaseBlockNode {
+	return node instanceof BaseBlockNode;
+}
+
 function isContentNode(node: any): node is ContentNode {
 	return node instanceof ContentNode;
 }
 
 function isBreakLine(node: any): node is BlockNode {
 	if (isLeafNode(node)) return false;
-	return node.children.length === 1 && (node.children[0] instanceof BreakLine || (node.children[0] as TextNode).__content === "");
+	return node.children.length === 1 && (node.children[0] instanceof BreakLine || (node.children[0] as TextNode).content === "");
 }
 
 function isDefined(obj: any): boolean {
@@ -253,4 +257,5 @@ export {
 	isBlockNode,
 	isContentNode,
 	isBreakLine,
+	isBaseBlockNode,
 };

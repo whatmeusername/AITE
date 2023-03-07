@@ -73,31 +73,19 @@ export default function CreateBlockResizeElements(node: imageNode) {
 
 				if (CurrentDragButtonClass !== null) {
 					if (CurrentDragButtonClass.contains("image-resize-se")) {
-						const ratio = Math.min(
-							(start_width + (event.clientX - StartX)) / start_width,
-							(start_height + (event.clientY - StartY)) / start_height,
-						);
+						const ratio = Math.min((start_width + (event.clientX - StartX)) / start_width, (start_height + (event.clientY - StartY)) / start_height);
 						CurrentImageNode.style.width = `${start_width * ratio}px`;
 						CurrentImageNode.style.height = `${start_height * ratio}px`;
 					} else if (CurrentDragButtonClass.contains("image-resize-sw")) {
-						const ratio = Math.min(
-							(start_width - (event.clientX - StartX)) / start_width,
-							(start_height + (event.clientY - StartY)) / start_height,
-						);
+						const ratio = Math.min((start_width - (event.clientX - StartX)) / start_width, (start_height + (event.clientY - StartY)) / start_height);
 						CurrentImageNode.style.width = `${start_width * ratio}px`;
 						CurrentImageNode.style.height = `${start_height * ratio}px`;
 					} else if (CurrentDragButtonClass.contains("image-resize-ne")) {
-						const ratio = Math.min(
-							(start_width + (event.clientX - StartX)) / start_width,
-							(start_height - (event.clientY - StartY)) / start_height,
-						);
+						const ratio = Math.min((start_width + (event.clientX - StartX)) / start_width, (start_height - (event.clientY - StartY)) / start_height);
 						CurrentImageNode.style.width = `${start_width * ratio}px`;
 						CurrentImageNode.style.height = `${start_height * ratio}px`;
 					} else if (CurrentDragButtonClass.contains("image-resize-nw")) {
-						const ratio = Math.min(
-							(start_width - (event.clientX - StartX)) / start_width,
-							(start_height - (event.clientY - StartY)) / start_height,
-						);
+						const ratio = Math.min((start_width - (event.clientX - StartX)) / start_width, (start_height - (event.clientY - StartY)) / start_height);
 						CurrentImageNode.style.width = `${start_width * ratio}px`;
 						CurrentImageNode.style.height = `${start_height * ratio}px`;
 					} else if (CurrentDragButtonClass.contains("image-resize-e")) {
@@ -117,42 +105,42 @@ export default function CreateBlockResizeElements(node: imageNode) {
 
 	const image_resize_n = (): AiteNode => {
 		const data = {className: "image-resize image-resize-n"};
-		return createAiteNode(null, "div", {...data, ...events}, null, {isAiteWrapper: true});
+		return createAiteNode(null, "div", {...data, ...events}, null);
 	};
 
 	const image_resize_ne = (): AiteNode => {
 		const data = {className: "image-resize image-resize-ne"};
-		return createAiteNode(null, "div", {...data, ...events}, null, {isAiteWrapper: true});
+		return createAiteNode(null, "div", {...data, ...events}, null);
 	};
 
 	const image_resize_e = (): AiteNode => {
 		const data = {className: "image-resize image-resize-e"};
-		return createAiteNode(null, "div", {...data, ...events}, null, {isAiteWrapper: true});
+		return createAiteNode(null, "div", {...data, ...events}, null);
 	};
 
 	const image_resize_se = (): AiteNode => {
 		const data = {className: "image-resize image-resize-se"};
-		return createAiteNode(null, "div", {...data, ...events}, null, {isAiteWrapper: true});
+		return createAiteNode(null, "div", {...data, ...events}, null);
 	};
 
 	const image_resize_s = (): AiteNode => {
 		const data = {className: "image-resize image-resize-s"};
-		return createAiteNode(null, "div", {...data, ...events}, null, {isAiteWrapper: true});
+		return createAiteNode(null, "div", {...data, ...events}, null);
 	};
 
 	const image_resize_sw = (): AiteNode => {
 		const data = {className: "image-resize image-resize-sw"};
-		return createAiteNode(null, "div", {...data, ...events}, null, {isAiteWrapper: true});
+		return createAiteNode(null, "div", {...data, ...events}, null);
 	};
 
 	const image_resize_w = (): AiteNode => {
 		const data = {className: "image-resize image-resize-w"};
-		return createAiteNode(null, "div", {...data, ...events}, null, {isAiteWrapper: true});
+		return createAiteNode(null, "div", {...data, ...events}, null);
 	};
 
 	const image_resize_nw = (): AiteNode => {
 		const data = {className: "image-resize image-resize-nw"};
-		return createAiteNode(null, "div", {...data, ...events}, null, {isAiteWrapper: true});
+		return createAiteNode(null, "div", {...data, ...events}, null);
 	};
 
 	return [image_resize_n(), image_resize_ne(), image_resize_e(), image_resize_se(), image_resize_s(), image_resize_sw(), image_resize_w(), image_resize_nw()];

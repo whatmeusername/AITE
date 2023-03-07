@@ -1,8 +1,8 @@
 import {BlockNode} from "../BlockNode";
 
 class LeafNode extends BlockNode {
-	constructor(parent?: BlockNode) {
-		super(undefined, parent, "link/leaf");
+	constructor() {
+		super(undefined, "link/leaf");
 	}
 
 	public getContentLength(): number {

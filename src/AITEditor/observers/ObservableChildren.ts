@@ -2,7 +2,7 @@ import type {BlockNode} from "../BlockNode";
 import type {ContentNode} from "../ContentNode";
 import {NodeStatus} from "../nodes/interface";
 
-function ObservableChildren<T extends ContentNode | BlockNode, U extends T["children"]>(parent: T, children: U): U {
+function ObservableChildren<T extends BlockNode | ContentNode, U extends T["children"]>(parent: T, children: U): U {
 	const childrenProxyObject = new Proxy(children, {
 		get: (target: U, key: string) => {
 			if (key === "splice") {
@@ -18,6 +18,9 @@ function ObservableChildren<T extends ContentNode | BlockNode, U extends T["chil
 				return function (...items: U) {
 					items.forEach((node) => {
 						node.parent = parent;
+						if (node.status === NodeStatus.UNMOUNTED) {
+							node.mount();
+						}
 					});
 					(target[key] as (...items: U) => number).apply(target, items);
 				};
@@ -28,7 +31,12 @@ function ObservableChildren<T extends ContentNode | BlockNode, U extends T["chil
 
 	childrenProxyObject.forEach((node) => {
 		node.parent = parent;
+		if (node.status === NodeStatus.UNMOUNTED) {
+			node.mount();
+		}
 	});
+
+	
 
 	return childrenProxyObject;
 }

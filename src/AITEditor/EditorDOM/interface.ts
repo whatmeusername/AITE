@@ -30,7 +30,6 @@ type NodeMap = Map<string, AiteHTMLNode>;
 
 interface AiteNodeOptions {
 	isAiteTextNode?: boolean;
-	isAiteWrapper?: boolean;
 	AiteNodeType?: AiteNodeTypes;
 }
 

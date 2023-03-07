@@ -123,6 +123,7 @@ class SelectionState {
 	 */
 	isOffsetOnStart(forceBlock?: BlockNode): boolean {
 		if (!this.isCollapsed || (this.anchorOffset > 0 && this.focusOffset > 0)) return false;
+		if (this.anchorType === "breakline") return true;
 
 		const firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.anchorNode?.getContentNode().blockNode?.getFirstChild(true);
 		if (!firstNode) return false;

@@ -1,7 +1,7 @@
 import {BREAK_LINE_TYPE, LINK_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
 import {isBlockNode, isContentNode} from "../EditorUtils";
-import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, BlockType, internalMountNode, NodeTypes, BaseBlockNode} from "../index";
-import {ObservableHeadNode} from "../observers/ObservableHeadNode";
+import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, BlockType, mountNode, NodeTypes, BaseBlockNode} from "../index";
+import {ObservableHeadNode} from "../observers";
 import {BaseNode, NodeKeyTypes} from "./index";
 import {NodeStatus} from "./interface";
 
@@ -15,7 +15,9 @@ abstract class HeadNode {
 		this.key = generateKey();
 		this.__type = type;
 
-		return ObservableHeadNode(this);
+		// PATCH
+		const n = ObservableHeadNode(this).value();
+		return n;
 	}
 
 	public getContentNode(): {
@@ -67,14 +69,14 @@ abstract class HeadNode {
 	}
 
 	public mount(this: BaseNode | BaseBlockNode): NodeStatus {
-		internalMountNode(this);
+		mountNode(this);
 		return this.status;
 	}
 
 	public remount(): NodeStatus {
 		const DOMnode = getEditorState().EditorDOMState.getNodeFromMap(this.key);
 		// HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE $getNodeState
-		if (DOMnode !== undefined && this.key !== undefined) {
+		if (DOMnode !== undefined) {
 			// if((this as any).collectSameNodes){
 			//     (this as any).collectSameNodes();
 			// }
@@ -85,22 +87,19 @@ abstract class HeadNode {
 
 	public previousSibling(this: BaseNode | BaseBlockNode): NodeTypes | null {
 		if (!this.parent) return null;
-		if (isBlockNode(this.parent)) {
-			const index = this.parent?.children.findIndex((n) => n.key === this.key);
-			if (index > -1) {
-				return this.parent.children[index - 1];
-			}
+		const index = (this.parent as BlockNode | ContentNode)?.children?.findIndex((n) => n.key === this.key);
+		if (index > -1) {
+			return (this.parent as any).children[index - 1];
 		}
+
 		return null;
 	}
 
 	public nextSibling(this: BaseNode | BaseBlockNode): NodeTypes | null {
 		if (!this.parent) return null;
-		if (isBlockNode(this.parent)) {
-			const index = this.parent?.children.findIndex((n) => n.key === this.key);
-			if (index > -1) {
-				return this.parent.children[index + 1];
-			}
+		const index = (this.parent as BlockNode | ContentNode)?.children?.findIndex((n) => n.key === this.key);
+		if (index > -1) {
+			return (this.parent as any).children[index + 1];
 		}
 		return null;
 	}
