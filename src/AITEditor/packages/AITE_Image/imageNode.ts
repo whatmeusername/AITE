@@ -113,6 +113,10 @@ class imageNode extends BaseNode {
 		return this.ContentNode;
 	}
 
+	get length(): number {
+		return 1;
+	}
+
 	toggleCaptition(): void {
 		if (this.ContentNode === undefined) {
 			this.imageConf.captionEnabled = true;
@@ -148,9 +152,6 @@ class imageNode extends BaseNode {
 
 	getContent(): string {
 		return this.imageConf.src;
-	}
-	getContentLength(): number {
-		return 1;
 	}
 
 	createSelfNode(data: imageConf) {

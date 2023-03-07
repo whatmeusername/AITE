@@ -123,9 +123,23 @@ class SelectionState {
 	 */
 	isOffsetOnStart(forceBlock?: BlockNode): boolean {
 		if (!this.isCollapsed || (this.anchorOffset > 0 && this.focusOffset > 0)) return false;
-		if (this.anchorType === "breakline") return true;
+		else if (this.anchorType === "breakline") return true;
 
 		const firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.anchorNode?.getContentNode().blockNode?.getFirstChild(true);
+		if (!firstNode) return false;
+
+		return this.anchorNode?.key === firstNode.key;
+	}
+
+	/**
+	 * Checks if selection focus and anchor is on end of block
+	 * @returns boolean
+	 */
+	isOffsetOnEnd(forceBlock?: BlockNode): boolean {
+		if (!this.isCollapsed || (this.anchorOffset < (this.anchorNode as BaseNode).length && this.focusOffset < (this.focusNode as BaseNode).length)) return false;
+		else if (this.anchorType === "breakline") return true;
+
+		const firstNode = forceBlock ? forceBlock.getLastChild(true) : this.anchorNode?.getContentNode().blockNode?.getLastChild(true);
 		if (!firstNode) return false;
 
 		return this.anchorNode?.key === firstNode.key;
@@ -277,8 +291,8 @@ class SelectionState {
 		if (nextNode) {
 			this.setNodeKey(nextNode.key);
 
-			this.anchorOffset = (nextNode as any)?.getContentLength() ?? 0;
-			this.focusOffset = (nextNode as any).getContentLength() ?? 0;
+			this.anchorOffset = nextNode.length;
+			this.focusOffset = nextNode.length;
 
 			this.anchorType = nextNode.getType() !== "text" ? "element" : "text";
 			this.focusType = this.anchorType;

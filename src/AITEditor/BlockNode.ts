@@ -227,7 +227,7 @@ class BlockNode extends BaseBlockNode {
 		nodeIndex = nodeIndex >= 0 ? nodeIndex : 0;
 		const textNode = this.children[nodeIndex];
 		if (textNode instanceof TextNode && !(node instanceof BreakLine)) {
-			const textContentLength = textNode.getContentLength();
+			const textContentLength = textNode.length;
 			if (offset !== 0 && offset !== textContentLength) {
 				const Textchildren = textNode.getData(true);
 				node = (node as imageNode).createSelfNode((node as imageNode).getData()) as imageNode;
@@ -268,7 +268,7 @@ class BlockNode extends BaseBlockNode {
 	getLastChild(depth?: undefined): NodeTypes | LeafNode;
 	getLastChild(depth?: boolean): NodeTypes | LeafNode {
 		if (depth) {
-			const node = this.children[0];
+			const node = this.children[this.children.length - 1];
 			if (isLeafNode(node)) {
 				return node.getLastChild();
 			}

@@ -1,13 +1,11 @@
 import {BlockNode} from "../BlockNode";
 
-class LeafNode extends BlockNode {
+abstract class LeafNode extends BlockNode {
 	constructor() {
 		super(undefined, "link/leaf");
 	}
 
-	public getContentLength(): number {
-		return -1;
-	}
+	abstract get length(): number;
 }
 
 export {LeafNode};

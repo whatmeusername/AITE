@@ -11,6 +11,10 @@ class LinkNode extends LeafNode {
 		this.__url = url;
 	}
 
+	get length(): number {
+		return 0;
+	}
+
 	public createSelfNode() {
 		return new LinkNode(this.__url);
 	}

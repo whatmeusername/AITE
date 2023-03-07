@@ -30,6 +30,8 @@ abstract class BaseNode extends HeadNode {
 		this.parent = null;
 	}
 
+	abstract get length(): number;
+
 	abstract $getNodeState<T extends AiteNodeOptions>(options?: T): AiteNode;
 }
 

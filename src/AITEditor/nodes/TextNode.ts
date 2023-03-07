@@ -24,6 +24,9 @@ class TextNode extends BaseNode {
 		return ObservableTextNode(this).value();
 	}
 
+	get length(): number {
+		return this.content.length;
+	}
 	// DEPRECATED REPLACED WITH PROXY
 	update(func: (textNode: TextNode) => void, options?: NodeUpdateOptions): number {
 		const copiedState = {...this};
@@ -73,9 +76,6 @@ class TextNode extends BaseNode {
 	//DEPRECATED
 	appendContent(string: string): void {
 		this.content += string;
-	}
-	getContentLength(): number {
-		return this.content.length;
 	}
 
 	getNodeStyle(): Array<string> {

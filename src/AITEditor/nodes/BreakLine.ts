@@ -21,7 +21,7 @@ class BreakLine extends TextNode {
 		return createAiteNode(this, "br", props, null, {...options});
 	}
 
-	public getContentLength() {
+	get length(): number {
 		return 0;
 	}
 

@@ -88,7 +88,7 @@ class ContentNode extends HeadNode {
 	}
 
 	getTextNodeOffset(node: TextNode, offset: number): number {
-		const TextContentLength = node.getContentLength();
+		const TextContentLength = node.length;
 		if (offset === -1) {
 			offset = TextContentLength;
 		} else if (offset > TextContentLength) {
@@ -109,17 +109,21 @@ class ContentNode extends HeadNode {
 		const nodes: BlockType[] = [];
 
 		const startKey = isLeafNode(startNode) ? (startNode.parent as BlockNode).key : startNode.key;
-		const endKey = isLeafNode(endNode) ? (endNode.parent as BlockNode).key : startNode.key;
+		const endKey = isLeafNode(endNode) ? (endNode.parent as BlockNode).key : endNode.key;
+
+		if (startKey === endKey) return [];
 
 		for (let i = 0; i < this.children.length; i++) {
 			const node = this.children[i];
-			const nodeKey = node.key;
-			if (nodeKey === startKey) {
+
+			if (node.key === startKey) {
 				startFound = !startFound;
 				continue;
-			} else if (nodeKey === endKey) {
+			}
+			if (node.key === endKey) {
 				break;
 			}
+
 			if (startFound || startKey === -1) nodes.push(node);
 		}
 
@@ -189,7 +193,7 @@ class ContentNode extends HeadNode {
 			SliceFrom = isRemove && selectionState.isCollapsed ? selectionState.anchorOffset - 1 : selectionState.anchorOffset;
 
 			if (selectionState.isCollapsed) {
-				if (key === " " && KeyBoardEvent?.which === 229) {
+				if (KeyBoardEvent?.which === 229 && key === " ") {
 					key = ".";
 					SliceFrom -= 1;
 				} else if (!isRemove) selectionState.moveSelectionForward();
@@ -226,7 +230,6 @@ class ContentNode extends HeadNode {
 				anchorNode.sliceContent(SliceFrom, -1, key);
 			} else anchorNode.remove();
 
-			console.log(focusBlock.getNodesBetween(-1, focusNode.key), focusNode.key);
 			focusBlock.getNodesBetween(-1, focusNode.key).forEach((node) => node.remove());
 			if (isTextNode(focusNode)) {
 				focusNode.sliceContent(SliceTo);
@@ -257,11 +260,14 @@ class ContentNode extends HeadNode {
 		const focusNode = selectionState.focusNode;
 		if (!anchorNode) return;
 
-		if (selectionState.isOffsetOnStart()) {
+		const onStart = selectionState.isOffsetOnStart();
+		const onEnd = selectionState.isOffsetOnEnd();
+
+		if (onStart || onEnd) {
 			const newBreakLine = createBreakLine();
 			const {contentNode, index} = anchorNode.getContentNode();
 			if (contentNode) {
-				contentNode.insertNode(newBreakLine, index, NodeInsertionDeriction.BEFORE);
+				contentNode.insertNode(newBreakLine, index, onStart ? NodeInsertionDeriction.BEFORE : NodeInsertionDeriction.AFTER);
 			}
 		}
 	}
