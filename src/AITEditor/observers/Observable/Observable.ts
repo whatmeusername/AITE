@@ -4,7 +4,7 @@ import {CatchFunctionReturn, isCatchFunction} from "../Observable/traps";
 
 const NACT_OBSERVABLE = "NACT_OBSERVERABLE";
 
-function Observe<T extends object>(observer: T): Observable<T> {
+function Observe<T extends object>(observer: T) {
 	if (Object.keys(observer).includes(NACT_OBSERVABLE)) {
 		return Object.getOwnPropertyDescriptor(observer, NACT_OBSERVABLE)?.value;
 	} else return new Observable(observer);
@@ -17,7 +17,7 @@ function isObservable(value: any): value is Observable<any> {
 class Observable<T extends object> {
 	instance: T;
 	observers: Observer<T>[];
-	eventObject: {[K in keyof ObserverProperties<T>]: Array<ObserverProperties<T>[K]>};
+	eventObject: {[K in keyof ObserverProperties<T>]: Array<NonNullable<ObserverProperties<T>[K]>>};
 	ignoreFalsy: boolean;
 	constructor(instance: T) {
 		this.observers = [];
@@ -40,7 +40,7 @@ class Observable<T extends object> {
 				const events = observerable.eventObject["defineProperty"] ?? [];
 				if (events.length > 0) {
 					events.forEach((observer) => {
-						return (lastValue = observer?.apply(observer, [target, property, attributes]));
+						return (lastValue = observer?.apply(observer, [target, property, attributes, observerable]));
 					});
 				} else {
 					Object.defineProperty(target, property, attributes);
@@ -53,7 +53,7 @@ class Observable<T extends object> {
 				if (events.length > 0) {
 					let lastValue: any;
 					events.forEach((observer) => {
-						lastValue = observer?.apply(observer, [target, p]);
+						lastValue = observer?.apply(observer, [target, p, observerable]);
 					});
 					return lastValue;
 				} else {
@@ -66,7 +66,7 @@ class Observable<T extends object> {
 				if (events.length > 0) {
 					let lastValue: any;
 					events.forEach((observer) => {
-						lastValue = observer?.apply(observer, [target, p, receiver]);
+						lastValue = observer.apply(observer, [target, p, receiver, observerable]);
 					});
 					return lastValue;
 				} else {
@@ -78,7 +78,7 @@ class Observable<T extends object> {
 				if (events.length > 0) {
 					let lastValue: any;
 					events.forEach((observer) => {
-						lastValue = observer?.apply(observer, [target, p]);
+						lastValue = observer.apply(observer, [target, p, observerable]);
 					});
 					return lastValue;
 				} else {
@@ -90,7 +90,7 @@ class Observable<T extends object> {
 				if (events.length > 0) {
 					let lastValue: boolean | undefined;
 					events.forEach((observer) => {
-						lastValue = observer?.apply(observer, [target, p, newValue, receiver]);
+						lastValue = observer.apply(observerable, [target, p, newValue, receiver, observerable]);
 					});
 					return lastValue ?? false;
 				} else {
@@ -125,7 +125,7 @@ class Observable<T extends object> {
 				if (this.eventObject[observer.method]) {
 					this.eventObject[observer.method]?.push(observer.cb);
 				} else {
-					this.eventObject[observer.method] = [observer.cb];
+					(this.eventObject[observer.method] as any) = [observer.cb];
 				}
 			}
 		});

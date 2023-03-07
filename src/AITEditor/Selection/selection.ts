@@ -359,9 +359,7 @@ class SelectionState {
 	getNodeData(node: AiteHTML): SelectedNodeData {
 		if ((node as AiteHTMLNode)?.dataset?.["aite_editor_root"]) {
 			node = node.firstChild as AiteHTML;
-		}
-
-		if (node instanceof Text) {
+		} else if (node instanceof Text) {
 			node = node.parentNode as AiteHTMLNode;
 		}
 
@@ -369,17 +367,16 @@ class SelectionState {
 			let ElementType = null;
 			if (node?.firstChild?.nodeName === BREAK_LINE_TAGNAME) {
 				ElementType = BREAK_LINE_TYPE;
+				node = node.firstChild as AiteHTMLNode;
 			} else {
 				ElementType = node.$AiteNodeType ? node.$AiteNodeType : this.getNodeType(node);
 			}
 
-			const Result: SelectedNodeData = {
-				node: node,
+			return {
+				node: node as AiteHTMLNode,
 				elementType: ElementType,
 				nodeKey: node.$AiteNodeKey,
 			};
-			return Result;
-			// TODO: REPLACE WITH onError METHOD
 		} else throw new Error("Not returned return value during condition check");
 	}
 
@@ -402,17 +399,18 @@ class SelectionState {
 
 		const range = forceRange ?? selection.getRangeAt(0);
 		const anchorNode = range?.startContainer;
-		const focusNode = range?.endContainer;
 
 		if (range !== undefined) {
-			if (!anchorNode || !focusNode || !anchorNode.$isAiteNode || !anchorNode.$isAiteNode) return;
+			if (!range?.startContainer || !range?.endContainer || !range?.startContainer.$isAiteNode || !range?.endContainer.$isAiteNode) return;
 
 			this.isCollapsed = range.collapsed;
 			const isBackward = isSelectionBackward(range);
 
+			const anchorNodeData = this.getNodeData(range.startContainer);
+			const anchorNode = anchorNodeData.node;
+
 			this.anchorNode = anchorNode.$ref;
 			this.anchorIndex = anchorNode.$ref?.getSelfIndex() ?? -1;
-			const anchorNodeData = this.getNodeData(anchorNode);
 
 			if (anchorNodeData) {
 				this.anchorKey = anchorNodeData.nodeKey;
@@ -426,9 +424,11 @@ class SelectionState {
 				this.sameBlock = true;
 				this.focusNode = anchorNode.$ref;
 			} else {
+				const focusNodeData = this.getNodeData(range.endContainer);
+				const focusNode = focusNodeData.node;
+
 				this.focusNode = focusNode.$ref;
 				this.focusIndex = focusNode.$ref?.getSelfIndex() ?? -1;
-				const focusNodeData = this.getNodeData(focusNode);
 
 				this.focusKey = focusNodeData.nodeKey;
 				this.focusType = focusNodeData.elementType;

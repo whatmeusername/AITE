@@ -8,7 +8,7 @@ import {BaseNode} from "../nodes";
 function mountNode(node: BaseNode | BaseBlockNode): void {
 	const prevSibling = node.previousSibling();
 	const siblingNode = prevSibling ? prevSibling : node.nextSibling();
-	const insertDirection: NodeInsertionDeriction = prevSibling ? NodeInsertionDeriction.BEFORE : NodeInsertionDeriction.AFTER;
+	const insertDirection: NodeInsertionDeriction = prevSibling ? NodeInsertionDeriction.AFTER : NodeInsertionDeriction.BEFORE;
 
 	if (siblingNode) {
 		const siblingDOMElement = getEditorState().EditorDOMState.getNodeFromMap(siblingNode.key);

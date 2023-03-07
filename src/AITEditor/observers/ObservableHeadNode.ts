@@ -6,8 +6,7 @@ import {get} from "./Observable/traps";
 
 function ObservableHeadNode(node: HeadNode | Observable<HeadNode>): Observable<HeadNode> {
 	node = Observe(node) as Observable<HeadNode>;
-
-	node.catch(
+	return node.catch(
 		get((target: HeadNode, key: keyof HeadNode) => {
 			if (key === "remove") {
 				return function () {
@@ -29,7 +28,6 @@ function ObservableHeadNode(node: HeadNode | Observable<HeadNode>): Observable<H
 			return target[key];
 		}),
 	);
-	return node;
 }
 
 export {ObservableHeadNode};

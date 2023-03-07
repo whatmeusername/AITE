@@ -6,6 +6,7 @@ import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction} from ".
 import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "./EditorUtils";
 import {ObservableChildren, ObservableChildrenProperty} from "./observers";
 import {NodeStatus} from "./nodes/interface";
+import {createImageNode} from "./packages/AITE_Image/imageNode";
 
 interface ContentNodeInit {
 	BlockNodes?: Array<BlockType>;
@@ -52,31 +53,11 @@ class ContentNode extends HeadNode {
 		return ObservableChildrenProperty(this).value();
 	}
 
-	insertNodeBefore<T extends BlockType>(index: number, node: T): T {
-		const insertOffset = index > 0 ? index - 1 : index;
-		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
-		return node;
-	}
-
-	insertNodeAfter<T extends BlockType>(index: number, node: T): T {
-		const insertOffset = index + 1;
-
-		this.insertBlockNodeBetween(node, insertOffset, insertOffset);
-		return node;
-	}
-
-	insertNode(node: BlockType, index: number | "last" | "first", direction: NodeInsertionDeriction) {
+	insertNode(node: BlockType, index: number, direction: NodeInsertionDeriction): void {
 		if (index < 0) return;
 
-		const blocksLength = this.children.length - 1;
-		if ((index === 0 && direction !== "after") || index === "first") {
-			this.insertNodeBefore(0, node);
-		} else if (index === blocksLength || index === "last") {
-			this.insertNodeAfter(blocksLength, node);
-		} else {
-			index = direction === NodeInsertionDeriction.AFTER ? index + 1 : index;
-			this.insertBlockNodeBetween(node, index, index);
-		}
+		index = direction === NodeInsertionDeriction.AFTER ? index + 1 : index;
+		this.insertBlockNodeBetween(node, index, index);
 	}
 
 	// TODO: MOVE TO TextNode
@@ -174,32 +155,21 @@ class ContentNode extends HeadNode {
 
 		let key = isRemove ? "" : KeyBoardEvent ? KeyBoardEvent.key : "";
 
-		let anchorNode: BaseNode = selectionState.anchorNode as BaseNode;
-		let focusNode: BaseNode = selectionState.focusNode as BaseNode;
+		const anchorNode: BaseNode = selectionState.anchorNode as BaseNode;
+		const focusNode: BaseNode = selectionState.focusNode as BaseNode;
 
-		let anchorBlock: BlockNode = anchorNode.parent as BlockNode;
-		let focusBlock: BlockNode = focusNode.parent as BlockNode;
-
-		if (selectionState.anchorType === "breakline" && isBlockNode(anchorNode)) {
-			anchorNode = anchorNode.convertFromBreakLine();
-			anchorBlock = anchorNode.parent as BlockNode;
-			selectionState.setNodeKey(anchorNode);
-		}
-		if (selectionState.focusType === "breakline" && !selectionState.isCollapsed && isBlockNode(focusNode)) {
-			focusNode = focusNode.convertFromBreakLine();
-			focusBlock = focusNode.parent as BlockNode;
-			selectionState.setNodeKey(focusNode);
-		}
+		const anchorBlock: BlockNode = anchorNode.parent as BlockNode;
+		const focusBlock: BlockNode = focusNode.parent as BlockNode;
 
 		const {contentNode, blockNode}: {contentNode: ContentNode | undefined; blockNode: BlockNode | undefined} = anchorNode.getContentNode();
 
 		const handleOffsetStart = (): void => {
-			if (anchorBlock.isBreakLine) {
+			if (!blockNode) return;
+			else if (anchorBlock.isBreakLine) {
 				selectionState.moveSelectionToPreviousSibling(anchorBlock);
 				anchorBlock.remove();
 				return;
 			}
-			if (!blockNode) return;
 
 			const previousBlock = blockNode?.previousSibling();
 			if (!previousBlock) return;
@@ -251,13 +221,14 @@ class ContentNode extends HeadNode {
 		} else if (!selectionState.sameBlock) {
 			this.getBlockNodesBetween(anchorBlock, focusBlock).forEach((node) => node.remove());
 
+			anchorBlock.getNodesBetween(anchorNode.key).forEach((node) => node.remove());
 			if (isTextNode(anchorNode)) {
-				anchorBlock.getNodesBetween(anchorNode.key).forEach((node) => node.remove());
 				anchorNode.sliceContent(SliceFrom, -1, key);
 			} else anchorNode.remove();
 
+			console.log(focusBlock.getNodesBetween(-1, focusNode.key), focusNode.key);
+			focusBlock.getNodesBetween(-1, focusNode.key).forEach((node) => node.remove());
 			if (isTextNode(focusNode)) {
-				focusBlock.getNodesBetween(-1, focusNode.key).forEach((node) => node.remove());
 				focusNode.sliceContent(SliceTo);
 			} else focusNode.remove();
 
@@ -277,7 +248,7 @@ class ContentNode extends HeadNode {
 	 */
 	// TODO: MOVE METHOD TO SELECTION AS METHOD
 	removeLetter(): void {
-		this.insertLetter(undefined);
+		this.insertLetter();
 	}
 
 	handleEnterTest(): void {

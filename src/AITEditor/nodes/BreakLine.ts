@@ -1,18 +1,19 @@
-import {BaseNode} from "./BaseNode";
+import {BlockNode, createBlockNode} from "../BlockNode";
 import {BREAK_LINE_TYPE} from "../ConstVariables";
-import {BlockNode, createAiteNode, createBlockNode} from "../index";
-import type {AiteNode, AiteNodeOptions} from "../index";
+import {AiteNode, AiteNodeOptions, createAiteNode} from "../EditorDOM";
+import {ObservableBreakline} from "../observers/TextNodeObserver";
+import {TextNode} from "./TextNode";
 
-class BreakLine extends BaseNode {
+class BreakLine extends TextNode {
 	constructor() {
-		super(BREAK_LINE_TYPE);
+		super({type: BREAK_LINE_TYPE});
+
+		return ObservableBreakline(this).value();
 	}
 
 	public $getNodeState(options?: AiteNodeOptions): AiteNode {
-		const className = "AITE_breakline";
 		const props = {
-			className: className,
-			"data-aite-node": true,
+			className: "AITE_breakline",
 		};
 		if (options) options.AiteNodeType = "breakline";
 		else options = {AiteNodeType: "breakline"};

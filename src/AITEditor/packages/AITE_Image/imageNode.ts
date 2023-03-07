@@ -247,8 +247,8 @@ class imageNode extends BaseNode {
 	}
 }
 
-function createImageNode(imageConf: imageConf): imageNode | undefined {
-	if (validateImageURL(imageConf.src) === false) return;
+function createImageNode(imageConf: imageConf): imageNode {
+	// if (validateImageURL(imageConf.src) === false) return;
 	let initWidth = 0;
 	let initHeight = 0;
 	let sizeRatio = 1,

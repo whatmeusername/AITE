@@ -31,12 +31,7 @@ function ObservableChildren<T extends BlockNode | ContentNode, U extends T["chil
 
 	childrenProxyObject.forEach((node) => {
 		node.parent = parent;
-		if (node.status === NodeStatus.UNMOUNTED) {
-			node.mount();
-		}
 	});
-
-	
 
 	return childrenProxyObject;
 }

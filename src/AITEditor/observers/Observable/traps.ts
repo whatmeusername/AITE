@@ -7,7 +7,7 @@ interface CatchFunctionReturn<T extends object, U extends keyof ObserverProperti
 	cb: (...args: ObserverPropertiesParameters<T, U>) => ObserverReturnType<T, U>;
 }
 
-function CreateCatchFunction<U extends keyof ObserverProperties<unknown>>(method: U) {
+function CreateCatchFunction<U extends keyof ObserverProperties<object>>(method: U) {
 	return function <T extends object>(cb: CatchFunctionCallback<T, U>): CatchFunctionReturn<T, U> {
 		return {
 			method: method,

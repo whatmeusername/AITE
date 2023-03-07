@@ -2,12 +2,12 @@ import type {DOMNodeData} from "./BaseNode";
 
 interface DOMTextAttr extends DOMNodeData {
 	className?: string;
-	"data-aite-node"?: boolean;
 }
 
 interface TextNodeAttr {
-	plainText: string;
+	plainText?: string;
 	styles?: Array<string>;
+	type?: "breakline" | "text";
 }
 
 interface NodeUpdateOptions {

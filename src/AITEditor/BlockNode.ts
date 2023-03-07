@@ -2,7 +2,7 @@ import defaultBlocks from "./defaultStyles/defaultBlocks";
 import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from "./ConstVariables";
 import {ClassVariables} from "./Interfaces";
 
-import {TextNode, BreakLine, createTextNode, HeadNode, NodeKeyTypes, LeafNode, LinkNode} from "./nodes/index";
+import {TextNode, createTextNode, HeadNode, NodeKeyTypes, LeafNode, LinkNode, BreakLine} from "./nodes/index";
 import type {imageNode} from "./packages/AITE_Image/imageNode";
 
 import {createAiteNode, ContentNode, NodeInsertionDeriction, filterNode} from "./index";
@@ -18,11 +18,6 @@ type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE
 type BlockType = BlockNode | HorizontalRuleNode;
 
 type BlockNodeVariables = ClassVariables<BlockNode>;
-interface findNodeOffsetData {
-	offsetKey: number;
-	letterIndex: number;
-	key: number | undefined;
-}
 
 type allowedToInsert = "all" | "element" | "text";
 
@@ -69,17 +64,32 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	// ----- NEWEST
+
+	replace<T extends this["children"][0], U extends this["children"][0]>(node: T, nodeToInsert: U): this {
+		if (node?.parent?.key !== this.key) return this;
+		const index = node.getSelfIndex();
+		node.remove();
+		this.insertNode(nodeToInsert, index, NodeInsertionDeriction.BEFORE);
+		return this;
+	}
+
 	append(...nodes: NodeTypes[]): this {
 		const filteredNodes = filterNode.apply(this, nodes);
 		this.children.push(...filteredNodes);
 		return this;
 	}
 
-	getNodesBetween(startKey: number, endKey?: number, returnAllIfNotFound?: boolean, leaf?: boolean, forceStatus?: {s: boolean}): NodeTypes[] {
-		const startFound = forceStatus ?? {s: false};
-		let nodes: NodeTypes[] = [];
+	getNodesBetween(
+		startKey: number,
+		endKey?: number,
+		returnAllIfNotFound?: boolean,
+		validateLeaf?: boolean,
+		forcePoints?: {start: boolean; end: boolean},
+	): NodeTypes[] {
+		const points = forcePoints ?? {start: false, end: false};
+		const nodes: NodeTypes[] = [];
 
-		const block = (!leaf ? (isLeafNode(this) ? this.parent : this) : this) as BlockNode;
+		const block = (!validateLeaf ? (isLeafNode(this) ? this.parent : this) : this) as BlockNode;
 		if (!block) return [];
 
 		for (let i = 0; i < block.children.length; i++) {
@@ -87,22 +97,25 @@ class BlockNode extends BaseBlockNode {
 			const isDecorator = isLeafNode(node);
 
 			if (endKey && isDecorator) {
-				const subNodes = node.getNodesBetween(startFound.s ? -1 : startKey, endKey, false, true, startFound);
+				const subNodes = node.getNodesBetween(points.start ? -1 : startKey, endKey, false, true, points);
 				if (subNodes.length !== node.children.length) {
-					nodes = [...nodes, ...subNodes];
+					nodes.push(...subNodes);
 				} else {
 					nodes.push(node);
 				}
+
+				if (points.end) break;
 			}
 
 			if (node.key === startKey) {
-				startFound.s = true;
+				points.start = true;
 				continue;
 			} else if (node.key === endKey) {
+				points.end = true;
 				break;
 			}
 
-			if (!isDecorator && (startFound.s || startKey === -1)) nodes.push(node);
+			if (!isDecorator && (points.start || startKey === -1)) nodes.push(node);
 		}
 
 		return returnAllIfNotFound && nodes.length === 0 ? block.children : nodes;
@@ -151,16 +164,6 @@ class BlockNode extends BaseBlockNode {
 		return createAiteNode(this, tag, props, children, {...options});
 	}
 
-	swapNodePosition(FirPosition: number, SecPosition: number): void {
-		const CharP1 = this.children[FirPosition];
-		this.children[FirPosition] = this.children[SecPosition];
-		this.children[SecPosition] = CharP1;
-	}
-
-	replaceNode(index: number, newNode: NodeTypes): void {
-		this.children[index] = newNode;
-	}
-
 	insertBreakLine() {
 		if (this.children.length === 0) {
 			this.children = [new BreakLine()];
@@ -188,7 +191,8 @@ class BlockNode extends BaseBlockNode {
 
 	insertNodeBefore(index: number, node: NodeTypes): NodeTypes {
 		if (this.isBreakLine) {
-			this.replaceNode(0, node);
+			this.children = [node];
+			this.remount();
 		} else {
 			const insertOffset = index > 0 ? index - 1 : index;
 			this.insertNodeBetween(node, insertOffset, insertOffset);
@@ -198,7 +202,8 @@ class BlockNode extends BaseBlockNode {
 
 	insertNodeAfter(index: number, node: NodeTypes): NodeTypes {
 		if (this.isBreakLine) {
-			this.replaceNode(0, node);
+			this.children = [node];
+			this.remount();
 		} else {
 			const insertOffset = index > 0 ? index - 1 : index;
 			this.insertNodeBetween(node, insertOffset, insertOffset);
@@ -238,7 +243,8 @@ class BlockNode extends BaseBlockNode {
 				return this.insertNodeAfter(nodeIndex, node);
 			}
 		} else if (this.isBreakLine) {
-			this.replaceNode(0, node);
+			this.children = [node];
+			this.remount();
 		}
 		return;
 	}
@@ -256,79 +262,6 @@ class BlockNode extends BaseBlockNode {
 		if (this.children.length === 0) {
 			this.insertBreakLine();
 		}
-	}
-
-	//DEPRECATE
-	collectSameNodes(): void {
-		const NodeStylesEqual = (C1: TextNode, C2: TextNode): boolean => {
-			const C1Styles = C1.getNodeStyle();
-			const C2Styles = C2.getNodeStyle();
-
-			let mismatch = false;
-
-			if (C1Styles.length === 0 && C2Styles.length === 0) return true;
-			else if (C1Styles.length === 0 && C2Styles.length !== 0) return false;
-			else {
-				for (const style of C1Styles) {
-					if (C2Styles.includes(style) === false) {
-						mismatch = true;
-					}
-				}
-				if (mismatch === true) return false;
-				else return true;
-			}
-		};
-
-		const isSameTextNode = (C: NodeTypes, N: NodeTypes): boolean => {
-			return C instanceof TextNode && N instanceof TextNode && NodeStylesEqual(C, N);
-		};
-
-		const newchildren: NodeTypes[] = [];
-		let currentNode = this.children[0];
-		newchildren.push(currentNode);
-
-		for (let i = 1; i < this.children.length; i++) {
-			const nextNode = this.children[i];
-			if (isSameTextNode(currentNode, nextNode)) {
-				(currentNode as TextNode).appendContent((nextNode as TextNode).getContent());
-			} else {
-				currentNode = this.children[i];
-				newchildren.push(currentNode);
-			}
-		}
-		this.children = newchildren;
-	}
-
-	//DEPRECATE
-	countToIndex(index: number): number {
-		let Count = 0;
-		index = index < 0 ? 1 : index;
-
-		for (let CharIndex = 0; CharIndex < this.children.length; CharIndex++) {
-			if (CharIndex <= index) {
-				const CurrentElement = this.children[CharIndex];
-				Count += CurrentElement.getContentLength();
-			}
-		}
-		return Count;
-	}
-
-	//DEPRECATE
-	findNodeByOffset(offset: number): findNodeOffsetData {
-		const data: findNodeOffsetData = {offsetKey: 0, letterIndex: 0, key: undefined};
-		let letterCount = 0;
-		for (let i = 0; i < this.children.length; i++) {
-			const currentNode = this.children[i];
-			const currentLetterCount = currentNode.getContentLength();
-			letterCount += currentLetterCount;
-			if (letterCount >= offset) {
-				data.offsetKey = i;
-				data.letterIndex = currentLetterCount - (letterCount - offset);
-				data.key = currentNode.key;
-				return data;
-			}
-		}
-		return data;
 	}
 
 	getLastChild(depth: true): CoreNodes;
@@ -357,28 +290,12 @@ class BlockNode extends BaseBlockNode {
 		return this.children[0];
 	}
 
-	nextNodeSibling(index: number): NodeTypes | undefined {
-		const nextSibling = this.children[index + 1];
-		if (nextSibling !== undefined) return nextSibling;
-		else return undefined;
-	}
-
-	previousNodeSibling(index: number): NodeTypes | undefined {
-		const previousSibling = this.children[index - 1];
-		if (previousSibling !== undefined) return previousSibling;
-		else return undefined;
-	}
-
 	getChildrenByIndex(index: number): NodeTypes {
 		return this.children[index];
 	}
 
 	getNodeByKey(key: number): NodeTypes | undefined {
 		return this.children.find((node) => node.key === key);
-	}
-
-	getWrapper(): string {
-		return this.blockWrapper;
 	}
 
 	getLength(): number {
