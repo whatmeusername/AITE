@@ -3,7 +3,7 @@ import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 import {editorWarning} from "./EditorUtils";
 import {onKeyDownEvent, onKeyUpEvent} from "./EditorEvents";
 
-import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands} from "./index";
+import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, AiteHTMLNode} from "./index";
 import {ClassVariables} from "./Interfaces";
 import {ContentNode} from "./nodes";
 
@@ -134,7 +134,7 @@ class EditorState {
 		this.editorEventsActive = true;
 
 		this.__readOnly = false;
-		this.EditorDOMState = new EditorDOMState(this);
+		this.EditorDOMState = new EditorDOMState();
 		this.__previousSelection = undefined;
 	}
 
@@ -154,6 +154,18 @@ class EditorState {
 	}
 	onEditorDOMChange(): void {
 		// TODO:
+	}
+
+	render(parent?: HTMLElement): HTMLElement {
+		if (!parent) {
+			const node = returnSingleDOMNode(this.contentNode.$getNodeState());
+			this.EditorDOMState.setDOMElement(node);
+			return node;
+		} else {
+			parent.replaceChildren(...returnSingleDOMNode(this.contentNode.$getNodeState().children));
+			this.EditorDOMState.setDOMElement(parent as AiteHTMLNode);
+			return parent;
+		}
 	}
 }
 

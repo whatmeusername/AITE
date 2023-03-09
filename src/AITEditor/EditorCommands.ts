@@ -168,7 +168,7 @@ class EditorCommands {
 							return {eventname: undefined, event: undefined};
 					}
 				})();
-				if (eventData.eventname && eventData.event) {
+				if (eventData.eventname && eventData.event && EditorDOM) {
 					EditorDOM.addEventListener(eventData.eventname, eventData.event);
 					this.removeHandles[eventData.eventname] = () => EditorDOM.removeEventListener(eventData.eventname!, eventData.event!);
 				}

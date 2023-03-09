@@ -2,8 +2,8 @@ import {TextNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 import {AiteNode, createAiteDomNode} from "./AiteNode";
 import {AiteTextNode, createAiteText} from "./AiteTextNode";
-import {AiteHTMLNode, AiteHTMLTextNode, ClassAttribute, StringNumberBool} from "./interface";
-import {isAiteTextNode, isEventProp, isNotEmpty} from "./utils";
+import {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, ClassAttribute, StringNumberBool} from "./interface";
+import {isAiteNode, isAiteTextNode, isEventProp, isNotEmpty} from "./utils";
 
 function addEventListeners<T extends HTMLElement>(target: T, type: string, listener: (...args: any[]) => void): T {
 	if (isEventProp(type)) {
@@ -57,4 +57,26 @@ function createAiteDOMNode(node: AiteNode | AiteTextNode): AiteHTMLNode | AiteHT
 	}
 }
 
-export {addEventListeners, setStyles, setProps, setAttribute, removeAttribute, createAiteDOMNode};
+function createDOMElement(node: AiteTextNode | AiteNode): AiteHTMLNode | AiteHTMLTextNode {
+	const $node = createAiteDOMNode(node);
+	if (isAiteNode(node) && $node instanceof HTMLElement) {
+		if (node.props) {
+			setProps($node, node.props);
+		}
+		node.children.map(createDOMElement).forEach($node.appendChild.bind($node));
+	}
+	return $node;
+}
+
+function returnSingleDOMNode(CurrentState: AiteNodes): AiteHTMLNode;
+function returnSingleDOMNode(CurrentState: AiteNodes[]): (AiteHTMLNode | Text)[];
+function returnSingleDOMNode(CurrentState: AiteNodes | AiteNodes[]): AiteHTMLNode | (AiteHTMLNode | Text)[] {
+	if (Array.isArray(CurrentState)) {
+		const childrens: Array<AiteHTMLNode | Text> = [];
+		CurrentState.map(createDOMElement).forEach(($node) => childrens.push($node));
+		return childrens;
+	}
+	return createDOMElement(CurrentState as AiteNodes) as AiteHTMLNode;
+}
+
+export {addEventListeners, setStyles, setProps, setAttribute, removeAttribute, createAiteDOMNode, returnSingleDOMNode, createDOMElement};

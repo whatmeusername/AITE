@@ -8,7 +8,7 @@ import type {imageNode} from "../packages/AITE_Image/imageNode";
 import {isLeafNode, isDefined} from "../EditorUtils";
 import {ObservableChildren} from "../observers";
 import {ObservableChildrenProperty} from "../observers";
-import {AiteNode, AiteNodeOptions, createAiteNode, filterNode, NodeInsertionDeriction} from "../EditorDOM";
+import {AiteNode, createAiteNode, filterNode, NodeInsertionDeriction} from "../EditorDOM";
 
 type CoreNodes = TextNode | BreakLine;
 
@@ -40,7 +40,7 @@ abstract class BaseBlockNode extends HeadNode {
 		this.parent = null;
 	}
 
-	abstract $getNodeState<T extends AiteNodeOptions>(options?: T): AiteNode;
+	abstract $getNodeState(): AiteNode;
 }
 
 class BlockNode extends BaseBlockNode {
@@ -132,7 +132,7 @@ class BlockNode extends BaseBlockNode {
 
 	// ------ OLDEST
 
-	$getNodeState(options?: AiteNodeOptions): AiteNode {
+	$getNodeState(): AiteNode {
 		const prepareBlockStyle = (): {n: string; c: null | string} => {
 			type data = {n: string; c: string};
 			const BlockNodeData: data = {n: "div", c: this.blockInlineStyles.join(" ")};
@@ -151,13 +151,9 @@ class BlockNode extends BaseBlockNode {
 			"data-aite-block-node": true,
 		};
 
-		const children: Array<AiteNode> = [];
-		this.children.forEach((node) => {
-			const $node = node.$getNodeState({...options});
-			if ($node) children.push($node);
-		});
+		const children: Array<AiteNode> = this.children.map((node) => node.$getNodeState());
 
-		return createAiteNode(this, tag, props, children, {...options});
+		return createAiteNode(this, tag, props, children);
 	}
 
 	insertBreakLine() {
@@ -242,13 +238,13 @@ class HorizontalRuleNode extends BaseBlockNode {
 		super(HORIZONTAL_RULE_BLOCK_TYPE, []);
 	}
 
-	$getNodeState(options?: AiteNodeOptions): AiteNode {
+	$getNodeState(): AiteNode {
 		const className = "AITE_editor_horizontal-rule";
 		const props = {
 			class: className,
 		};
 
-		return createAiteNode(this, "div", {contenteditable: false}, [createAiteNode(null, "hr", props, [])], {...options});
+		return createAiteNode(this, "div", {contenteditable: false}, [createAiteNode(null, "hr", props, [])]);
 	}
 }
 

@@ -1,5 +1,5 @@
 import {createAiteNode, NodeTypes} from "../index";
-import type {AiteNode, AiteNodeOptions} from "../index";
+import type {AiteNode} from "../index";
 import {LeafNode} from "./LeafNode";
 
 type stringURL = `https://${string}` | `http://${string}`;
@@ -31,7 +31,7 @@ class LinkNode extends LeafNode {
 		return this.children.findIndex((node) => node.key === key);
 	}
 
-	public $getNodeState(options?: AiteNodeOptions): AiteNode {
+	public $getNodeState(): AiteNode {
 		const className = "AITE_link_node";
 		const props = {
 			href: this.__url,
@@ -41,11 +41,11 @@ class LinkNode extends LeafNode {
 
 		const children: Array<AiteNode> = [];
 		this.children.forEach((node) => {
-			const $node = node.$getNodeState({...options});
+			const $node = node.$getNodeState();
 			if ($node) children.push($node);
 		});
 
-		return createAiteNode(this, "a", props, children, {...options});
+		return createAiteNode(this, "a", props, children);
 	}
 }
 

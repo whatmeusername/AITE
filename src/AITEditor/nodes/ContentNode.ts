@@ -2,7 +2,7 @@ import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, Hea
 
 import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
-import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction} from "../index";
+import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction, createAiteNode, AiteNode} from "../index";
 import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "../EditorUtils";
 import {ObservableChildren, ObservableChildrenProperty} from "../observers";
 import {ContentNodeInit, NodeStatus} from "../nodes/interface";
@@ -266,6 +266,15 @@ class ContentNode extends HeadNode {
 				if (!onStart) selectionState.setNodeKey(newBreakLine).offsetToZero();
 			}
 		}
+	}
+
+	$getNodeState(): AiteNode {
+		return createAiteNode(
+			null,
+			"div",
+			{},
+			this.children.map((node) => node.$getNodeState()),
+		);
 	}
 }
 

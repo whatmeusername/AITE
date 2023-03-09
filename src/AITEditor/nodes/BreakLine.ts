@@ -1,6 +1,6 @@
 import {BlockNode, createBlockNode} from "./BlockNode";
 import {BREAK_LINE_TYPE} from "../ConstVariables";
-import {AiteNode, AiteNodeOptions, createAiteNode} from "../EditorDOM";
+import {AiteNode, createAiteNode} from "../EditorDOM";
 import {ObservableBreakline} from "../observers/TextNodeObserver";
 import {TextNode} from "./TextNode";
 
@@ -11,14 +11,12 @@ class BreakLine extends TextNode {
 		return ObservableBreakline(this).value();
 	}
 
-	public $getNodeState(options?: AiteNodeOptions): AiteNode {
+	public $getNodeState(): AiteNode {
 		const props = {
 			className: "AITE_breakline",
 		};
-		if (options) options.AiteNodeType = "breakline";
-		else options = {AiteNodeType: "breakline"};
 
-		return createAiteNode(this, "br", props, null, {...options});
+		return createAiteNode(this, "br", props, null);
 	}
 
 	get length(): number {

@@ -2,7 +2,7 @@ import {HeadNode, NodeType} from "../nodes";
 import {Nullable} from "../Interfaces";
 import {AiteTextNode} from "./AiteTextNode";
 import {setProps} from "./helpers";
-import {AiteHTMLNode, AiteNodeOptions, AiteNodes} from "./interface";
+import {AiteHTMLNode, AiteNodes} from "./interface";
 import {__nodeMap} from "./EditorDom";
 import {isAiteNode} from "./utils";
 import {isTextNode} from "../EditorUtils";
@@ -16,24 +16,18 @@ class AiteNode {
 	AiteNodeType: NodeType;
 	ref: Nullable<HeadNode>;
 
-	constructor(ref: Nullable<HeadNode>, type: string, props: Nullable<{[K: string]: any}>, children: Nullable<Array<AiteNodes>>, options?: AiteNodeOptions) {
+	constructor(ref: Nullable<HeadNode>, type: string, props: Nullable<{[K: string]: any}>, children: Nullable<Array<AiteNodes>>) {
 		this.type = type;
 		this.props = props ?? {};
 		this.children = children ?? [];
 		this.childrenLength = this.children?.length ?? 0;
 		this._key = ref?.key;
-		this.AiteNodeType = options?.AiteNodeType ?? "element";
+		this.AiteNodeType = ref?.type ?? "element";
 		this.ref = ref;
 	}
 }
 
-function createAiteNode(
-	ref: HeadNode | null,
-	type: string,
-	props: Nullable<{[K: string]: any}>,
-	children?: Nullable<Array<AiteNode | string>>,
-	options?: AiteNodeOptions,
-): AiteNode {
+function createAiteNode(ref: HeadNode | null, type: string, props: Nullable<{[K: string]: any}>, children?: Nullable<Array<AiteNode | string>>): AiteNode {
 	if (children) {
 		const mappedChildren: Array<AiteNodes> = [];
 
@@ -43,9 +37,9 @@ function createAiteNode(
 			} else if (isAiteNode(node)) mappedChildren.push(node);
 		});
 
-		return new AiteNode(ref, type, props, mappedChildren, options);
+		return new AiteNode(ref, type, props, mappedChildren);
 	}
-	return new AiteNode(ref, type, props, children, options);
+	return new AiteNode(ref, type, props, children);
 }
 
 function createAiteDomNode(node: AiteNode): AiteHTMLNode {

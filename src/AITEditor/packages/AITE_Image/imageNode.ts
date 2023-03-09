@@ -191,7 +191,6 @@ class imageNode extends BaseNode {
 				style: this.imageStyle.s,
 			},
 			[],
-			{AiteNodeType: "element"},
 		);
 
 		let imageElements = [imageNode];
@@ -213,7 +212,6 @@ class imageNode extends BaseNode {
 					"data-aite_content_node": true,
 				},
 				captionBlockNodes,
-				{AiteNodeType: "element"},
 			);
 			imageElements = [...imageElements, captionWrapper];
 		}
@@ -242,7 +240,7 @@ class imageNode extends BaseNode {
 			};
 		}
 
-		return new AiteNode(this, "div", ImageWrapperAttr, imageElements, {AiteNodeType: "element"});
+		return new AiteNode(this, "div", ImageWrapperAttr, imageElements);
 	}
 }
 

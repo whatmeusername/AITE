@@ -7,7 +7,7 @@ import {setImageFloatDirection, toggleImageCaption} from "./packages/AITE_Image/
 import "./defaultinlineStyles.scss";
 import "./AITE_test.scss";
 
-import {createAITEContentNode, AiteHTMLNode, AiteHTMLTextNode, returnSingleDOMNode, createEmptyEditorState, getEditorState} from "./index";
+import {AiteHTMLNode, AiteHTMLTextNode, createEmptyEditorState, getEditorState} from "./index";
 import {NodeType} from "./nodes";
 
 type HTMLBlockStyle = {type: string; tag: string};
@@ -79,8 +79,7 @@ function AITEditor(): JSX.Element {
 	useEffect(() => {
 		if (test2 === false) {
 			test2 = true;
-			const EditorNodes = returnSingleDOMNode(createAITEContentNode(EditorState.contentNode)) as AiteHTMLNode[];
-			EditorRef.current.replaceChildren(...EditorNodes);
+			EditorState.render(EditorRef.current);
 
 			// EditorRef.current.addEventListener("mousedown", (e) => {
 			// 	if (getEditorEventStatus() === false) e.preventDefault();
@@ -141,8 +140,6 @@ function AITEditor(): JSX.Element {
 			// 		// }
 			// 	}
 			// });
-
-			EditorState.EditorDOMState.__setDOMElement(EditorRef.current as any as AiteHTMLNode);
 		}
 	}, []); //eslint-disable-line
 

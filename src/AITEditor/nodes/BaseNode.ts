@@ -1,6 +1,6 @@
 import {BlockNode} from "./BlockNode";
 import {TEXT_NODE_TYPE, BREAK_LINE_TYPE} from "../ConstVariables";
-import {AiteNode, AiteNodeOptions} from "../EditorDOM";
+import {AiteNode} from "../EditorDOM";
 
 import {HeadNode} from "./index";
 
@@ -32,7 +32,7 @@ abstract class BaseNode extends HeadNode {
 
 	abstract get length(): number;
 
-	abstract $getNodeState<T extends AiteNodeOptions>(options?: T): AiteNode;
+	abstract $getNodeState(): AiteNode;
 }
 
 export {BaseNode};

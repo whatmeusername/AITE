@@ -1,26 +1,9 @@
 import {KeyboardEventCommand} from "./editorCommandsTypes";
 
-import {getEditorState, BlockNode, AiteHTMLNode, HorizontalRuleNode, BaseBlockNode} from "./index";
+import {BlockNode, AiteHTMLNode, HorizontalRuleNode, BaseBlockNode} from "./index";
 import {BaseNode, BreakLine, HeadNode, LeafNode, TextNode, ContentNode} from "./nodes/index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
-
-function unpackNode(node: HTMLElement): Array<HTMLElement> {
-	return Array.from(node.children) as Array<HTMLElement>;
-}
-
-function getChildrenNodes(blockNode: HTMLElement): Array<HTMLElement> {
-	let childrens = unpackNode(blockNode);
-	for (let i = 0; i < childrens.length; i++) {
-		const node = childrens[i];
-		const dataset = node.dataset;
-		if (dataset.aiteNodeLeaf !== undefined) {
-			const children = Array.from(node.children) as Array<HTMLElement>;
-			childrens = [...childrens.slice(0, i), ...children, ...childrens.slice(i + 1)];
-		}
-	}
-	return childrens;
-}
 
 function isLeafNode(node: any): node is LeafNode {
 	return node instanceof LeafNode;
@@ -31,45 +14,6 @@ function isHeadNode(node: any): node is HeadNode {
 }
 function isBaseNode(node: any): node is BaseNode {
 	return node instanceof BaseNode;
-}
-
-function getIndexPathFromKeyPath(keyPath: Array<number>) {
-	const contentNode = getEditorState().contentNode;
-	const indexArray: Array<number> = [];
-
-	if (keyPath.length === 0) {
-		return [];
-	} else if (keyPath.length === 1) {
-		return [contentNode.children.findIndex((obj) => obj.key === keyPath[0])];
-	} else {
-		const index = contentNode.children.findIndex((obj) => obj.key === keyPath[0]);
-		let currentNode: any = contentNode.children[index];
-
-		indexArray.push(index);
-
-		for (let i = 1; i < keyPath.length; i++) {
-			if (currentNode instanceof BlockNode) {
-				const index = currentNode.children.findIndex((obj) => obj.key === keyPath[i]);
-				currentNode = currentNode.children[index];
-				indexArray.push(index);
-			} else if (currentNode instanceof ContentNode) {
-				const index = currentNode.children.findIndex((obj) => obj.key === keyPath[i]);
-				currentNode = currentNode.children[index];
-				indexArray.push(index);
-			} else if (currentNode && !(currentNode instanceof BlockNode) && !(currentNode instanceof ContentNode)) {
-				if (currentNode.ContentNode) {
-					const index = currentNode.ContentNode.BlockNodes.findIndex((obj: BlockNode) => obj.key === keyPath[i]);
-					currentNode = currentNode.ContentNode.BlockNodes[index];
-					indexArray.push(index);
-				} else if (currentNode.getChildren) {
-					const index = currentNode.getChildren().findIndex((obj: BlockNode) => obj.key === keyPath[i]);
-					currentNode = currentNode.getChildren()[index];
-					indexArray.push(index);
-				}
-			} else return undefined;
-		}
-		return indexArray;
-	}
 }
 
 function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent): boolean {
@@ -234,8 +178,6 @@ function DiffNodeState(previousState: {[K: string]: any}, nextState: {[K: string
 }
 
 export {
-	getIndexPathFromKeyPath,
-	getChildrenNodes,
 	getDecoratorNode,
 	keyCodeValidator,
 	DiffNodeState,

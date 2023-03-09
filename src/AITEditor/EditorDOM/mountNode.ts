@@ -1,9 +1,9 @@
 import {BaseBlockNode} from "../nodes/BlockNode";
 import {getEditorState} from "../EditorState";
 import {NodeInsertionDeriction} from "./interface";
-import {createDOMElement} from "./EditorDom";
 import {NodeStatus} from "../nodes/interface";
 import {BaseNode} from "../nodes";
+import {createDOMElement} from "./helpers";
 
 function mountNode(node: BaseNode | BaseBlockNode): void {
 	const prevSibling = node.previousSibling();

@@ -2,7 +2,7 @@ import {BaseNode} from "./index";
 import {findStyle, DiffNodeState} from "../EditorUtils";
 
 import {createAiteNode} from "../index";
-import type {AiteNode, AiteNodeOptions} from "../index";
+import type {AiteNode} from "../index";
 
 import {updateTextNodeContent} from "../index";
 import {NodeStatus, NodeUpdateOptions, TextNodeAttr} from "./interface";
@@ -61,12 +61,12 @@ class TextNode extends BaseNode {
 		return this._styles.map((style) => findStyle(style)?.class ?? "").join(" ");
 	}
 
-	$getNodeState(options?: AiteNodeOptions): AiteNode {
+	$getNodeState(): AiteNode {
 		const props = {
 			className: this.prepareStyles(),
 			"data-aite-node": true,
 		};
-		return createAiteNode(this, "span", props, [this.content], {...options});
+		return createAiteNode(this, "span", props, [this.content]);
 	}
 
 	getContent(): string {

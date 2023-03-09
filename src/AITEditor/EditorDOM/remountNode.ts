@@ -1,7 +1,6 @@
 import {HeadNode} from "../nodes";
 import {AiteHTML} from "./interface";
-import {createDOMElement, returnSingleDOMNode} from "./EditorDom";
-import {getEditorState} from "../index";
+import {createDOMElement, getEditorState, returnSingleDOMNode} from "../index";
 
 function remountNode(node: HeadNode, childOnly: boolean = true): HeadNode {
 	const nodeState = (node as any)?.$getNodeState();
