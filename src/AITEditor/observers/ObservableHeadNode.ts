@@ -1,7 +1,8 @@
+import {BlockNode} from "../BlockNode";
+import {ContentNode} from "../ContentNode";
 import type {HeadNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 import {Observe, Observable} from "./Observable/Observable";
-import {Handle} from "./Observable/Observer";
 import {get} from "./Observable/traps";
 
 function ObservableHeadNode(node: HeadNode | Observable<HeadNode>): Observable<HeadNode> {
@@ -10,8 +11,10 @@ function ObservableHeadNode(node: HeadNode | Observable<HeadNode>): Observable<H
 		get((target: HeadNode, key: keyof HeadNode) => {
 			if (key === "remove") {
 				return function () {
+					const res = (target as any).remove();
 					target.status = NodeStatus.REMOVED;
-					return target.remove();
+					((target as any).parent as BlockNode | ContentNode).children?.splice(target.getSelfIndex(), 1);
+					return res;
 				};
 			} else if (key === "mount" || key === "remount") {
 				if (target.status === NodeStatus.MOUNTED) {

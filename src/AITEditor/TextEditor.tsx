@@ -1,16 +1,14 @@
 import {useEffect, useRef} from "react";
 
 import defaultBlocks from "./defaultStyles/defaultBlocks";
-import {getEditorEventStatus} from "./index";
 
 import {setImageFloatDirection, toggleImageCaption} from "./packages/AITE_Image/imageUtils";
-
-import {getDecoratorNode} from "./EditorUtils";
 
 import "./defaultinlineStyles.scss";
 import "./AITE_test.scss";
 
-import {createAITEContentNode, AiteHTMLNode, AiteNodeTypes, AiteHTMLTextNode, returnSingleDOMNode, createEmptyEditorState, getEditorState} from "./index";
+import {createAITEContentNode, AiteHTMLNode, AiteHTMLTextNode, returnSingleDOMNode, createEmptyEditorState, getEditorState} from "./index";
+import {NodeType} from "./nodes";
 
 type HTMLBlockStyle = {type: string; tag: string};
 
@@ -23,7 +21,7 @@ function getElementBlockStyle(Tag: string): HTMLBlockStyle {
 interface DragData {
 	data: {
 		nodePath: Array<number>;
-		nodeType: AiteNodeTypes;
+		nodeType: NodeType;
 	};
 }
 
@@ -84,65 +82,65 @@ function AITEditor(): JSX.Element {
 			const EditorNodes = returnSingleDOMNode(createAITEContentNode(EditorState.contentNode)) as AiteHTMLNode[];
 			EditorRef.current.replaceChildren(...EditorNodes);
 
-			EditorRef.current.addEventListener("mousedown", (e) => {
-				if (getEditorEventStatus() === false) e.preventDefault();
-			});
+			// EditorRef.current.addEventListener("mousedown", (e) => {
+			// 	if (getEditorEventStatus() === false) e.preventDefault();
+			// });
 
-			EditorRef.current.addEventListener("dragstart", (event: any) => {
-				const EditorState = getEditorState();
+			// EditorRef.current.addEventListener("dragstart", (event: any) => {
+			// 	const EditorState = getEditorState();
 
-				const dataTransfer = event.dataTransfer;
-				if (!dataTransfer) {
-					return false;
-				}
+			// 	const dataTransfer = event.dataTransfer;
+			// 	if (!dataTransfer) {
+			// 		return false;
+			// 	}
 
-				const img = document.createElement("img");
-				img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+			// 	const img = document.createElement("img");
+			// 	img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-				dataTransfer.setDragImage(img, 0, 0);
-				dataTransfer.setData("text/plain", "");
+			// 	dataTransfer.setDragImage(img, 0, 0);
+			// 	dataTransfer.setData("text/plain", "");
 
-				const nodeData = EditorState.selectionState.getNodeData(getDecoratorNode(event.target));
-				dataTransfer.setData(
-					"application/aite-drag-event",
-					JSON.stringify({
-						data: {
-							nodeType: nodeData.elementType,
-						},
-					}),
-				);
-			});
+			// 	const nodeData = EditorState.selectionState.getNodeData(getDecoratorNode(event.target));
+			// 	dataTransfer.setData(
+			// 		"application/aite-drag-event",
+			// 		JSON.stringify({
+			// 			data: {
+			// 				nodeType: nodeData.elementType,
+			// 			},
+			// 		}),
+			// 	);
+			// });
 
-			EditorRef.current.addEventListener("drop", (event) => {
-				const dataTransfer = event.dataTransfer;
-				if (!dataTransfer) {
-					return false;
-				}
-				if (canDropElement(event as DropEvent)) {
-					// let dropRange = getDropCaretRange(event as DropEvent);
-					// if (dropRange !== null) {
-					// 	let dropData = getDragData(event)?.data;
-					// 	let EditorState = getEditorState();
-					// 	EditorState.selectionState.getCaretPosition(dropRange);
-					// 	let SelectionState = EditorState.selectionState;
-					// 	if (dropData !== undefined && dropData.nodePath !== null) {
-					// 		let DragElementData = getBlockNodeWithNode(new NodePath(dropData.nodePath), undefined);
-					// 		let CaretElementData = getBlockNodeWithNode(SelectionState.anchorPath, 'anchor');
-					// 		let DragElementBlock = DragElementData?.block.node;
-					// 		let CaretBlockNode = CaretElementData?.block.node;
-					// 		if (CaretBlockNode instanceof BlockNode && DragElementBlock instanceof BlockNode && DragElementData?.node) {
-					// 			let movedNodeKey = DragElementData?.node?.node.key ?? '';
-					// 			let isSameBlock = DragElementBlock.key === CaretBlockNode.key;
-					// 			DragElementBlock.removeNodeByKey(movedNodeKey);
-					// 			if (isSameBlock === false) {
-					// 				DragElementBlock.remount();
-					// 			}
-					// 			CaretBlockNode.remount();
-					// 		}
-					// 	}
-					// }
-				}
-			});
+			// EditorRef.current.addEventListener("drop", (event) => {
+			// 	const dataTransfer = event.dataTransfer;
+			// 	if (!dataTransfer) {
+			// 		return false;
+			// 	}
+			// 	if (canDropElement(event as DropEvent)) {
+			// 		// let dropRange = getDropCaretRange(event as DropEvent);
+			// 		// if (dropRange !== null) {
+			// 		// 	let dropData = getDragData(event)?.data;
+			// 		// 	let EditorState = getEditorState();
+			// 		// 	EditorState.selectionState.getCaretPosition(dropRange);
+			// 		// 	let SelectionState = EditorState.selectionState;
+			// 		// 	if (dropData !== undefined && dropData.nodePath !== null) {
+			// 		// 		let DragElementData = getBlockNodeWithNode(new NodePath(dropData.nodePath), undefined);
+			// 		// 		let CaretElementData = getBlockNodeWithNode(SelectionState.anchorPath, 'anchor');
+			// 		// 		let DragElementBlock = DragElementData?.block.node;
+			// 		// 		let CaretBlockNode = CaretElementData?.block.node;
+			// 		// 		if (CaretBlockNode instanceof BlockNode && DragElementBlock instanceof BlockNode && DragElementData?.node) {
+			// 		// 			let movedNodeKey = DragElementData?.node?.node.key ?? '';
+			// 		// 			let isSameBlock = DragElementBlock.key === CaretBlockNode.key;
+			// 		// 			DragElementBlock.removeNodeByKey(movedNodeKey);
+			// 		// 			if (isSameBlock === false) {
+			// 		// 				DragElementBlock.remount();
+			// 		// 			}
+			// 		// 			CaretBlockNode.remount();
+			// 		// 		}
+			// 		// 	}
+			// 		// }
+			// 	}
+			// });
 
 			EditorState.EditorDOMState.__setDOMElement(EditorRef.current as any as AiteHTMLNode);
 		}

@@ -1,8 +1,8 @@
-import {HeadNode} from "../nodes";
+import {HeadNode, NodeType} from "../nodes";
 import {Nullable} from "../Interfaces";
 import {AiteTextNode} from "./AiteTextNode";
 import {setProps} from "./helpers";
-import {AiteHTMLNode, AiteNodeOptions, AiteNodes, AiteNodeTypes} from "./interface";
+import {AiteHTMLNode, AiteNodeOptions, AiteNodes} from "./interface";
 import {__nodeMap} from "./EditorDom";
 import {isAiteNode} from "./utils";
 import {isTextNode} from "../EditorUtils";
@@ -13,7 +13,7 @@ class AiteNode {
 	children: Array<AiteNodes>;
 	childrenLength: number;
 	_key: Nullable<number>;
-	AiteNodeType: AiteNodeTypes;
+	AiteNodeType: NodeType;
 	ref: Nullable<HeadNode>;
 
 	constructor(ref: Nullable<HeadNode>, type: string, props: Nullable<{[K: string]: any}>, children: Nullable<Array<AiteNodes>>, options?: AiteNodeOptions) {
@@ -22,7 +22,7 @@ class AiteNode {
 		this.children = children ?? [];
 		this.childrenLength = this.children?.length ?? 0;
 		this._key = ref?.key;
-		this.AiteNodeType = options?.AiteNodeType ?? "unsigned";
+		this.AiteNodeType = options?.AiteNodeType ?? "element";
 		this.ref = ref;
 	}
 }

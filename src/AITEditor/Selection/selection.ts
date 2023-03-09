@@ -210,7 +210,7 @@ class SelectionState {
 		}
 
 		const getTextNode = (node: BlockNode): TextNode | null => {
-			for (let i = 0, l = node.getLength(); i < l; i++) {
+			for (let i = 0, l = node.length; i < l; i++) {
 				const node = anchorBlock.getChildrenByIndex(i);
 				if (isLeafNode(node)) {
 					return getTextNode(node);
@@ -231,13 +231,10 @@ class SelectionState {
 		}
 
 		if (nextNode) {
-			this.setNodeKey(nextNode.key);
-
 			this.anchorOffset = 1;
 			this.focusOffset = 1;
-
-			this.anchorType = nextNode.getType() !== "text" ? "element" : "text";
-			this.focusType = this.anchorType;
+			this.anchorNode = nextNode;
+			this.focusNode = nextNode;
 		}
 		return this;
 	}
@@ -271,7 +268,7 @@ class SelectionState {
 		}
 
 		const getTextNode = (node: BlockNode): TextNode | BreakLine | null => {
-			for (let i = node.getLength() - 1, l = node.getLength(); i < l; i++) {
+			for (let i = node.length - 1, l = node.length; i < l; i++) {
 				const node = anchorBlock.getChildrenByIndex(i);
 				if (isLeafNode(node)) {
 					return getTextNode(node);
@@ -292,13 +289,11 @@ class SelectionState {
 		}
 
 		if (nextNode) {
-			this.setNodeKey(nextNode.key);
-
 			this.anchorOffset = nextNode.length;
 			this.focusOffset = nextNode.length;
 
-			this.anchorType = nextNode.getType() !== "text" ? "element" : "text";
-			this.focusType = this.anchorType;
+			this.anchorNode = nextNode;
+			this.focusNode = nextNode;
 		}
 		return this;
 	}
@@ -333,10 +328,8 @@ class SelectionState {
 		if (focus === true) {
 			this.anchorOffset = this.focusOffset;
 			this.anchorNode = this.focusNode;
-			this.anchorType = this.focusType;
 		} else {
 			this.focusNode = this.anchorNode;
-			this.focusType = this.anchorType;
 			this.focusOffset = this.anchorOffset;
 		}
 		this.sameBlock = true;
@@ -377,17 +370,12 @@ class SelectionState {
 		}
 
 		if (node !== undefined) {
-			let ElementType = null;
 			if (node?.firstChild?.nodeName === BREAK_LINE_TAGNAME) {
-				ElementType = BREAK_LINE_TYPE;
 				node = node.firstChild as AiteHTMLNode;
-			} else {
-				ElementType = node.$AiteNodeType ? node.$AiteNodeType : this.getNodeType(node);
 			}
 
 			return {
 				node: node as AiteHTMLNode,
-				elementType: ElementType,
 				nodeKey: node.$AiteNodeKey,
 			};
 		} else throw new Error("Not returned return value during condition check");
@@ -424,8 +412,6 @@ class SelectionState {
 			this.anchorNode = anchorNode.$ref;
 
 			if (anchorNodeData) {
-				this.anchorType = anchorNodeData.elementType;
-
 				this.anchorOffset = isBackward ? range.endOffset : range.startOffset;
 			}
 
@@ -439,7 +425,6 @@ class SelectionState {
 
 				this.focusNode = focusNode.$ref;
 				this.focusIndex = focusNode.$ref?.getSelfIndex() ?? -1;
-				this.focusType = focusNodeData.elementType;
 
 				this.focusOffset = isBackward ? range.startOffset : range.endOffset;
 				this.sameBlock = this.isSameBlockNode(anchorNodeData.node, focusNodeData.node);
@@ -481,8 +466,6 @@ class SelectionState {
 
 			this.anchorNode = anchorNode.$ref;
 
-			this.anchorType = this.getNodeType(anchorNode);
-
 			let focusNode;
 			let focusType;
 
@@ -492,9 +475,7 @@ class SelectionState {
 			} else {
 				focusNode = EditorState?.EditorDOMState.getNodeFromMap(this.focusKey);
 				if (focusNode === undefined) return;
-
 				this.focusNode = focusNode.$ref;
-				this.focusType = this.getNodeType(focusNode);
 			}
 
 			if (this.anchorType === TEXT_NODE_TYPE) {

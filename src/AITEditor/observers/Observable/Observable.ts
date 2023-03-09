@@ -18,9 +18,9 @@ function isObservable(value: any): value is Observable<any> {
 
 class Observable<T extends object> {
 	instance: T;
-	observers: Observer<T>[];
-	eventObject: {[K in keyof ObserverProperties<T>]: Array<NonNullable<ObserverProperties<T>[K]>>};
-	ignoreFalsy: boolean;
+	private observers: Observer<T>[];
+	private eventObject: {[K in keyof ObserverProperties<T>]: Array<NonNullable<ObserverProperties<T>[K]>>};
+	private ignoreFalsy: boolean;
 	constructor(instance: T) {
 		this.observers = [];
 		this.eventObject = {};
@@ -91,6 +91,7 @@ class Observable<T extends object> {
 				const events = observerable.eventObject["set"] ?? [];
 				if (events.length > 0) {
 					let lastValue: boolean | undefined;
+
 					events.forEach((observer) => {
 						lastValue = observer.apply(observerable, [target, p, newValue, receiver, observerable]);
 					});
@@ -115,6 +116,7 @@ class Observable<T extends object> {
 	catch(...obserableOperators: (Observer<T> | CatchFunctionReturn<T, keyof ObserverProperties<T>>)[]): Observable<T> {
 		(obserableOperators ?? []).forEach((observer) => {
 			if (observer instanceof Observer) {
+				this.observers.push(observer);
 				const keys: Array<keyof ObserverProperties<T>> = Object.keys(observer.ObserverHandler) as Array<keyof ObserverProperties<T>>;
 				for (let i = 0; i < keys.length; i++) {
 					if (this.eventObject[keys[i]]) {

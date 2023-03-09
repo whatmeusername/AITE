@@ -1,23 +1,20 @@
-import {BREAK_LINE_TYPE, LINK_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
 import {isBlockNode, isContentNode} from "../EditorUtils";
 import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, BlockType, mountNode, NodeTypes, BaseBlockNode} from "../index";
 import {ObservableHeadNode} from "../observers";
-import {BaseNode, NodeKeyTypes} from "./index";
+import {BaseNode, NodeType} from "./index";
 import {NodeStatus} from "./interface";
 
 abstract class HeadNode {
 	status: NodeStatus;
 	key: number;
-	protected __type: NodeKeyTypes | "block";
+	type: NodeType;
 
-	constructor(type: NodeKeyTypes | "block") {
+	constructor(type: NodeType) {
 		this.status = NodeStatus.UNMOUNTED;
 		this.key = generateKey();
-		this.__type = type;
+		this.type = type;
 
-		// PATCH
-		const n = ObservableHeadNode(this).value();
-		return n;
+		return ObservableHeadNode(this).value();
 	}
 
 	public getContentNode(): {
@@ -41,31 +38,17 @@ abstract class HeadNode {
 
 	public getSelfIndex(): number {
 		if (!(this as any).parent) return -1;
-		return (this as any).parent?.children.indexOf(this as any);
+		return (this as any).parent?.children.findIndex((n: HeadNode) => n.key === this.key);
 	}
 
 	public getActualType(): string {
-		return this.__type;
+		return this.type;
 	}
 
-	// WILL DEPRECATE SOON
-	public getType(): string {
-		if (this.__type === TEXT_NODE_TYPE || this.__type === LINK_NODE_TYPE) {
-			return TEXT_NODE_TYPE;
-		} else if (this.__type === BREAK_LINE_TYPE) return BREAK_LINE_TYPE;
-		return "element";
-	}
-
-	public remove(): NodeStatus {
-		const DOMnode = getEditorState().EditorDOMState.getNodeFromMap(this.key);
-		if (DOMnode !== undefined && this.key) {
-			const parentRef = (DOMnode.$ref as BaseNode).parent;
-			if (parentRef && (isBlockNode(parentRef) || isContentNode(parentRef))) {
-				unmountNode(this);
-				parentRef.removeNodeByKey(this.key);
-			}
+	public remove(this: BaseNode | BaseBlockNode) {
+		if (this.status === NodeStatus.MOUNTED && this.parent !== undefined && (isBlockNode(this.parent) || isContentNode(this.parent))) {
+			unmountNode(this);
 		}
-		return this.status;
 	}
 
 	public mount(this: BaseNode | BaseBlockNode): NodeStatus {

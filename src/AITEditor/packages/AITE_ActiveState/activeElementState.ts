@@ -9,7 +9,7 @@ export default class ActiveElementState {
 	activeNodeType: string | undefined;
 
 	constructor() {
-		this.allowedAllements = ["image/gif"];
+		this.allowedAllements = ["element"];
 		this.isActive = false;
 		this.pathToActiveNode = null;
 		this.activeNodeKey = undefined;

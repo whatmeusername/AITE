@@ -15,7 +15,7 @@ class ContentNode extends HeadNode {
 	children: Array<BlockType>;
 
 	constructor(initData?: ContentNodeInit) {
-		super("contentNode");
+		super("content");
 
 		this.children = ObservableChildren(
 			this,
@@ -56,7 +56,7 @@ class ContentNode extends HeadNode {
 		if (index < 0) return;
 
 		index = direction === NodeInsertionDeriction.AFTER ? index + 1 : index;
-		this.insertBlockNodeBetween(node, index, index);
+		this.children = [...this.children.slice(0, index), node, ...this.children.slice(index)];
 	}
 
 	// TODO: MOVE TO TextNode
@@ -78,7 +78,7 @@ class ContentNode extends HeadNode {
 		if (index !== -1) this.children.splice(index, 1);
 	}
 
-	insertBlockNodeBetween(block: BlockType, start: number, end?: number): void {
+	insertNodeBetween(block: BlockType, start: number, end?: number): void {
 		if (end !== undefined) {
 			this.children = [...this.children.slice(0, start), block, ...this.children.slice(end ?? start)];
 		} else {
@@ -135,14 +135,15 @@ class ContentNode extends HeadNode {
 		joinNode = (isLeafNode(joinNode) ? joinNode.parent : joinNode) as BlockNode;
 
 		if (isBlockNode(connectingNode) && isBlockNode(joinNode)) {
-			if (joinNode.isBreakLine) {
+			if (connectingNode.isBreakLine) {
+				connectingNode.remove();
+			} else if (joinNode.isBreakLine) {
 				joinNode.remove();
-				return;
-			} else {
+			} else if (connectingNode.status === NodeStatus.MOUNTED && joinNode.status === NodeStatus.MOUNTED) {
 				const applyChilds = joinNode.children;
 				connectingNode.children.push(...applyChilds);
-				connectingNode.remount();
 				joinNode.remove();
+				connectingNode.remount();
 			}
 		}
 	}

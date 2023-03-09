@@ -4,8 +4,6 @@ import {BaseNode} from "../../nodes/index";
 
 //eslint-disable-next-line
 import BlockResizeElemets from "./imageResizeElements";
-import {validateImageURL} from "./imageUtils";
-
 import {BlockNode, ContentNode, AiteNode, isNodeActive} from "../../index";
 
 export type floatType = "right" | "left" | "none";
@@ -64,7 +62,7 @@ class imageNode extends BaseNode {
 	ContentNode: ContentNode | undefined;
 
 	constructor(imageNodeConf: imageConf) {
-		super("image/gif");
+		super("element");
 		this.imageConf = {
 			src: imageNodeConf.src,
 			alt: imageNodeConf.alt ?? "",
@@ -193,7 +191,7 @@ class imageNode extends BaseNode {
 				style: this.imageStyle.s,
 			},
 			[],
-			{AiteNodeType: "image/gif"},
+			{AiteNodeType: "element"},
 		);
 
 		let imageElements = [imageNode];
@@ -215,7 +213,7 @@ class imageNode extends BaseNode {
 					"data-aite_content_node": true,
 				},
 				captionBlockNodes,
-				{AiteNodeType: "image/gif"},
+				{AiteNodeType: "element"},
 			);
 			imageElements = [...imageElements, captionWrapper];
 		}
@@ -244,7 +242,7 @@ class imageNode extends BaseNode {
 			};
 		}
 
-		return new AiteNode(this, "div", ImageWrapperAttr, imageElements, {AiteNodeType: "image/gif"});
+		return new AiteNode(this, "div", ImageWrapperAttr, imageElements, {AiteNodeType: "element"});
 	}
 }
 

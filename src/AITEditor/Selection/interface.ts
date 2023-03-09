@@ -3,7 +3,6 @@ import {Nullable} from "../Interfaces";
 
 interface SelectedNodeData {
 	node: AiteHTMLNode;
-	elementType: string | null;
 	nodeKey: Nullable<number>;
 }
 
