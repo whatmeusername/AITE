@@ -1,15 +1,14 @@
-import defaultBlocks from "./defaultStyles/defaultBlocks";
-import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from "./ConstVariables";
-import {ClassVariables} from "./Interfaces";
+import defaultBlocks from "../defaultStyles/defaultBlocks";
+import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from "../ConstVariables";
+import {ClassVariables} from "../Interfaces";
 
-import {TextNode, createTextNode, HeadNode, NodeType, LeafNode, LinkNode, BreakLine} from "./nodes/index";
-import type {imageNode} from "./packages/AITE_Image/imageNode";
+import {TextNode, HeadNode, NodeType, LeafNode, LinkNode, BreakLine, ContentNode} from "./index";
+import type {imageNode} from "../packages/AITE_Image/imageNode";
 
-import {createAiteNode, ContentNode, NodeInsertionDeriction, filterNode} from "./index";
-import type {AiteNode, AiteNodeOptions} from "./index";
-import {isLeafNode, isDefined} from "./EditorUtils";
-import {ObservableChildren} from "./observers";
-import {ObservableChildrenProperty} from "./observers";
+import {isLeafNode, isDefined} from "../EditorUtils";
+import {ObservableChildren} from "../observers";
+import {ObservableChildrenProperty} from "../observers";
+import {AiteNode, AiteNodeOptions, createAiteNode, filterNode, NodeInsertionDeriction} from "../EditorDOM";
 
 type CoreNodes = TextNode | BreakLine;
 

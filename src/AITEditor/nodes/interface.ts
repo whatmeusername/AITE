@@ -1,3 +1,4 @@
+import {BlockType} from "./BlockNode";
 import type {DOMNodeData} from "./BaseNode";
 
 interface DOMTextAttr extends DOMNodeData {
@@ -6,7 +7,7 @@ interface DOMTextAttr extends DOMNodeData {
 
 interface TextNodeAttr {
 	plainText?: string;
-	styles?: Array<string>;
+	styles?: string[];
 	type?: "breakline" | "text";
 }
 
@@ -20,5 +21,9 @@ enum NodeStatus {
 	UNMOUNTED = 2,
 }
 
+interface ContentNodeInit {
+	BlockNodes?: BlockType[];
+}
+
 export {NodeStatus};
-export type {DOMTextAttr, TextNodeAttr, NodeUpdateOptions};
+export type {DOMTextAttr, TextNodeAttr, NodeUpdateOptions, ContentNodeInit};

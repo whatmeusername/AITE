@@ -1,5 +1,5 @@
-import type {ContentNode} from "../index";
 import {EditorState} from "../index";
+import {ContentNode} from "../nodes";
 
 import {AiteNode, AiteTextNode, createAiteNode, isAiteNode, setProps, createAiteDOMNode} from "./index";
 

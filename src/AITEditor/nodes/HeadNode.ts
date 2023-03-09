@@ -1,7 +1,7 @@
 import {isBlockNode, isContentNode} from "../EditorUtils";
-import {unmountNode, getEditorState, BlockNode, remountNode, ContentNode, generateKey, BlockType, mountNode, NodeTypes, BaseBlockNode} from "../index";
+import {unmountNode, getEditorState, BlockNode, remountNode, generateKey, BlockType, mountNode, NodeTypes, BaseBlockNode} from "../index";
 import {ObservableHeadNode} from "../observers";
-import {BaseNode, NodeType} from "./index";
+import {BaseNode, ContentNode, NodeType} from "./index";
 import {NodeStatus} from "./interface";
 
 abstract class HeadNode {

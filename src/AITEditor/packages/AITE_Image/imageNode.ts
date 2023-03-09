@@ -1,10 +1,10 @@
-import {TextNode, createTextNode, createLinkNode} from "../../nodes/index";
+import {TextNode, createTextNode, createLinkNode, ContentNode} from "../../nodes/index";
 
 import {BaseNode} from "../../nodes/index";
 
 //eslint-disable-next-line
 import BlockResizeElemets from "./imageResizeElements";
-import {BlockNode, ContentNode, AiteNode, isNodeActive} from "../../index";
+import {BlockNode, AiteNode, isNodeActive} from "../../index";
 
 export type floatType = "right" | "left" | "none";
 

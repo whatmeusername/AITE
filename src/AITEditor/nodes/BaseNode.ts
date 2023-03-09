@@ -1,4 +1,4 @@
-import {BlockNode} from "../BlockNode";
+import {BlockNode} from "./BlockNode";
 import {TEXT_NODE_TYPE, BREAK_LINE_TYPE} from "../ConstVariables";
 import {AiteNode, AiteNodeOptions} from "../EditorDOM";
 

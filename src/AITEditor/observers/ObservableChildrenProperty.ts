@@ -1,5 +1,5 @@
-import type {BlockNode} from "../BlockNode";
-import type {ContentNode} from "../ContentNode";
+import type {BlockNode} from "../nodes/BlockNode";
+import type {ContentNode} from "../nodes";
 import {filterNode, filterBlock} from "../EditorDOM";
 import {isBlockNode} from "../EditorUtils";
 import {Observe, Observable} from "./Observable/Observable";

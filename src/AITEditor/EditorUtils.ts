@@ -1,7 +1,7 @@
 import {KeyboardEventCommand} from "./editorCommandsTypes";
 
-import {getEditorState, BlockNode, AiteHTMLNode, ContentNode, HorizontalRuleNode, BaseBlockNode} from "./index";
-import {BaseNode, BreakLine, HeadNode, LeafNode, TextNode} from "./nodes/index";
+import {getEditorState, BlockNode, AiteHTMLNode, HorizontalRuleNode, BaseBlockNode} from "./index";
+import {BaseNode, BreakLine, HeadNode, LeafNode, TextNode, ContentNode} from "./nodes/index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
 

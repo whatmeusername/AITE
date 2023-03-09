@@ -1,5 +1,5 @@
-import {BlockNode} from "../BlockNode";
-import {ContentNode} from "../ContentNode";
+import {BlockNode} from "../nodes/BlockNode";
+import {ContentNode} from "../nodes";
 import type {HeadNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 import {Observe, Observable} from "./Observable/Observable";

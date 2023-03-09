@@ -1,6 +1,6 @@
-import {BlockNode, BlockType, BlockTypes, NodeTypes} from "../BlockNode";
-import {ContentNode} from "../ContentNode";
+import {BlockNode, BlockType, BlockTypes, NodeTypes} from "../nodes/BlockNode";
 import {isBaseBlockNode, isBaseNode, isLeafNode} from "../EditorUtils";
+import {ContentNode} from "../nodes";
 import {AiteNode} from "./AiteNode";
 import {AiteTextNode} from "./AiteTextNode";
 

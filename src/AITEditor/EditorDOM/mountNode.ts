@@ -1,4 +1,4 @@
-import {BaseBlockNode} from "../BlockNode";
+import {BaseBlockNode} from "../nodes/BlockNode";
 import {getEditorState} from "../EditorState";
 import {NodeInsertionDeriction} from "./interface";
 import {createDOMElement} from "./EditorDom";

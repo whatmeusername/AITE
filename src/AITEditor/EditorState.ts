@@ -3,8 +3,9 @@ import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 import {editorWarning} from "./EditorUtils";
 import {onKeyDownEvent, onKeyUpEvent} from "./EditorEvents";
 
-import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, ContentNode} from "./index";
+import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands} from "./index";
 import {ClassVariables} from "./Interfaces";
+import {ContentNode} from "./nodes";
 
 interface editorConf {
 	ContentNode: ContentNode;

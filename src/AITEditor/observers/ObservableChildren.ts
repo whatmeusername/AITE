@@ -1,5 +1,5 @@
-import type {BlockNode} from "../BlockNode";
-import type {ContentNode} from "../ContentNode";
+import type {BlockNode} from "../nodes/BlockNode";
+import type {ContentNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 
 function ObservableChildren<T extends BlockNode | ContentNode, U extends T["children"]>(parent: T, children: U): U {

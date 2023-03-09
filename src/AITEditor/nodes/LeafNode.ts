@@ -1,4 +1,4 @@
-import {BlockNode} from "../BlockNode";
+import {BlockNode} from "./BlockNode";
 
 abstract class LeafNode extends BlockNode {
 	constructor() {

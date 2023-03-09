@@ -1,18 +1,14 @@
-import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, HeadNode} from "./nodes/index";
+import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, HeadNode} from "../nodes/index";
 
 import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
-import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction} from "./index";
-import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "./EditorUtils";
-import {ObservableChildren, ObservableChildrenProperty} from "./observers";
-import {NodeStatus} from "./nodes/interface";
-
-interface ContentNodeInit {
-	BlockNodes?: Array<BlockType>;
-}
+import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction} from "../index";
+import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "../EditorUtils";
+import {ObservableChildren, ObservableChildrenProperty} from "../observers";
+import {ContentNodeInit, NodeStatus} from "../nodes/interface";
 
 class ContentNode extends HeadNode {
-	children: Array<BlockType>;
+	children: BlockType[];
 
 	constructor(initData?: ContentNodeInit) {
 		super("content");

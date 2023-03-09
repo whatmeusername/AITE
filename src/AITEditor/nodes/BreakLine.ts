@@ -1,4 +1,4 @@
-import {BlockNode, createBlockNode} from "../BlockNode";
+import {BlockNode, createBlockNode} from "./BlockNode";
 import {BREAK_LINE_TYPE} from "../ConstVariables";
 import {AiteNode, AiteNodeOptions, createAiteNode} from "../EditorDOM";
 import {ObservableBreakline} from "../observers/TextNodeObserver";
