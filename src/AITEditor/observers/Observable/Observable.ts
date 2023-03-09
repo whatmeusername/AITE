@@ -4,9 +4,11 @@ import {CatchFunctionReturn, isCatchFunction} from "../Observable/traps";
 
 const NACT_OBSERVABLE = "NACT_OBSERVERABLE";
 
-function Observe<T extends object>(observer: T) {
-	if (Object.keys(observer).includes(NACT_OBSERVABLE)) {
-		return Object.getOwnPropertyDescriptor(observer, NACT_OBSERVABLE)?.value;
+function Observe<T extends object>(observer: T): Observable<T> {
+	if ((observer as any)[NACT_OBSERVABLE] instanceof Observable) {
+		return (observer as any)[NACT_OBSERVABLE];
+	} else if (observer instanceof Observable) {
+		return observer;
 	} else return new Observable(observer);
 }
 

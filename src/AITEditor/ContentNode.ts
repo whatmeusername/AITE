@@ -6,7 +6,6 @@ import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction} from ".
 import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "./EditorUtils";
 import {ObservableChildren, ObservableChildrenProperty} from "./observers";
 import {NodeStatus} from "./nodes/interface";
-import {createImageNode} from "./packages/AITE_Image/imageNode";
 
 interface ContentNodeInit {
 	BlockNodes?: Array<BlockType>;
@@ -187,9 +186,8 @@ class ContentNode extends HeadNode {
 			}
 		};
 
-		if (selectionState.isCollapsed && isRemove && selectionState.isOffsetOnStart(blockNode)) {
-			handleOffsetStart();
-		} else if (selectionState.sameBlock && (selectionState.isCollapsed || isSelectionOnSameNode) && isTextNode(anchorNode)) {
+		if (selectionState.isCollapsed && isRemove && selectionState.isOffsetOnStart(blockNode)) handleOffsetStart();
+		else if (selectionState.sameBlock && (selectionState.isCollapsed || isSelectionOnSameNode) && isTextNode(anchorNode)) {
 			SliceFrom = isRemove && selectionState.isCollapsed ? selectionState.anchorOffset - 1 : selectionState.anchorOffset;
 
 			if (selectionState.isCollapsed) {
@@ -212,7 +210,7 @@ class ContentNode extends HeadNode {
 				selectionState.moveSelectionToPreviousSibling();
 			}
 		} else if (selectionState.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
-			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key, false).forEach((node) => node.remove());
+			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key).forEach((node) => node.remove());
 			anchorNode.sliceContent(SliceFrom, -1, key);
 			focusNode.sliceContent(SliceTo);
 
@@ -268,6 +266,7 @@ class ContentNode extends HeadNode {
 			const {contentNode, index} = anchorNode.getContentNode();
 			if (contentNode) {
 				contentNode.insertNode(newBreakLine, index, onStart ? NodeInsertionDeriction.BEFORE : NodeInsertionDeriction.AFTER);
+				if (!onStart) selectionState.setNodeKey(newBreakLine).offsetToZero();
 			}
 		}
 	}

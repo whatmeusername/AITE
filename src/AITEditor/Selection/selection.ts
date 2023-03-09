@@ -1,9 +1,10 @@
 import type {ClassVariables, Nullable} from "../Interfaces";
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
-import {isLeafNode, isBaseNode, isTextNode, isBlockNode} from "../EditorUtils";
+import {isLeafNode, isTextNode, isBlockNode, isHeadNode} from "../EditorUtils";
 import {getEditorState, AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData} from "../index";
 import {BaseNode, BreakLine, HeadNode, TextNode} from "../nodes/index";
 import {getSelection, isSelectionBackward} from "./utils";
+import {ObservableSelection} from "../observers";
 
 // TEMPERARY
 function isBreakLine(node: any): node is BreakLine {
@@ -47,6 +48,8 @@ class SelectionState {
 
 		this.anchorIndex = -1;
 		this.focusIndex = -1;
+
+		return ObservableSelection(this).value();
 	}
 
 	set anchorOffset(value: number) {
@@ -155,24 +158,24 @@ class SelectionState {
 		return this;
 	}
 
-	setAnchorKey(KeyOrNode: BaseNode): SelectionState;
+	setAnchorKey(KeyOrNode: HeadNode): SelectionState;
 	setAnchorKey(KeyOrNode: number | undefined): SelectionState;
-	setAnchorKey(KeyOrNode: number | BaseNode | undefined): SelectionState {
-		this.anchorKey = isBaseNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
+	setAnchorKey(KeyOrNode: number | HeadNode | undefined): SelectionState {
+		this.anchorKey = isHeadNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
 		return this;
 	}
 
-	setFocusKey(KeyOrNode: BaseNode): SelectionState;
+	setFocusKey(KeyOrNode: HeadNode): SelectionState;
 	setFocusKey(KeyOrNode: number | undefined): SelectionState;
-	setFocusKey(KeyOrNode: number | BaseNode | undefined): SelectionState {
-		this.focusKey = isBaseNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
+	setFocusKey(KeyOrNode: number | HeadNode | undefined): SelectionState {
+		this.focusKey = isHeadNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
 		return this;
 	}
 
-	setNodeKey(KeyOrNode: BaseNode): SelectionState;
+	setNodeKey(KeyOrNode: HeadNode): SelectionState;
 	setNodeKey(KeyOrNode: number | undefined): SelectionState;
-	setNodeKey(KeyOrNode: number | BaseNode | undefined): SelectionState {
-		const isNode = isBaseNode(KeyOrNode);
+	setNodeKey(KeyOrNode: number | HeadNode | undefined): SelectionState {
+		const isNode = isHeadNode(KeyOrNode);
 		this.focusKey = isNode ? KeyOrNode.key : KeyOrNode;
 		this.anchorKey = isNode ? KeyOrNode.key : KeyOrNode;
 		return this;
@@ -329,16 +332,12 @@ class SelectionState {
 		this.isCollapsed = true;
 		if (focus === true) {
 			this.anchorOffset = this.focusOffset;
-			this.anchorKey = this.focusKey;
-			this.anchorType = this.focusType;
 			this.anchorNode = this.focusNode;
-			this.anchorIndex = this.focusIndex;
+			this.anchorType = this.focusType;
 		} else {
+			this.focusNode = this.anchorNode;
 			this.focusType = this.anchorType;
 			this.focusOffset = this.anchorOffset;
-			this.focusKey = this.anchorKey;
-			this.focusNode = this.anchorNode;
-			this.focusIndex = this.anchorIndex;
 		}
 		this.sameBlock = true;
 		return this;
@@ -412,7 +411,6 @@ class SelectionState {
 		if (forceRange === undefined && (!selection.anchorNode || !selection.focusNode)) return;
 
 		const range = forceRange ?? selection.getRangeAt(0);
-		const anchorNode = range?.startContainer;
 
 		if (range !== undefined) {
 			if (!range?.startContainer || !range?.endContainer || !range?.startContainer.$isAiteNode || !range?.endContainer.$isAiteNode) return;
@@ -424,10 +422,8 @@ class SelectionState {
 			const anchorNode = anchorNodeData.node;
 
 			this.anchorNode = anchorNode.$ref;
-			this.anchorIndex = anchorNode.$ref?.getSelfIndex() ?? -1;
 
 			if (anchorNodeData) {
-				this.anchorKey = anchorNodeData.nodeKey;
 				this.anchorType = anchorNodeData.elementType;
 
 				this.anchorOffset = isBackward ? range.endOffset : range.startOffset;
@@ -443,12 +439,9 @@ class SelectionState {
 
 				this.focusNode = focusNode.$ref;
 				this.focusIndex = focusNode.$ref?.getSelfIndex() ?? -1;
-
-				this.focusKey = focusNodeData.nodeKey;
 				this.focusType = focusNodeData.elementType;
 
 				this.focusOffset = isBackward ? range.startOffset : range.endOffset;
-
 				this.sameBlock = this.isSameBlockNode(anchorNodeData.node, focusNodeData.node);
 
 				if (this.isSameContentNode(anchorNodeData.node, focusNodeData.node) === false) {
@@ -487,9 +480,8 @@ class SelectionState {
 			}
 
 			this.anchorNode = anchorNode.$ref;
-			this.anchorIndex = anchorNode.$ref?.getSelfIndex() ?? -1;
 
-			const anchorType = this.getNodeType(anchorNode);
+			this.anchorType = this.getNodeType(anchorNode);
 
 			let focusNode;
 			let focusType;
@@ -497,17 +489,15 @@ class SelectionState {
 			if (this.isCollapsed) {
 				focusNode = anchorNode;
 				this.focusNode = this.anchorNode;
-				this.focusIndex = this.anchorIndex;
 			} else {
 				focusNode = EditorState?.EditorDOMState.getNodeFromMap(this.focusKey);
 				if (focusNode === undefined) return;
 
 				this.focusNode = focusNode.$ref;
-				this.focusIndex = focusNode.$ref?.getSelfIndex() ?? -1;
-				focusType = this.getNodeType(focusNode);
+				this.focusType = this.getNodeType(focusNode);
 			}
 
-			if (anchorType === TEXT_NODE_TYPE) {
+			if (this.anchorType === TEXT_NODE_TYPE) {
 				const anchorNodeText = (anchorNode as Node).textContent;
 				if (anchorNodeText !== null) {
 					if (this.anchorOffset > anchorNodeText.length) {
@@ -515,7 +505,7 @@ class SelectionState {
 					}
 					range.setStart(anchorNode?.firstChild as Node, this.anchorOffset);
 				}
-			} else if (anchorType === ELEMENT_NODE_TYPE || anchorType === BREAK_LINE_TYPE) {
+			} else if (this.anchorType === ELEMENT_NODE_TYPE || this.anchorType === BREAK_LINE_TYPE) {
 				range.setStart(anchorNode as HTMLElement as Node, 0);
 			}
 

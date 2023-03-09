@@ -1,7 +1,7 @@
 import {KeyboardEventCommand} from "./editorCommandsTypes";
 
 import {getEditorState, BlockNode, AiteHTMLNode, ContentNode, HorizontalRuleNode, BaseBlockNode} from "./index";
-import {BaseNode, BreakLine, LeafNode, TextNode} from "./nodes/index";
+import {BaseNode, BreakLine, HeadNode, LeafNode, TextNode} from "./nodes/index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
 
@@ -26,6 +26,9 @@ function isLeafNode(node: any): node is LeafNode {
 	return node instanceof LeafNode;
 }
 
+function isHeadNode(node: any): node is HeadNode {
+	return node instanceof HeadNode;
+}
 function isBaseNode(node: any): node is BaseNode {
 	return node instanceof BaseNode;
 }
@@ -258,4 +261,5 @@ export {
 	isContentNode,
 	isBreakLine,
 	isBaseBlockNode,
+	isHeadNode,
 };
