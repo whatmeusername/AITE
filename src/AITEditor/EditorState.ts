@@ -1,7 +1,7 @@
 import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 
 import {editorWarning} from "./EditorUtils";
-import {onKeyDownEvent, onKeyUpEvent} from "./EditorEvents";
+import {onKeyDownEvent, onKeyUpEvent} from "./commands/EditorEvents";
 
 import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, AiteHTMLNode} from "./index";
 import {ClassVariables} from "./Interfaces";

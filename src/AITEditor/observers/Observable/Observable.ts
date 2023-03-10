@@ -1,6 +1,6 @@
 import {ObserverProperties} from "./interface";
 import {Observer} from "./Observer";
-import {CatchFunctionReturn, isCatchFunction} from "../Observable/traps";
+import {CatchFunctionReturn, isCatchFunction} from "./traps";
 
 const NACT_OBSERVABLE = "NACT_OBSERVERABLE";
 

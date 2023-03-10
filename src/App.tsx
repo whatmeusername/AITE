@@ -1,6 +1,5 @@
-import "./App.scss";
-
 import {AITEditor} from "./AITEditor/TextEditor";
+import "./App.scss";
 
 function App() {
 	return (

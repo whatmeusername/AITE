@@ -1,4 +1,4 @@
-import {KeyboardEventCommand} from "./editorCommandsTypes";
+import {KeyboardEventCommand} from "./commands/CommandTypes";
 
 import {BlockNode, AiteHTMLNode, HorizontalRuleNode, BaseBlockNode} from "./index";
 import {BaseNode, BreakLine, HeadNode, LeafNode, TextNode, ContentNode} from "./nodes/index";

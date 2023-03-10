@@ -1,5 +1,5 @@
-import {getEditorState} from "./index";
-import {isArrow, isBackwardRemoveWord, isBackwardRemoveLine, isForwardBackspace, isForwardRemoveLine, isForwardRemoveWord, isApple} from "./EditorUtils";
+import {getEditorState} from "../EditorState";
+import {isArrow, isBackwardRemoveWord, isBackwardRemoveLine, isForwardBackspace, isForwardRemoveLine, isForwardRemoveWord, isApple} from "../EditorUtils";
 
 function onBlurDecorator(callback?: (...args: any) => void): void {
 	const EditorState = getEditorState();

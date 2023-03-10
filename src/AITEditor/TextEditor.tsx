@@ -2,10 +2,10 @@ import {useEffect, useRef} from "react";
 
 import defaultBlocks from "./defaultStyles/defaultBlocks";
 
-import {setImageFloatDirection, toggleImageCaption} from "./packages/AITE_Image/imageUtils";
+import {toggleImageCaption} from "./packages/AITE_Image/imageUtils";
 
-import "./defaultinlineStyles.scss";
-import "./AITE_test.scss";
+import "./defaultStyles/defaultinlineStyles.scss";
+import "./defaultStyles/AITE_test.scss";
 
 import {AiteHTMLNode, AiteHTMLTextNode, createEmptyEditorState, getEditorState} from "./index";
 import {NodeType} from "./nodes";
@@ -145,44 +145,6 @@ function AITEditor(): JSX.Element {
 
 	return (
 		<div className="editor__workspace">
-			<div className="editor__test__toolbar">
-				<p
-					onMouseDown={(e) => e.preventDefault()}
-					onClick={(e) => {
-						e.preventDefault();
-						setImageFloatDirection("right");
-					}}
-				>
-					RIGHT
-				</p>
-				<p
-					onMouseDown={(e) => e.preventDefault()}
-					onClick={(e) => {
-						e.preventDefault();
-						setImageFloatDirection("left");
-					}}
-				>
-					LEFT
-				</p>
-				<p
-					onMouseDown={(e) => e.preventDefault()}
-					onClick={(e) => {
-						e.preventDefault();
-						setImageFloatDirection("none");
-					}}
-				>
-					DIR NULL
-				</p>
-				<p
-					onMouseDown={(e) => e.preventDefault()}
-					onClick={(e) => {
-						e.preventDefault();
-						toggleImageCaption();
-					}}
-				>
-					TOGGLE CAP
-				</p>
-			</div>
 			<div
 				ref={EditorRef}
 				style={{fontSize: "16px"}}

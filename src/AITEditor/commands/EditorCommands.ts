@@ -1,6 +1,6 @@
-import {EDITOR_PRIORITY} from "./ConstVariables";
-import {editorWarning, keyCodeValidator} from "./EditorUtils";
-import {getEditorState} from "./index";
+import {EDITOR_PRIORITY} from "../ConstVariables";
+import {getEditorState} from "../EditorState";
+import {editorWarning, keyCodeValidator} from "../EditorUtils";
 
 import type {
 	KeyboardEventCommand,
@@ -20,7 +20,7 @@ import type {
 	KEYUP_COMMAND,
 	DRAGSTART_COMMAND,
 	DRAGEND_COMMAND,
-} from "./editorCommandsTypes";
+} from "./CommandTypes";
 
 type commandPriority = keyof typeof EDITOR_PRIORITY;
 
