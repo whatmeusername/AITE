@@ -1,6 +1,5 @@
 import {BlockNode} from "./BlockNode";
 import {TEXT_NODE_TYPE, BREAK_LINE_TYPE} from "../ConstVariables";
-import {AiteNode} from "../EditorDOM";
 
 import {HeadNode} from "./index";
 
@@ -23,7 +22,7 @@ type DOMattr = {
 };
 
 abstract class BaseNode extends HeadNode {
-	parent: BlockNode | BaseNode | null;
+	public parent: BlockNode | BaseNode | null;
 
 	constructor(type: NodeType, initData?: {[K: string]: any}) {
 		super(type, initData);

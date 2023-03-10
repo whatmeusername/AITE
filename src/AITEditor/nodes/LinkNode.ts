@@ -15,7 +15,7 @@ class LinkNode extends LeafNode {
 		return 0;
 	}
 
-	public createSelfNode() {
+	public clone(): LinkNode {
 		return new LinkNode(this.__url);
 	}
 

@@ -2,93 +2,75 @@ import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, Hea
 
 import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
-import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction, createAiteNode, AiteNode, filterNode} from "../index";
+import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction, createAiteNode, AiteNode} from "../index";
 import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "../EditorUtils";
 import {ObservableChildren, ObservableChildrenProperty} from "../observers";
-import {ContentNodeInit, NodeStatus} from "../nodes/interface";
-import {createListNode, createListNodeItem} from "../expiremental/ListNode";
+import {NodeStatus} from "../nodes/interface";
 
 class ContentNode extends HeadNode {
 	children: BlockType[];
 
-	constructor(initData?: ContentNodeInit) {
-		super("content", initData);
+	constructor() {
+		super("content");
 
-		this.children = ObservableChildren(
-			this,
-			initData?.BlockNodes ?? [
-				createBlockNode({blockWrapper: "header-two"}).append(createTextNode("Тестовый текст для редактора")),
-				createHorizontalRule(),
-				createHorizontalRule(),
-				createHorizontalRule(),
-				createBreakLine(),
-				createBlockNode({blockWrapper: "standart"}).append(
-					createTextNode(
-						"Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.",
-						["ITALIC"],
-					),
-					createTextNode("some amazing text number 1 ", ["ITALIC", "BOLD"]),
-					createTextNode("some amazing text number 2", ["ITALIC", "UNDERLINE", "BOLD"]),
+		this.children = ObservableChildren(this, [
+			createBlockNode({blockWrapper: "header-two"}).append(createTextNode("Тестовый текст для редактора")),
+			createHorizontalRule(),
+			createHorizontalRule(),
+			createHorizontalRule(),
+			createBreakLine(),
+			createBlockNode({blockWrapper: "standart"}).append(
+				createTextNode(
+					"Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.",
+					["ITALIC"],
 				),
-				createBlockNode({blockWrapper: "header-one"}).append(
-					createLinkNode("https://yandex.ru").append(
-						createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
-						createTextNode("середина ", []),
-						createTextNode("конец", ["UNDERLINE"]),
-					),
-					createTextNode("Языки программирования", ["STRIKETHROUGH", "UNDERLINE"]),
-					createLinkNode("https://yandex.ru").append(
-						createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
-						createTextNode("середина ", []),
-						createTextNode("конец", ["UNDERLINE"]),
-					),
-					createTextNode(" текст после ссылки", ["ITALIC", "UNDERLINE"]),
+				createTextNode("some amazing text number 1 ", ["ITALIC", "BOLD"]),
+				createTextNode("some amazing text number 2", ["ITALIC", "UNDERLINE", "BOLD"]),
+			),
+			createBlockNode({blockWrapper: "header-one"}).append(
+				createLinkNode("https://yandex.ru").append(
+					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
+					createTextNode("середина ", []),
+					createTextNode("конец", ["UNDERLINE"]),
 				),
-			],
-		);
+				createTextNode("Языки программирования", ["STRIKETHROUGH", "UNDERLINE"]),
+				createLinkNode("https://yandex.ru").append(
+					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
+					createTextNode("середина ", []),
+					createTextNode("конец", ["UNDERLINE"]),
+				),
+				createTextNode(" текст после ссылки", ["ITALIC", "UNDERLINE"]),
+			),
+		]);
 		return ObservableChildrenProperty(this).value();
 	}
 
 	public clone(): ContentNode {
-		return new ContentNode(this.initData);
+		return new ContentNode();
 	}
 
 	get length(): number {
 		return this.children.length;
 	}
 
-	append(...nodes: any[]): this {
+	public append(...nodes: any[]): this {
 		this.children.push(...nodes);
 		return this;
 	}
 
-	insertNode(node: BlockType, index: number, direction: NodeInsertionDeriction): void {
+	public insertNode(node: BlockType, index: number, direction: NodeInsertionDeriction): void {
 		if (index < 0) return;
 
 		index = direction === NodeInsertionDeriction.AFTER ? index + 1 : index;
 		this.children = [...this.children.slice(0, index), node, ...this.children.slice(index)];
 	}
 
-	// TODO: MOVE TO TextNode
-
-	TextNodeSlice(char: TextNode, CharToInsert: string = "", start: number, end?: number): void {
-		if (start === -1) {
-			char.content = char.content + CharToInsert;
-		} else if (end !== undefined && end !== -1) {
-			char.content = char.content.slice(0, start) + CharToInsert + char.content.slice(end);
-		} else if (end === -1) {
-			char.content = char.content.slice(start) + CharToInsert;
-		} else {
-			char.content = char.content.slice(0, start) + CharToInsert;
-		}
-	}
-
-	removeNodeByKey(key: number) {
+	public removeNodeByKey(key: number) {
 		const index = this.children.findIndex((block) => block.key === key);
 		if (index !== -1) this.children.splice(index, 1);
 	}
 
-	insertNodeBetween(block: BlockType, start: number, end?: number): void {
+	public insertNodeBetween(block: BlockType, start: number, end?: number): void {
 		if (end !== undefined) {
 			this.children = [...this.children.slice(0, start), block, ...this.children.slice(end ?? start)];
 		} else {
@@ -96,7 +78,7 @@ class ContentNode extends HeadNode {
 		}
 	}
 
-	getTextNodeOffset(node: TextNode, offset: number): number {
+	public getTextNodeOffset(node: TextNode, offset: number): number {
 		const TextContentLength = node.length;
 		if (offset === -1) {
 			offset = TextContentLength;
@@ -113,7 +95,7 @@ class ContentNode extends HeadNode {
 	 * @returns void
 	 */
 
-	getBlockNodesBetween(startNode: BlockType, endNode: BlockType, returnAllIfNotFound?: boolean): BlockType[] {
+	public getBlockNodesBetween(startNode: BlockType, endNode: BlockType, returnAllIfNotFound?: boolean): BlockType[] {
 		let startFound = false;
 		const nodes: BlockType[] = [];
 
@@ -140,7 +122,7 @@ class ContentNode extends HeadNode {
 	}
 
 	// TODO: MOVE METHOD TO BLOCK NODE AS METHOD
-	MergeBlockNode(connectingNode: BlockNode, joinNode: BlockNode): void {
+	public MergeBlockNode(connectingNode: BlockNode, joinNode: BlockNode): void {
 		connectingNode = (isLeafNode(connectingNode) ? connectingNode.parent : connectingNode) as BlockNode;
 		joinNode = (isLeafNode(joinNode) ? joinNode.parent : joinNode) as BlockNode;
 
@@ -150,8 +132,7 @@ class ContentNode extends HeadNode {
 			} else if (joinNode.isBreakLine) {
 				joinNode.remove();
 			} else if (connectingNode.status === NodeStatus.MOUNTED && joinNode.status === NodeStatus.MOUNTED) {
-				const applyChilds = joinNode.children;
-				connectingNode.children.push(...applyChilds);
+				connectingNode.children.push(...joinNode.children);
 				joinNode.remove();
 				connectingNode.remount();
 			}
@@ -159,7 +140,7 @@ class ContentNode extends HeadNode {
 	}
 
 	// TODO: MOVE METHOD TO SELECTION AS METHOD
-	insertLetter(KeyBoardEvent?: KeyboardEvent) {
+	public insertLetter(KeyBoardEvent?: KeyboardEvent) {
 		const selectionState = getSelectionState();
 		const isSelectionOnSameNode = selectionState.isSameNode;
 		let SliceFrom = selectionState.anchorOffset;
@@ -198,7 +179,7 @@ class ContentNode extends HeadNode {
 		};
 
 		if (selectionState.isCollapsed && isRemove && selectionState.isOffsetOnStart(blockNode)) handleOffsetStart();
-		else if (selectionState.sameBlock && (selectionState.isCollapsed || isSelectionOnSameNode) && isTextNode(anchorNode)) {
+		else if (selectionState.sameBlock && (selectionState.isCollapsed || isSelectionOnSameNode) && isTextNode(selectionState.anchorNode)) {
 			SliceFrom = isRemove && selectionState.isCollapsed ? selectionState.anchorOffset - 1 : selectionState.anchorOffset;
 
 			if (selectionState.isCollapsed) {
@@ -211,17 +192,15 @@ class ContentNode extends HeadNode {
 				selectionState.toggleCollapse();
 				if (!isRemove) selectionState.moveSelectionForward();
 			}
+			selectionState.anchorNode.sliceContent(SliceFrom, SliceTo, key);
 
-			const isOffsetOnStart = selectionState.isOffsetOnStart(blockNode);
+			//TODO INSERT BREAKLINE WHEN BLOCK IS EMPTY
 
-			anchorNode.sliceContent(SliceFrom, SliceTo, key);
-
-			if (isBreakLine(anchorBlock)) selectionState.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
-			else if (anchorNode.status === NodeStatus.REMOVED && !isOffsetOnStart) {
+			if (selectionState.anchorNode?.status === NodeStatus.REMOVED && !selectionState.isOffsetOnStart(blockNode)) {
 				selectionState.moveSelectionToPreviousSibling();
 			}
 		} else if (selectionState.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
-			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key).forEach((node) => node.remove());
+			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key).original.forEach((node) => node.remove());
 			anchorNode.sliceContent(SliceFrom, -1, key);
 			focusNode.sliceContent(SliceTo);
 
@@ -234,12 +213,12 @@ class ContentNode extends HeadNode {
 		} else if (!selectionState.sameBlock) {
 			this.getBlockNodesBetween(anchorBlock, focusBlock).forEach((node) => node.remove());
 
-			anchorBlock.getNodesBetween(anchorNode.key).forEach((node) => node.remove());
+			anchorBlock.getNodesBetween(anchorNode.key).original.forEach((node) => node.remove());
 			if (isTextNode(anchorNode)) {
 				anchorNode.sliceContent(SliceFrom, -1, key);
 			} else anchorNode.remove();
 
-			focusBlock.getNodesBetween(-1, focusNode.key).forEach((node) => node.remove());
+			focusBlock.getNodesBetween(-1, focusNode.key).original.forEach((node) => node.remove());
 			if (isTextNode(focusNode)) {
 				focusNode.sliceContent(SliceTo);
 			} else focusNode.remove();
@@ -259,11 +238,11 @@ class ContentNode extends HeadNode {
 	 * @returns void
 	 */
 	// TODO: MOVE METHOD TO SELECTION AS METHOD
-	removeLetter(): void {
+	public removeLetter(): void {
 		this.insertLetter();
 	}
 
-	handleEnterTest(): void {
+	public handleEnterTest(): void {
 		const selectionState = getSelectionState();
 		const anchorNode = selectionState.anchorNode as TextNode;
 		const focusNode = selectionState.focusNode as TextNode;
@@ -281,10 +260,29 @@ class ContentNode extends HeadNode {
 					selectionState.setNode(newBreakLine.children[0]).offsetToZero();
 				}
 			}
+		} else if (selectionState.isCollapsed) {
+			const anchorParent = anchorNode.parent as BlockNode;
+			const focusParent = focusNode.parent as BlockNode;
+			const {contentNode, index, blockNode} = anchorNode.getContentNode();
+			if (blockNode) {
+				const nodesAfterPointer = anchorParent.getNodesBetween(anchorNode.key, -1, false, false, undefined, true);
+				nodesAfterPointer.original.forEach((node) => node.remove());
+				const newBlockNode = blockNode.clone();
+
+				if (isTextNode(anchorNode as any)) {
+					const textNodePart = anchorNode.sliceToTextNode(selectionState.anchorOffset, -1);
+					//TODO: MOVE TO GETNODESBETWEEN
+					newBlockNode.append(textNodePart);
+				} else anchorNode.remove();
+
+				newBlockNode.append(...nodesAfterPointer.modified);
+				contentNode?.insertNode(newBlockNode, index, NodeInsertionDeriction.AFTER);
+				selectionState.moveSelectionToNextSibling();
+			}
 		}
 	}
 
-	createNodeState(): AiteNode {
+	public createNodeState(): AiteNode {
 		return createAiteNode(
 			null,
 			"div",
@@ -294,8 +292,8 @@ class ContentNode extends HeadNode {
 	}
 }
 
-function createContentNode(initData?: ContentNodeInit) {
-	const node = new ContentNode(initData);
+function createContentNode() {
+	const node = new ContentNode();
 	return node;
 }
 

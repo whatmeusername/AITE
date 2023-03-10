@@ -1,11 +1,10 @@
-import {BaseNode, HeadNode} from "./index";
-import {findStyle, DiffNodeState} from "../EditorUtils";
+import {BaseNode} from "./index";
+import {findStyle} from "../EditorUtils";
 
 import {createAiteNode} from "../index";
 import type {AiteNode} from "../index";
 
-import {updateTextNodeContent} from "../index";
-import {NodeStatus, NodeUpdateOptions, TextNodeAttr} from "./interface";
+import {TextNodeAttr} from "./interface";
 import {ObservableTextNode} from "../observers/TextNodeObserver";
 
 function createTextNode(text: string = "", styles?: Array<string>) {
@@ -24,7 +23,7 @@ class TextNode extends BaseNode {
 		return ObservableTextNode(this).value();
 	}
 
-	get length(): number {
+	public get length(): number {
 		return this.content.length;
 	}
 
@@ -32,41 +31,11 @@ class TextNode extends BaseNode {
 		return new TextNode(this.initData);
 	}
 
-	// DEPRECATED REPLACED WITH PROXY
-	update(func: (textNode: TextNode) => void, options?: NodeUpdateOptions): number {
-		const copiedState = {...this};
-
-		func(this);
-
-		const removeIfEmpty = options?.removeIfEmpty ?? true;
-
-		if (this.content === "" && removeIfEmpty) {
-			this.remove();
-		} else if (this.status === NodeStatus.MOUNTED) {
-			const diffResult = DiffNodeState(copiedState, this);
-
-			if (Object.keys(diffResult).length > 0) {
-				if (diffResult.content) {
-					updateTextNodeContent(this);
-				}
-				if (diffResult.__styles) {
-					// TODO:
-				}
-			}
-		}
-
-		return this.status;
-	}
-
-	getStyles() {
-		return this._styles;
-	}
-
 	private prepareStyles() {
 		return this._styles.map((style) => findStyle(style)?.class ?? "").join(" ");
 	}
 
-	createNodeState(): AiteNode {
+	public createNodeState(): AiteNode {
 		const props = {
 			className: this.prepareStyles(),
 			"data-aite-node": true,
@@ -74,30 +43,25 @@ class TextNode extends BaseNode {
 		return createAiteNode(this, "span", props, [this.content]);
 	}
 
-	getContent(): string {
+	public getContent(): string {
 		return this.content;
 	}
 
-	//DEPRECATED
-	appendContent(string: string): void {
-		this.content += string;
-	}
-
-	getNodeStyle(): Array<string> {
+	public getNodeStyle(): Array<string> {
 		return this._styles;
 	}
 
-	getSlicedContent(startFromZero: boolean = true, start: number, end?: number): string {
+	public getSlicedContent(startFromZero: boolean = true, start: number, end?: number): string {
 		if (end) return this.content.slice(start, end);
 		else if (startFromZero === true) return this.content.slice(0, start);
 		else return this.content.slice(start);
 	}
 
-	createSelfNode(data: TextNodeAttr) {
+	public createSelfNode(data: TextNodeAttr) {
 		return new TextNode(data);
 	}
 
-	getData(asCreation?: boolean) {
+	public getData(asCreation?: boolean) {
 		if (asCreation) {
 			return {
 				...this,
@@ -108,7 +72,7 @@ class TextNode extends BaseNode {
 		return {...this};
 	}
 
-	sliceContent(start?: number, end?: number, CharToInsert?: string) {
+	public sliceContent(start?: number, end?: number, CharToInsert?: string) {
 		CharToInsert = CharToInsert ?? "";
 		if (start === undefined && end === undefined) {
 			this.content = this.content + CharToInsert;
@@ -119,6 +83,21 @@ class TextNode extends BaseNode {
 		} else {
 			this.content = this.content.slice(0, start) + CharToInsert;
 		}
+	}
+
+	public sliceToTextNode(start: number, end: number): TextNode {
+		let slicedContent = "";
+		if (end !== undefined && end !== -1) {
+			slicedContent = this.content.slice(start, end);
+			this.content = this.content.slice(0, start) + this.content.slice(end);
+		} else if (end === undefined) {
+			slicedContent = this.content.slice(0, start);
+			this.content = this.content.slice(start);
+		} else {
+			slicedContent = this.content.slice(start);
+			this.content = this.content.slice(0, start);
+		}
+		return this.createSelfNode({...this.initData, plainText: slicedContent});
 	}
 }
 

@@ -1,4 +1,5 @@
 import {updateTextNodeContent} from "../EditorDOM";
+import {getSelectionState} from "../EditorState";
 import {isBlockNode} from "../EditorUtils";
 import {BreakLine, createTextNode, TextNode} from "../nodes";
 import {set, Observable, Observe} from "./Observable";
@@ -21,10 +22,15 @@ function ObservableTextNode(node: TextNode | Observable<TextNode>): Observable<T
 
 function ObservableBreakline(node: BreakLine | Observable<BreakLine>): Observable<BreakLine> {
 	return (Observe(node) as Observable<BreakLine>).catch(
-		set((target: BreakLine, key: keyof BreakLine, value: string) => {
+		set((target: BreakLine, key: keyof BreakLine, value: string, observable: BreakLine) => {
 			if (key === "content" && value !== "") {
 				if (isBlockNode(target.parent)) {
-					target.parent.replace(target, createTextNode(value));
+					const selectionState = getSelectionState();
+					const nextNode = createTextNode(value);
+					if (selectionState.anchorKey === target.key) {
+						selectionState.setNode(nextNode);
+					}
+					target.parent.replace(observable, nextNode);
 				}
 			} else (target as any)[key] = value;
 			return true;

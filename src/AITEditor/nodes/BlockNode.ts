@@ -2,8 +2,7 @@ import defaultBlocks from "../defaultStyles/defaultBlocks";
 import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from "../ConstVariables";
 import {ClassVariables} from "../Interfaces";
 
-import {TextNode, HeadNode, NodeType, LeafNode, LinkNode, BreakLine, ContentNode, BaseNode} from "./index";
-import type {imageNode} from "../packages/AITE_Image/imageNode";
+import {TextNode, HeadNode, NodeType, LeafNode, BreakLine, ContentNode, BaseNode} from "./index";
 
 import {isLeafNode, isDefined} from "../EditorUtils";
 import {ObservableChildren} from "../observers";
@@ -14,15 +13,11 @@ type NodeTypes = BaseNode | LeafNode;
 type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
 type BlockType = BlockNode | HorizontalRuleNode;
 
-type BlockNodeVariables = ClassVariables<BlockNode>;
+type BlockNodeVariables = Omit<ClassVariables<BlockNode>, "children">;
 
 type allowedToInsert = "all" | "element" | "text";
 
 function createBlockNode(initData?: BlockNodeVariables) {
-	initData = initData ?? {};
-	if (initData === undefined || initData?.children?.length === 0) {
-		initData.children = [new BreakLine()];
-	}
 	return new BlockNode(initData);
 }
 
@@ -52,7 +47,7 @@ class BlockNode extends BaseBlockNode {
 
 		this.plainText = initData?.plainText ?? "";
 		this.blockWrapper = initData?.blockWrapper ?? "unstyled";
-		this.children = ObservableChildren(this, initData?.children ?? []);
+		this.children = ObservableChildren(this, []);
 		this.allowedToInsert = initData?.allowedToInsert ?? "all";
 
 		return ObservableChildrenProperty(this).value();
@@ -68,7 +63,7 @@ class BlockNode extends BaseBlockNode {
 
 	// ----- NEWEST
 
-	replace<T extends this["children"][0], U extends this["children"][0]>(node: T, nodeToInsert: U): this {
+	public replace<T extends this["children"][0], U extends this["children"][0]>(node: T, nodeToInsert: U): this {
 		if (node?.parent?.key !== this.key) return this;
 		const index = node.getSelfIndex();
 		node.remove();
@@ -76,24 +71,25 @@ class BlockNode extends BaseBlockNode {
 		return this;
 	}
 
-	append(...nodes: NodeTypes[]): this {
+	public append(...nodes: NodeTypes[]): this {
 		const filteredNodes = filterNode.apply(this, nodes);
 		this.children.push(...filteredNodes);
 		return this;
 	}
 
-	getNodesBetween(
+	public getNodesBetween(
 		startKey: number,
 		endKey?: number,
 		returnAllIfNotFound?: boolean,
 		validateLeaf?: boolean,
 		forcePoints?: {start: boolean; end: boolean},
-	): NodeTypes[] {
+		clone?: boolean,
+	): {original: NodeTypes[]; modified: NodeTypes[]} {
 		const points = forcePoints ?? {start: false, end: false};
-		const nodes: NodeTypes[] = [];
+		const nodes: {original: NodeTypes[]; modified: NodeTypes[]} = {original: [], modified: []};
 
 		const block = (!validateLeaf ? (isLeafNode(this) ? this.parent : this) : this) as BlockNode;
-		if (!block) return [];
+		if (!block) return nodes;
 
 		for (let i = 0; i < block.children.length; i++) {
 			const node = block.children[i];
@@ -101,10 +97,17 @@ class BlockNode extends BaseBlockNode {
 
 			if (endKey && isDecorator) {
 				const subNodes = node.getNodesBetween(points.start ? -1 : startKey, endKey, false, true, points);
-				if (subNodes.length !== node.children.length) {
-					nodes.push(...subNodes);
+				if (subNodes.original.length !== node.children.length) {
+					if (subNodes.modified.length > 0 && clone) {
+						nodes.modified.push(node.clone().append(...subNodes.modified.map((node) => node.clone() as any)));
+						nodes.original.push(...subNodes.modified);
+					} else {
+						nodes.modified.push(...subNodes.original);
+						nodes.original.push(...subNodes.modified);
+					}
 				} else {
-					nodes.push(node);
+					nodes.original.push(node);
+					nodes.modified.push(node);
 				}
 
 				if (points.end) break;
@@ -118,10 +121,13 @@ class BlockNode extends BaseBlockNode {
 				break;
 			}
 
-			if (!isDecorator && (points.start || startKey === -1)) nodes.push(node);
+			if (!isDecorator && (points.start || startKey === -1)) {
+				nodes.original.push(node);
+				nodes.modified.push(node);
+			}
 		}
 
-		return returnAllIfNotFound && nodes.length === 0 ? block.children : nodes;
+		return returnAllIfNotFound && nodes.original.length === 0 ? {original: block.children, modified: block.children} : nodes;
 	}
 
 	get isBreakLine(): boolean {
@@ -132,7 +138,7 @@ class BlockNode extends BaseBlockNode {
 
 	// ------ OLDEST
 
-	createNodeState(): AiteNode {
+	public createNodeState(): AiteNode {
 		const prepareBlockStyle = (): {n: string; c: null | string} => {
 			type data = {n: string; c: string};
 			const BlockNodeData: data = {n: "div", c: this.blockInlineStyles.join(" ")};
@@ -148,7 +154,7 @@ class BlockNode extends BaseBlockNode {
 		const className = "";
 		const props = {
 			className: className,
-			"data-aite-block-node": true,
+			"data-block-node": true,
 		};
 
 		const children: Array<AiteNode> = this.children.map((node) => node.createNodeState());
@@ -156,14 +162,14 @@ class BlockNode extends BaseBlockNode {
 		return createAiteNode(this, tag, props, children);
 	}
 
-	insertBreakLine() {
+	public insertBreakLine() {
 		if (this.children.length === 0) {
 			this.children = [new BreakLine()];
 			this.remount();
 		}
 	}
 
-	removeNodeByKey(key: number): void {
+	public removeNodeByKey(key: number): void {
 		const index = this.children.findIndex((node) => node.key === key);
 		if (index !== -1 && !this.isBreakLine) {
 			this.children.splice(index, 1);
@@ -175,7 +181,7 @@ class BlockNode extends BaseBlockNode {
 		}
 	}
 
-	insertNode(node: NodeTypes, index: number, direction: NodeInsertionDeriction = NodeInsertionDeriction.BEFORE): NodeTypes | null {
+	public insertNode(node: NodeTypes, index: number, direction: NodeInsertionDeriction = NodeInsertionDeriction.BEFORE): NodeTypes | null {
 		if (index < 0) return null;
 
 		index = direction === NodeInsertionDeriction.AFTER ? index + 1 : index;
@@ -183,7 +189,7 @@ class BlockNode extends BaseBlockNode {
 		return node;
 	}
 
-	splitChild(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes | Array<NodeTypes>): void {
+	public splitChild(startFromZero: boolean = true, start: number, end?: number, node?: NodeTypes | Array<NodeTypes>): void {
 		const StartSlice = startFromZero === true ? this.children.slice(0, start) : this.children.slice(start);
 		const EndSlice = isDefined(end) ? this.children.slice(end) : [];
 
@@ -198,9 +204,9 @@ class BlockNode extends BaseBlockNode {
 		}
 	}
 
-	getLastChild(depth: true): NodeTypes;
-	getLastChild(depth?: undefined): NodeTypes | LeafNode;
-	getLastChild(depth?: boolean): NodeTypes | LeafNode {
+	public getLastChild(depth: true): NodeTypes;
+	public getLastChild(depth?: undefined): NodeTypes | LeafNode;
+	public getLastChild(depth?: boolean): NodeTypes | LeafNode {
 		if (depth) {
 			const node = this.children[this.children.length - 1];
 			if (isLeafNode(node)) {
@@ -211,9 +217,9 @@ class BlockNode extends BaseBlockNode {
 		return this.children[this.children.length - 1];
 	}
 
-	getFirstChild(depth: true): NodeTypes;
-	getFirstChild(depth?: undefined): NodeTypes | LeafNode;
-	getFirstChild(depth?: boolean): NodeTypes | LeafNode {
+	public getFirstChild(depth: true): NodeTypes;
+	public getFirstChild(depth?: undefined): NodeTypes | LeafNode;
+	public getFirstChild(depth?: boolean): NodeTypes | LeafNode {
 		if (depth) {
 			const node = this.children[0];
 			if (isLeafNode(node)) {
@@ -224,11 +230,11 @@ class BlockNode extends BaseBlockNode {
 		return this.children[0];
 	}
 
-	getChildrenByIndex(index: number): NodeTypes {
+	public getChildrenByIndex(index: number): NodeTypes {
 		return this.children[index];
 	}
 
-	getNodeByKey(key: number): NodeTypes | undefined {
+	public getNodeByKey(key: number): NodeTypes | undefined {
 		return this.children.find((node) => node.key === key);
 	}
 }

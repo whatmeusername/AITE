@@ -237,8 +237,8 @@ class SelectionState {
 		}
 
 		if (nextNode) {
-			this.anchorOffset = 1;
-			this.focusOffset = 1;
+			this.anchorOffset = 0;
+			this.focusOffset = 0;
 			this.anchorNode = nextNode;
 			this.focusNode = nextNode;
 		}
@@ -449,7 +449,7 @@ class SelectionState {
 	}
 
 	isSameBlockNode(node: AiteHTMLNode, secondNode: AiteHTMLNode): boolean {
-		return node.closest("[data-aite-block-node]") === secondNode.closest("[data-aite-block-node]");
+		return node.closest("[data-block-node]") === secondNode.closest("[data-block-node]");
 	}
 
 	/**

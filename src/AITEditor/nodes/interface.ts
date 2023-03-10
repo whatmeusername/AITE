@@ -21,9 +21,5 @@ enum NodeStatus {
 	UNMOUNTED = 2,
 }
 
-interface ContentNodeInit {
-	BlockNodes?: BlockType[];
-}
-
 export {NodeStatus};
-export type {DOMTextAttr, TextNodeAttr, NodeUpdateOptions, ContentNodeInit};
+export type {DOMTextAttr, TextNodeAttr, NodeUpdateOptions};

@@ -1,10 +1,10 @@
-import {TextNode, createTextNode, createLinkNode, ContentNode, HeadNode} from "../../nodes/index";
+import {ContentNode, createContentNode} from "../../nodes/index";
 
 import {BaseNode} from "../../nodes/index";
 
 //eslint-disable-next-line
 import BlockResizeElemets from "./imageResizeElements";
-import {BlockNode, AiteNode, isNodeActive} from "../../index";
+import {AiteNode, isNodeActive} from "../../index";
 
 export type floatType = "right" | "left" | "none";
 
@@ -87,24 +87,7 @@ class imageNode extends BaseNode {
 			},
 		};
 
-		const chardata: Array<any> = [new TextNode({plainText: "Hello world from caption"})];
-
-		this.ContentNode = new ContentNode({
-			BlockNodes: [
-				new BlockNode({
-					blockInlineStyles: ["text_aligment_center"],
-					children: chardata,
-				}),
-				new BlockNode({
-					blockWrapper: "standart",
-					children: [createLinkNode("https://yandex.ru").append(createTextNode("Hello "), createTextNode("World "))],
-				}),
-				new BlockNode({
-					blockWrapper: "standart",
-					children: [new TextNode({plainText: "предмет листа 2"})],
-				}),
-			],
-		});
+		this.ContentNode = createContentNode();
 	}
 
 	get Captition(): ContentNode | undefined {
@@ -122,14 +105,6 @@ class imageNode extends BaseNode {
 	toggleCaptition(): void {
 		if (this.ContentNode === undefined) {
 			this.imageConf.captionEnabled = true;
-			this.ContentNode = new ContentNode({
-				BlockNodes: [
-					new BlockNode({
-						allowedToInsert: "text",
-						children: [new TextNode()],
-					}),
-				],
-			});
 		} else this.imageConf.captionEnabled = !this.imageConf.captionEnabled;
 	}
 

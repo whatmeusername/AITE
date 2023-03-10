@@ -5,10 +5,10 @@ import {BaseNode, ContentNode, NodeType} from "./index";
 import {NodeStatus} from "./interface";
 
 abstract class HeadNode {
-	status: NodeStatus;
-	key: number;
-	type: NodeType;
-	initData?: {[K: string]: any};
+	public status: NodeStatus;
+	public key: number;
+	public type: NodeType;
+	public initData?: {[K: string]: any};
 
 	constructor(type: NodeType, initData?: {[K: string]: any}) {
 		this.status = NodeStatus.UNMOUNTED;
@@ -19,7 +19,7 @@ abstract class HeadNode {
 		return ObservableHeadNode(this).value();
 	}
 
-	abstract get length(): number;
+	public abstract get length(): number;
 
 	public getContentNode(): {
 		contentNode: ContentNode | undefined;
@@ -58,6 +58,8 @@ abstract class HeadNode {
 	public remove(this: BaseNode | BaseBlockNode) {
 		if (this.status === NodeStatus.MOUNTED && this.parent !== undefined && (isBlockNode(this.parent) || isContentNode(this.parent))) {
 			unmountNode(this);
+			this.parent.children?.splice(this.getSelfIndex(), 1);
+			this.status = NodeStatus.REMOVED;
 		}
 	}
 
@@ -97,8 +99,8 @@ abstract class HeadNode {
 		return null;
 	}
 
-	abstract clone(): HeadNode;
-	abstract createNodeState(): AiteNode;
+	public abstract clone(): HeadNode;
+	public abstract createNodeState(): AiteNode;
 }
 
 export {HeadNode};
