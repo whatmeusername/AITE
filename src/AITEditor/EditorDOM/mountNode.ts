@@ -14,9 +14,9 @@ function mountNode(node: BaseNode | BaseBlockNode): void {
 		const siblingDOMElement = getEditorState().EditorDOMState.getNodeFromMap(siblingNode.key);
 		if (siblingDOMElement && node.status === NodeStatus.MOUNTED) {
 			if (insertDirection === NodeInsertionDeriction.AFTER) {
-				siblingDOMElement.parentNode?.insertBefore(createDOMElement(node.$getNodeState()), siblingDOMElement.nextSibling);
+				siblingDOMElement.parentNode?.insertBefore(createDOMElement(node.createNodeState()), siblingDOMElement.nextSibling);
 			} else if (insertDirection === NodeInsertionDeriction.BEFORE) {
-				siblingDOMElement.parentNode?.insertBefore(createDOMElement(node.$getNodeState()), siblingDOMElement);
+				siblingDOMElement.parentNode?.insertBefore(createDOMElement(node.createNodeState()), siblingDOMElement);
 			}
 		}
 	} else {

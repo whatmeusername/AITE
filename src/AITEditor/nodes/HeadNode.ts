@@ -1,5 +1,5 @@
 import {isBlockNode, isContentNode} from "../EditorUtils";
-import {unmountNode, getEditorState, BlockNode, remountNode, generateKey, BlockType, mountNode, NodeTypes, BaseBlockNode} from "../index";
+import {unmountNode, getEditorState, BlockNode, remountNode, generateKey, BlockType, mountNode, NodeTypes, BaseBlockNode, AiteNode} from "../index";
 import {ObservableHeadNode} from "../observers";
 import {BaseNode, ContentNode, NodeType} from "./index";
 import {NodeStatus} from "./interface";
@@ -8,32 +8,42 @@ abstract class HeadNode {
 	status: NodeStatus;
 	key: number;
 	type: NodeType;
+	initData?: {[K: string]: any};
 
-	constructor(type: NodeType) {
+	constructor(type: NodeType, initData?: {[K: string]: any}) {
 		this.status = NodeStatus.UNMOUNTED;
 		this.key = generateKey();
 		this.type = type;
+		this.initData = initData;
 
 		return ObservableHeadNode(this).value();
 	}
+
+	abstract get length(): number;
 
 	public getContentNode(): {
 		contentNode: ContentNode | undefined;
 		blockNode: BlockNode | undefined;
 		index: number;
+		parentBlockNode: BlockNode | undefined;
 	} {
 		let c: NodeTypes | BlockType | BaseNode = this as any;
+		let parentBlockNode;
 		while (c.parent) {
+			if (isBlockNode(c) && !parentBlockNode) {
+				parentBlockNode = c;
+			}
 			if (isContentNode(c.parent)) {
 				return {
 					contentNode: c.parent,
 					blockNode: c as BlockNode,
 					index: c.parent.children.findIndex((n) => n.key === c.key),
+					parentBlockNode: parentBlockNode,
 				};
 			}
 			c = c.parent;
 		}
-		return {contentNode: undefined, blockNode: undefined, index: -1};
+		return {contentNode: undefined, blockNode: undefined, index: -1, parentBlockNode: undefined};
 	}
 
 	public getSelfIndex(): number {
@@ -58,7 +68,7 @@ abstract class HeadNode {
 
 	public remount(): NodeStatus {
 		const DOMnode = getEditorState().EditorDOMState.getNodeFromMap(this.key);
-		// HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE $getNodeState
+		// HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE createNodeState
 		if (DOMnode !== undefined) {
 			// if((this as any).collectSameNodes){
 			//     (this as any).collectSameNodes();
@@ -86,6 +96,9 @@ abstract class HeadNode {
 		}
 		return null;
 	}
+
+	abstract clone(): HeadNode;
+	abstract createNodeState(): AiteNode;
 }
 
 export {HeadNode};

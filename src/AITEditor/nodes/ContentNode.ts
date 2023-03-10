@@ -2,16 +2,17 @@ import {TextNode, createLinkNode, createTextNode, BaseNode, createBreakLine, Hea
 
 import {createBlockNode, createHorizontalRule} from "./BlockNode";
 
-import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction, createAiteNode, AiteNode} from "../index";
+import {BlockType, BlockNode, getSelectionState, NodeInsertionDeriction, createAiteNode, AiteNode, filterNode} from "../index";
 import {isBlockNode, isBreakLine, isHorizontalRuleNode, isLeafNode, isTextNode} from "../EditorUtils";
 import {ObservableChildren, ObservableChildrenProperty} from "../observers";
 import {ContentNodeInit, NodeStatus} from "../nodes/interface";
+import {createListNode, createListNodeItem} from "../expiremental/ListNode";
 
 class ContentNode extends HeadNode {
 	children: BlockType[];
 
 	constructor(initData?: ContentNodeInit) {
-		super("content");
+		super("content", initData);
 
 		this.children = ObservableChildren(
 			this,
@@ -46,6 +47,19 @@ class ContentNode extends HeadNode {
 			],
 		);
 		return ObservableChildrenProperty(this).value();
+	}
+
+	public clone(): ContentNode {
+		return new ContentNode(this.initData);
+	}
+
+	get length(): number {
+		return this.children.length;
+	}
+
+	append(...nodes: any[]): this {
+		this.children.push(...nodes);
+		return this;
 	}
 
 	insertNode(node: BlockType, index: number, direction: NodeInsertionDeriction): void {
@@ -251,8 +265,8 @@ class ContentNode extends HeadNode {
 
 	handleEnterTest(): void {
 		const selectionState = getSelectionState();
-		const anchorNode = selectionState.anchorNode;
-		const focusNode = selectionState.focusNode;
+		const anchorNode = selectionState.anchorNode as TextNode;
+		const focusNode = selectionState.focusNode as TextNode;
 		if (!anchorNode) return;
 
 		const onStart = selectionState.isOffsetOnStart();
@@ -263,17 +277,19 @@ class ContentNode extends HeadNode {
 			const {contentNode, index} = anchorNode.getContentNode();
 			if (contentNode) {
 				contentNode.insertNode(newBreakLine, index, onStart ? NodeInsertionDeriction.BEFORE : NodeInsertionDeriction.AFTER);
-				if (!onStart) selectionState.setNodeKey(newBreakLine).offsetToZero();
+				if (!onStart) {
+					selectionState.setNode(newBreakLine.children[0]).offsetToZero();
+				}
 			}
 		}
 	}
 
-	$getNodeState(): AiteNode {
+	createNodeState(): AiteNode {
 		return createAiteNode(
 			null,
 			"div",
 			{},
-			this.children.map((node) => node.$getNodeState()),
+			this.children.map((node) => node.createNodeState()),
 		);
 	}
 }

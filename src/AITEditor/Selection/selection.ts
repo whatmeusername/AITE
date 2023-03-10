@@ -142,7 +142,7 @@ class SelectionState {
 		if (!this.isCollapsed || (this.anchorOffset < (this.anchorNode as BaseNode).length && this.focusOffset < (this.focusNode as BaseNode).length)) return false;
 		else if (this.anchorType === "breakline") return true;
 
-		const firstNode = forceBlock ? forceBlock.getLastChild(true) : this.anchorNode?.getContentNode().blockNode?.getLastChild(true);
+		const firstNode = forceBlock ? forceBlock.getLastChild(true) : this.anchorNode?.getContentNode().parentBlockNode?.getLastChild(true);
 		if (!firstNode) return false;
 
 		return this.anchorNode?.key === firstNode.key;
@@ -169,6 +169,12 @@ class SelectionState {
 	setFocusKey(KeyOrNode: number | undefined): SelectionState;
 	setFocusKey(KeyOrNode: number | HeadNode | undefined): SelectionState {
 		this.focusKey = isHeadNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
+		return this;
+	}
+
+	setNode(node: HeadNode): SelectionState {
+		this.anchorNode = node;
+		this.focusNode = node;
 		return this;
 	}
 
@@ -480,7 +486,7 @@ class SelectionState {
 
 			if (this.anchorType === TEXT_NODE_TYPE) {
 				const anchorNodeText = (anchorNode as Node).textContent;
-				if (anchorNodeText !== null) {
+				if (anchorNodeText) {
 					if (this.anchorOffset > anchorNodeText.length) {
 						this.anchorOffset = anchorNodeText.length;
 					}

@@ -2,7 +2,7 @@ import defaultBlocks from "../defaultStyles/defaultBlocks";
 import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from "../ConstVariables";
 import {ClassVariables} from "../Interfaces";
 
-import {TextNode, HeadNode, NodeType, LeafNode, LinkNode, BreakLine, ContentNode} from "./index";
+import {TextNode, HeadNode, NodeType, LeafNode, LinkNode, BreakLine, ContentNode, BaseNode} from "./index";
 import type {imageNode} from "../packages/AITE_Image/imageNode";
 
 import {isLeafNode, isDefined} from "../EditorUtils";
@@ -10,9 +10,7 @@ import {ObservableChildren} from "../observers";
 import {ObservableChildrenProperty} from "../observers";
 import {AiteNode, createAiteNode, filterNode, NodeInsertionDeriction} from "../EditorDOM";
 
-type CoreNodes = TextNode | BreakLine;
-
-type NodeTypes = CoreNodes | imageNode | LinkNode;
+type NodeTypes = BaseNode | LeafNode;
 type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
 type BlockType = BlockNode | HorizontalRuleNode;
 
@@ -33,14 +31,12 @@ abstract class BaseBlockNode extends HeadNode {
 	blockInlineStyles: Array<string>;
 	parent: ContentNode | BlockNode | null;
 
-	constructor(blockType?: BlockTypes, blockInlineStyles?: Array<string>, type?: NodeType) {
-		super(type ?? "block");
+	constructor(blockType?: BlockTypes, blockInlineStyles?: Array<string>, type?: NodeType, initData?: {[K: string]: any}) {
+		super(type ?? "block", initData);
 		this.blockType = blockType ?? STANDART_BLOCK_TYPE;
 		this.blockInlineStyles = blockInlineStyles ?? [];
 		this.parent = null;
 	}
-
-	abstract $getNodeState(): AiteNode;
 }
 
 class BlockNode extends BaseBlockNode {
@@ -52,7 +48,7 @@ class BlockNode extends BaseBlockNode {
 	allowedToInsert: allowedToInsert;
 
 	constructor(initData?: BlockNodeVariables, type?: NodeType | null) {
-		super(initData?.blockType, initData?.blockInlineStyles, type ?? "block");
+		super(initData?.blockType, initData?.blockInlineStyles, type ?? "block", initData);
 
 		this.plainText = initData?.plainText ?? "";
 		this.blockWrapper = initData?.blockWrapper ?? "unstyled";
@@ -64,6 +60,10 @@ class BlockNode extends BaseBlockNode {
 
 	get length(): number {
 		return this.children.length;
+	}
+
+	public clone(): BlockNode {
+		return new BlockNode(this.initData);
 	}
 
 	// ----- NEWEST
@@ -132,7 +132,7 @@ class BlockNode extends BaseBlockNode {
 
 	// ------ OLDEST
 
-	$getNodeState(): AiteNode {
+	createNodeState(): AiteNode {
 		const prepareBlockStyle = (): {n: string; c: null | string} => {
 			type data = {n: string; c: string};
 			const BlockNodeData: data = {n: "div", c: this.blockInlineStyles.join(" ")};
@@ -151,7 +151,7 @@ class BlockNode extends BaseBlockNode {
 			"data-aite-block-node": true,
 		};
 
-		const children: Array<AiteNode> = this.children.map((node) => node.$getNodeState());
+		const children: Array<AiteNode> = this.children.map((node) => node.createNodeState());
 
 		return createAiteNode(this, tag, props, children);
 	}
@@ -198,7 +198,7 @@ class BlockNode extends BaseBlockNode {
 		}
 	}
 
-	getLastChild(depth: true): CoreNodes;
+	getLastChild(depth: true): NodeTypes;
 	getLastChild(depth?: undefined): NodeTypes | LeafNode;
 	getLastChild(depth?: boolean): NodeTypes | LeafNode {
 		if (depth) {
@@ -211,7 +211,7 @@ class BlockNode extends BaseBlockNode {
 		return this.children[this.children.length - 1];
 	}
 
-	getFirstChild(depth: true): CoreNodes;
+	getFirstChild(depth: true): NodeTypes;
 	getFirstChild(depth?: undefined): NodeTypes | LeafNode;
 	getFirstChild(depth?: boolean): NodeTypes | LeafNode {
 		if (depth) {
@@ -238,13 +238,21 @@ class HorizontalRuleNode extends BaseBlockNode {
 		super(HORIZONTAL_RULE_BLOCK_TYPE, []);
 	}
 
-	$getNodeState(): AiteNode {
+	public createNodeState(): AiteNode {
 		const className = "AITE_editor_horizontal-rule";
 		const props = {
 			class: className,
 		};
 
 		return createAiteNode(this, "div", {contenteditable: false}, [createAiteNode(null, "hr", props, [])]);
+	}
+
+	public get length(): number {
+		return -1;
+	}
+
+	public clone(): HorizontalRuleNode {
+		return new HorizontalRuleNode();
 	}
 }
 

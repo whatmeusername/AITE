@@ -32,9 +32,7 @@ function filterNode(this: BlockNode, ...nodes: NodeTypes[]): NodeTypes[] {
 	const res: NodeTypes[] = [];
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i];
-		if (isBaseNode(node) || isLeafNode(node)) {
-			res.push(node);
-		}
+		res.push(node);
 	}
 	return res;
 }
@@ -44,7 +42,7 @@ function filterBlock(this: ContentNode, ...nodes: BlockTypes[]): BlockType[] {
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i];
 		if (isBaseBlockNode(node)) {
-			res.push(node);
+			res.push(node as unknown as BlockType);
 		}
 	}
 	return res;

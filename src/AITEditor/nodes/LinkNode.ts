@@ -31,7 +31,7 @@ class LinkNode extends LeafNode {
 		return this.children.findIndex((node) => node.key === key);
 	}
 
-	public $getNodeState(): AiteNode {
+	public createNodeState(): AiteNode {
 		const className = "AITE_link_node";
 		const props = {
 			href: this.__url,
@@ -41,7 +41,7 @@ class LinkNode extends LeafNode {
 
 		const children: Array<AiteNode> = [];
 		this.children.forEach((node) => {
-			const $node = node.$getNodeState();
+			const $node = node.createNodeState();
 			if ($node) children.push($node);
 		});
 

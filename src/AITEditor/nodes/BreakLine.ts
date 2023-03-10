@@ -11,7 +11,7 @@ class BreakLine extends TextNode {
 		return ObservableBreakline(this).value();
 	}
 
-	public $getNodeState(): AiteNode {
+	public createNodeState(): AiteNode {
 		const props = {
 			className: "AITE_breakline",
 		};
@@ -23,7 +23,7 @@ class BreakLine extends TextNode {
 		return 0;
 	}
 
-	public createSelfNode() {
+	public clone(): BreakLine {
 		return new BreakLine();
 	}
 }

@@ -158,11 +158,11 @@ class EditorState {
 
 	render(parent?: HTMLElement): HTMLElement {
 		if (!parent) {
-			const node = returnSingleDOMNode(this.contentNode.$getNodeState());
+			const node = returnSingleDOMNode(this.contentNode.createNodeState());
 			this.EditorDOMState.setDOMElement(node);
 			return node;
 		} else {
-			parent.replaceChildren(...returnSingleDOMNode(this.contentNode.$getNodeState().children));
+			parent.replaceChildren(...returnSingleDOMNode(this.contentNode.createNodeState().children));
 			this.EditorDOMState.setDOMElement(parent as AiteHTMLNode);
 			return parent;
 		}

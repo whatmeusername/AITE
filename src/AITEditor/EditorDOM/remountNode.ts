@@ -3,11 +3,11 @@ import {AiteHTML} from "./interface";
 import {createDOMElement, getEditorState, returnSingleDOMNode} from "../index";
 
 function remountNode(node: HeadNode, childOnly: boolean = true): HeadNode {
-	const nodeState = (node as any)?.$getNodeState();
+	const nodeState = (node as any)?.createNodeState();
 	if (nodeState) {
 		const currentDOMElement: AiteHTML | undefined = getEditorState().EditorDOMState.getNodeFromMap(node.key);
 		if (currentDOMElement) {
-			const newNodeState = (node as any).$getNodeState();
+			const newNodeState = (node as any).createNodeState();
 			if (newNodeState === undefined) {
 				// TODO: REPLACE WITH ERROR FUNCTION
 				throw new Error("");

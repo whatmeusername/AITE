@@ -27,7 +27,7 @@ class AiteNode {
 	}
 }
 
-function createAiteNode(ref: HeadNode | null, type: string, props: Nullable<{[K: string]: any}>, children?: Nullable<Array<AiteNode | string>>): AiteNode {
+function createAiteNode(ref: HeadNode | null, type: string, props: Nullable<{[K: string]: any}>, children?: Nullable<(AiteNode | string)[]>): AiteNode {
 	if (children) {
 		const mappedChildren: Array<AiteNodes> = [];
 

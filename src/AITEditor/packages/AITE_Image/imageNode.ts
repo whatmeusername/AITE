@@ -1,4 +1,4 @@
-import {TextNode, createTextNode, createLinkNode, ContentNode} from "../../nodes/index";
+import {TextNode, createTextNode, createLinkNode, ContentNode, HeadNode} from "../../nodes/index";
 
 import {BaseNode} from "../../nodes/index";
 
@@ -62,7 +62,7 @@ class imageNode extends BaseNode {
 	ContentNode: ContentNode | undefined;
 
 	constructor(imageNodeConf: imageConf) {
-		super("element");
+		super("element", imageNodeConf);
 		this.imageConf = {
 			src: imageNodeConf.src,
 			alt: imageNodeConf.alt ?? "",
@@ -113,6 +113,10 @@ class imageNode extends BaseNode {
 
 	get length(): number {
 		return 1;
+	}
+
+	public clone(): imageNode {
+		return new imageNode(this.initData as imageConf);
 	}
 
 	toggleCaptition(): void {
@@ -177,7 +181,7 @@ class imageNode extends BaseNode {
 		};
 	}
 
-	$getNodeState(): AiteNode {
+	createNodeState(): AiteNode {
 		const isActive = isNodeActive(this.key);
 
 		const imageNode = new AiteNode(
@@ -198,7 +202,7 @@ class imageNode extends BaseNode {
 		if (this.ContentNode !== undefined && this.ContentNode.children.length > 0 && this.imageConf.captionEnabled) {
 			const captionBlockNodes: Array<AiteNode> = [];
 			this.ContentNode.children.forEach((node) => {
-				captionBlockNodes.push(node.$getNodeState());
+				captionBlockNodes.push(node.createNodeState());
 			});
 
 			const captionWrapper = new AiteNode(

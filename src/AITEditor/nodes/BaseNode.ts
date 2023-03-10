@@ -25,14 +25,10 @@ type DOMattr = {
 abstract class BaseNode extends HeadNode {
 	parent: BlockNode | BaseNode | null;
 
-	constructor(type: NodeType) {
-		super(type);
+	constructor(type: NodeType, initData?: {[K: string]: any}) {
+		super(type, initData);
 		this.parent = null;
 	}
-
-	abstract get length(): number;
-
-	abstract $getNodeState(): AiteNode;
 }
 
 export {BaseNode};

@@ -1,4 +1,4 @@
-import {BaseNode} from "./index";
+import {BaseNode, HeadNode} from "./index";
 import {findStyle, DiffNodeState} from "../EditorUtils";
 
 import {createAiteNode} from "../index";
@@ -17,7 +17,7 @@ class TextNode extends BaseNode {
 	_styles: Array<string>;
 
 	constructor(initData?: TextNodeAttr) {
-		super("text");
+		super(initData?.type ?? "text", initData);
 		this.content = initData?.plainText ?? "";
 		this._styles = initData?.styles ?? [];
 
@@ -27,6 +27,11 @@ class TextNode extends BaseNode {
 	get length(): number {
 		return this.content.length;
 	}
+
+	public clone(): TextNode {
+		return new TextNode(this.initData);
+	}
+
 	// DEPRECATED REPLACED WITH PROXY
 	update(func: (textNode: TextNode) => void, options?: NodeUpdateOptions): number {
 		const copiedState = {...this};
@@ -61,7 +66,7 @@ class TextNode extends BaseNode {
 		return this._styles.map((style) => findStyle(style)?.class ?? "").join(" ");
 	}
 
-	$getNodeState(): AiteNode {
+	createNodeState(): AiteNode {
 		const props = {
 			className: this.prepareStyles(),
 			"data-aite-node": true,
