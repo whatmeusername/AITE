@@ -33,7 +33,6 @@ interface ImageWrapperAttrType {
 	draggable?: boolean;
 	contentEditable: false;
 	style?: {[K: string]: string};
-	"data-aite_decorator_node"?: boolean;
 }
 
 class imageNode extends BaseNode {
@@ -197,7 +196,6 @@ class imageNode extends BaseNode {
 
 		const ImageWrapperAttr: ImageWrapperAttrType = {
 			className: "image-wrapper",
-			"data-aite_decorator_node": true,
 			contentEditable: false,
 			draggable: isActive ? true : false,
 			style: {

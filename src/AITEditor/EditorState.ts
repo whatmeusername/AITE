@@ -48,28 +48,28 @@ function createEmptyEditorState(initData?: editorConf) {
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand("LETTER_INSERT_COMMAND", "HIGH_EDITOR_COMMAND", (event) => {
-		ActiveEditorState.contentNode.insertLetter(event);
+		ActiveEditorState.selectionState.insertLetter(event);
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand("LETTER_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
-		ActiveEditorState.contentNode.removeLetter();
+		ActiveEditorState.selectionState.removeLetter();
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand("FORWARD_LETTER_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "character", "forward");
 		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.contentNode.removeLetter();
+		ActiveEditorState.selectionState.removeLetter();
 		ActiveEditorState.replaceActiveSelectionWithPrevious();
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand("ENTER_COMMAND", "HIGH_EDITOR_COMMAND", () => {
-		ActiveEditorState.contentNode.handleEnterTest();
+		ActiveEditorState.selectionState.insertEnter();
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand("WORD_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "word", "backward");
 		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.contentNode.removeLetter();
+		ActiveEditorState.selectionState.removeLetter();
 		if (ActiveEditorState.selectionState.isOffsetOnStart() === false) {
 			ActiveEditorState.selectionState.moveSelectionForward();
 		}
@@ -78,21 +78,21 @@ function createEmptyEditorState(initData?: editorConf) {
 	ActiveEditorState.EditorCommands.registerCommand("FORWARD_WORD_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "word", "forward");
 		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.contentNode.removeLetter();
+		ActiveEditorState.selectionState.removeLetter();
 		ActiveEditorState.replaceActiveSelectionWithPrevious();
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand("FORWARD_LINE_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "lineboundary", "forward");
 		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.contentNode.removeLetter();
+		ActiveEditorState.selectionState.removeLetter();
 		ActiveEditorState.replaceActiveSelectionWithPrevious();
 	});
 
 	ActiveEditorState.EditorCommands.registerCommand("LINE_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "lineboundary", "backward");
 		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.contentNode.removeLetter();
+		ActiveEditorState.selectionState.removeLetter();
 		if (ActiveEditorState.selectionState.isOffsetOnStart() === false) {
 			ActiveEditorState.selectionState.moveSelectionForward();
 		}

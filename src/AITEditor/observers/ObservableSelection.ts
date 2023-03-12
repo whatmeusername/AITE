@@ -1,5 +1,5 @@
 import {BaseNode} from "../nodes";
-import {SelectionState} from "../Selection";
+import {SelectionState} from "../SelectionState";
 import {Observable, Observe, set} from "./Observable";
 
 function ObservableSelection<T extends SelectionState>(node: T | Observable<T>): Observable<T> {

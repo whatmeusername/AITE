@@ -1,7 +1,7 @@
 import {isBlockNode, isContentNode} from "../EditorUtils";
 import {unmountNode, getEditorState, BlockNode, remountNode, generateKey, BlockType, mountNode, NodeTypes, BaseBlockNode, AiteNode} from "../index";
 import {ObservableHeadNode} from "../observers";
-import {BaseNode, ContentNode, NodeType} from "./index";
+import {BaseNode, ContentNode, createTextNode, NodeType} from "./index";
 import {NodeStatus} from "./interface";
 
 abstract class HeadNode {
@@ -9,12 +9,14 @@ abstract class HeadNode {
 	public key: number;
 	public type: NodeType;
 	public initData?: {[K: string]: any};
+	public parent: HeadNode | null;
 
 	constructor(type: NodeType, initData?: {[K: string]: any}) {
 		this.status = NodeStatus.UNMOUNTED;
 		this.key = generateKey();
 		this.type = type;
 		this.initData = initData;
+		this.parent = null;
 
 		return ObservableHeadNode(this).value();
 	}
@@ -47,7 +49,7 @@ abstract class HeadNode {
 	}
 
 	public getSelfIndex(): number {
-		if (!(this as any).parent) return -1;
+		if (!this.parent) return -1;
 		return (this as any).parent?.children.findIndex((n: HeadNode) => n.key === this.key);
 	}
 
@@ -55,8 +57,8 @@ abstract class HeadNode {
 		return this.type;
 	}
 
-	public remove(this: BaseNode | BaseBlockNode) {
-		if (this.status === NodeStatus.MOUNTED && this.parent !== undefined && (isBlockNode(this.parent) || isContentNode(this.parent))) {
+	public remove() {
+		if (this.parent && this.status === NodeStatus.MOUNTED && (isBlockNode(this.parent) || isContentNode(this.parent))) {
 			unmountNode(this);
 			this.parent.children?.splice(this.getSelfIndex(), 1);
 			this.status = NodeStatus.REMOVED;
@@ -84,7 +86,7 @@ abstract class HeadNode {
 		if (!this.parent) return null;
 		const index = (this.parent as BlockNode | ContentNode)?.children?.findIndex((n) => n.key === this.key);
 		if (index > -1) {
-			return (this.parent as any).children[index - 1];
+			return (this.parent as BlockNode | ContentNode).children[index - 1];
 		}
 
 		return null;
@@ -94,7 +96,7 @@ abstract class HeadNode {
 		if (!this.parent) return null;
 		const index = (this.parent as BlockNode | ContentNode)?.children?.findIndex((n) => n.key === this.key);
 		if (index > -1) {
-			return (this.parent as any).children[index + 1];
+			return (this.parent as BlockNode | ContentNode).children[index + 1];
 		}
 		return null;
 	}

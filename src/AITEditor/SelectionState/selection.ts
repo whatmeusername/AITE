@@ -1,10 +1,11 @@
 import type {ClassVariables, Nullable} from "../Interfaces";
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
-import {isLeafNode, isTextNode, isBlockNode, isHeadNode} from "../EditorUtils";
-import {getEditorState, AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData} from "../index";
-import {BaseNode, BreakLine, HeadNode, TextNode} from "../nodes/index";
+import {isLeafNode, isTextNode, isBlockNode, isHeadNode, isHorizontalRuleNode} from "../EditorUtils";
+import {getEditorState, AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData, NodeInsertionDeriction} from "../index";
+import {BaseNode, BreakLine, ContentNode, createBreakLine, HeadNode, TextNode} from "../nodes/index";
 import {getSelection, isSelectionBackward} from "./utils";
 import {ObservableSelection} from "../observers";
+import {NodeStatus} from "../nodes/interface";
 
 // TEMPERARY
 function isBreakLine(node: any): node is BreakLine {
@@ -528,6 +529,145 @@ class SelectionState {
 			isCollapsed: this.isCollapsed,
 			sameBlock: this.sameBlock,
 		};
+	}
+
+	// TODO: MOVE METHOD TO SELECTION AS METHOD
+	public insertLetter(KeyBoardEvent?: KeyboardEvent) {
+		const isSelectionOnSameNode = this.isSameNode;
+		let SliceFrom = this.anchorOffset;
+		const SliceTo = this.focusOffset;
+
+		const isRemove = KeyBoardEvent === undefined;
+
+		let key = isRemove ? "" : KeyBoardEvent ? KeyBoardEvent.key : "";
+
+		const anchorNode: BaseNode = this.anchorNode as BaseNode;
+		const focusNode: BaseNode = this.focusNode as BaseNode;
+
+		const anchorBlock: BlockNode = anchorNode.parent as BlockNode;
+		const focusBlock: BlockNode = focusNode.parent as BlockNode;
+
+		const {contentNode, blockNode}: {contentNode: ContentNode | undefined; blockNode: BlockNode | undefined} = anchorNode.getContentNode();
+
+		const handleOffsetStart = (): void => {
+			if (!blockNode) return;
+			else if (anchorBlock.isBreakLine) {
+				this.moveSelectionToPreviousSibling(anchorBlock);
+				anchorBlock.remove();
+				return;
+			}
+
+			const previousBlock = blockNode?.previousSibling();
+			if (!previousBlock) return;
+
+			if (isHorizontalRuleNode(previousBlock) || isBreakLine(previousBlock)) {
+				previousBlock.remove();
+			} else if (isBlockNode(previousBlock)) {
+				if (contentNode) {
+					contentNode.MergeBlockNode(previousBlock, blockNode);
+				}
+			}
+		};
+
+		if (this.isCollapsed && isRemove && this.isOffsetOnStart(blockNode)) handleOffsetStart();
+		else if (this.sameBlock && (this.isCollapsed || isSelectionOnSameNode) && isTextNode(this.anchorNode)) {
+			SliceFrom = isRemove && this.isCollapsed ? this.anchorOffset - 1 : this.anchorOffset;
+
+			if (this.isCollapsed) {
+				if (KeyBoardEvent?.which === 229 && key === " ") {
+					key = ".";
+					SliceFrom -= 1;
+				} else if (!isRemove) this.moveSelectionForward();
+				else if (isRemove) this.moveSelectionBackward();
+			} else {
+				this.toggleCollapse();
+				if (!isRemove) this.moveSelectionForward();
+			}
+			this.anchorNode.sliceContent(SliceFrom, SliceTo, key);
+
+			//TODO INSERT BREAKLINE WHEN BLOCK IS EMPTY
+
+			if (this.anchorNode?.status === NodeStatus.REMOVED && !this.isOffsetOnStart(blockNode)) {
+				this.moveSelectionToPreviousSibling();
+			}
+		} else if (this.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
+			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key).original.forEach((node) => node.remove());
+			anchorNode.sliceContent(SliceFrom, -1, key);
+			focusNode.sliceContent(SliceTo);
+
+			if (isBreakLine(anchorBlock)) this.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
+			else if (anchorNode.status === NodeStatus.REMOVED && anchorNode.status === NodeStatus.REMOVED) this.moveSelectionToNextSibling();
+			else {
+				this.toggleCollapse();
+				if (!isRemove) this.moveSelectionForward();
+			}
+		} else if (!this.sameBlock && contentNode) {
+			contentNode.getBlockNodesBetween(anchorBlock, focusBlock).forEach((node) => node.remove());
+
+			anchorBlock.getNodesBetween(anchorNode.key).original.forEach((node) => node.remove());
+			if (isTextNode(anchorNode)) {
+				anchorNode.sliceContent(SliceFrom, -1, key);
+			} else anchorNode.remove();
+
+			focusBlock.getNodesBetween(-1, focusNode.key).original.forEach((node) => node.remove());
+			if (isTextNode(focusNode)) {
+				focusNode.sliceContent(SliceTo);
+			} else focusNode.remove();
+
+			contentNode.MergeBlockNode(anchorBlock, focusBlock);
+			this.toggleCollapse(!anchorNode.status ? true : false);
+
+			if (!anchorNode.status && focusNode.status) this.offsetToZero();
+			else if (!focusNode.status && !anchorNode.status) this.moveSelectionToPreviousSibling();
+			else if (!isRemove) this.moveSelectionForward();
+		}
+	}
+
+	/**
+	 * Removing letters from nodes and updates them
+	 * @param  {SelectionState} selectionState
+	 * @returns void
+	 */
+	// TODO: MOVE METHOD TO SELECTION AS METHOD
+	public removeLetter(): void {
+		this.insertLetter();
+	}
+
+	public insertEnter(): void {
+		if (!this.anchorNode || !this.focusNode) return;
+
+		const onStart = this.isOffsetOnStart();
+		const onEnd = this.isOffsetOnEnd();
+
+		if (onStart || onEnd) {
+			const newBreakLine = createBreakLine();
+			const {contentNode, index} = this.anchorNode.getContentNode();
+			if (contentNode) {
+				contentNode.insertNode(newBreakLine, index, onStart ? NodeInsertionDeriction.BEFORE : NodeInsertionDeriction.AFTER);
+				if (!onStart) {
+					this.setNode(newBreakLine.children[0]).offsetToZero();
+				}
+			}
+		} else if (this.isCollapsed) {
+			const anchorParent = (this.anchorNode as BaseNode).parent as BlockNode;
+			const focusParent = (this.anchorNode as BaseNode).parent as BlockNode;
+			const {contentNode, index, blockNode} = this.anchorNode.getContentNode();
+			if (blockNode) {
+				const nodesAfterPointer = anchorParent.getNodesBetween(this.anchorNode.key, -1, false, false, undefined, true);
+				nodesAfterPointer.original.forEach((node) => node.remove());
+				const newBlockNode = blockNode.clone();
+
+				if (isTextNode(this.anchorNode)) {
+					const textNodePart = this.anchorNode.sliceToTextNode(this.anchorOffset, -1);
+					//TODO: MOVE TO GETNODESBETWEEN
+					newBlockNode.append(textNodePart);
+				} else this.anchorNode.remove();
+
+				newBlockNode.append(...nodesAfterPointer.modified);
+				contentNode?.insertNode(newBlockNode, index, NodeInsertionDeriction.AFTER);
+				this.moveSelectionToNextSibling();
+			}
+		}
 	}
 }
 
