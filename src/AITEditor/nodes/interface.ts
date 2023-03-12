@@ -1,4 +1,3 @@
-import {BlockType} from "./BlockNode";
 import type {DOMNodeData} from "./BaseNode";
 
 interface DOMTextAttr extends DOMNodeData {

@@ -1,4 +1,4 @@
-import {BlockNode, BlockType, BlockTypes, NodeTypes} from "../nodes/BlockNode";
+import {BlockNode, BlockNodeType, BlockTypes, NodeTypes} from "../nodes/BlockNode";
 import {isBaseBlockNode} from "../EditorUtils";
 import {ContentNode} from "../nodes";
 import {AiteNode} from "./AiteNode";
@@ -37,12 +37,12 @@ function filterNode(this: BlockNode, ...nodes: NodeTypes[]): NodeTypes[] {
 	return res;
 }
 
-function filterBlock(this: ContentNode, ...nodes: BlockTypes[]): BlockType[] {
-	const res: BlockType[] = [];
+function filterBlock(this: ContentNode, ...nodes: BlockNodeType[]): BlockNodeType[] {
+	const res: BlockNodeType[] = [];
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i];
 		if (isBaseBlockNode(node)) {
-			res.push(node as unknown as BlockType);
+			res.push(node);
 		}
 	}
 	return res;

@@ -11,7 +11,7 @@ import {AiteNode, createAiteNode, filterNode, NodeInsertionDeriction} from "../E
 
 type NodeTypes = BaseNode | LeafNode;
 type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
-type BlockType = BlockNode | HorizontalRuleNode;
+type BlockNodeType = BlockNode | HorizontalRuleNode;
 
 type BlockNodeVariables = Omit<ClassVariables<BlockNode>, "children">;
 
@@ -268,4 +268,4 @@ function createHorizontalRule() {
 
 export {createBlockNode, createHorizontalRule, BlockNode, HorizontalRuleNode, BaseBlockNode};
 
-export type {NodeTypes, BlockTypes, BlockType};
+export type {NodeTypes, BlockTypes, BlockNodeType};

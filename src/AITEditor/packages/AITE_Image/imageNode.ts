@@ -126,10 +126,6 @@ class imageNode extends BaseNode {
 		};
 	}
 
-	getContent(): string {
-		return this.imageConf.src;
-	}
-
 	createSelfNode(data: imageConf) {
 		return createImageNode(data);
 	}

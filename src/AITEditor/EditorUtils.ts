@@ -4,6 +4,7 @@ import {BlockNode, AiteHTMLNode, HorizontalRuleNode, BaseBlockNode} from "./inde
 import {BaseNode, BreakLine, HeadNode, LeafNode, TextNode, ContentNode} from "./nodes/index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
+import {StyleData} from "./Interfaces";
 
 function isLeafNode(node: any): node is LeafNode {
 	return node instanceof LeafNode;
@@ -138,12 +139,11 @@ function isForwardRemoveWord(event: KeyboardEventCommand): boolean {
 	} else return (event.code === "Delete" || event.code === "Backspace") && isCtrl(event) && event.which === 46;
 }
 
-// DEPRECATED / REPLACE WITH NEW FUNCTION
-function findStyle(StyleKey: string) {
-	const style = defaultInlineStyles.find((style) => style.style === StyleKey);
+function getStyleData(key: string): StyleData {
+	const style = defaultInlineStyles.find((style) => style.style === key);
 	if (style !== undefined) {
-		return style;
-	} else throw new Error(`Can't find inline style with name ${StyleKey}, because its not defineded `);
+		return {style: style.style, class: style.class ?? ""};
+	} else throw new Error(`Can't find inline style with name ${key}, because its not defineded `);
 }
 
 function getDecoratorNode(node: AiteHTMLNode): AiteHTMLNode {
@@ -182,7 +182,7 @@ export {
 	keyCodeValidator,
 	DiffNodeState,
 	editorWarning,
-	findStyle,
+	getStyleData,
 	isApple,
 	isLeafNode,
 	isBackwardRemoveLine,

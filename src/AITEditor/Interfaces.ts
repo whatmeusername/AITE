@@ -10,4 +10,9 @@ type Nullable<T> = T | null | undefined;
 
 type StartsWith<T extends string, U extends string> = T extends `${U}${string}` ? T : never;
 
-export type {ClassVariables, StartsWith, Nullable};
+interface StyleData {
+	style: string;
+	class: string;
+}
+
+export type {ClassVariables, StartsWith, Nullable, StyleData};

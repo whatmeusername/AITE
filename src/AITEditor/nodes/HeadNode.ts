@@ -1,5 +1,5 @@
 import {isBlockNode, isContentNode} from "../EditorUtils";
-import {unmountNode, getEditorState, BlockNode, remountNode, generateKey, BlockType, mountNode, NodeTypes, BaseBlockNode, AiteNode} from "../index";
+import {unmountNode, getEditorState, BlockNode, remountNode, generateKey, BlockNodeType, mountNode, NodeTypes, BaseBlockNode, AiteNode} from "../index";
 import {ObservableHeadNode} from "../observers";
 import {BaseNode, ContentNode, createTextNode, NodeType} from "./index";
 import {NodeStatus} from "./interface";
@@ -29,7 +29,7 @@ abstract class HeadNode {
 		index: number;
 		parentBlockNode: BlockNode | undefined;
 	} {
-		let c: NodeTypes | BlockType | BaseNode = this as any;
+		let c: NodeTypes | BlockNodeType | BaseNode = this as any;
 		let parentBlockNode;
 		while (c.parent) {
 			if (isBlockNode(c) && !parentBlockNode) {
@@ -103,6 +103,9 @@ abstract class HeadNode {
 
 	public abstract clone(): HeadNode;
 	public abstract createNodeState(): AiteNode;
+	public tryToMerge(node: this): BaseNode | null {
+		return null;
+	}
 }
 
 export {HeadNode};

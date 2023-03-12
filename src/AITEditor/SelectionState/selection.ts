@@ -365,13 +365,6 @@ class SelectionState {
 		} else throw new Error("Not returned return value during condition check");
 	}
 
-	removeSelection(): void {
-		const selection = getSelection();
-		if (selection) {
-			selection.removeAllRanges();
-		}
-	}
-
 	/**
 	 * Get current caret data by selection
 	 * @param  {Range|undefined} forceRange - forced Range which data will be used to set selectionState data
