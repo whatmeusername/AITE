@@ -159,32 +159,9 @@ class SelectionState {
 		return this;
 	}
 
-	setAnchorKey(KeyOrNode: HeadNode): SelectionState;
-	setAnchorKey(KeyOrNode: number | undefined): SelectionState;
-	setAnchorKey(KeyOrNode: number | HeadNode | undefined): SelectionState {
-		this.anchorKey = isHeadNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
-		return this;
-	}
-
-	setFocusKey(KeyOrNode: HeadNode): SelectionState;
-	setFocusKey(KeyOrNode: number | undefined): SelectionState;
-	setFocusKey(KeyOrNode: number | HeadNode | undefined): SelectionState {
-		this.focusKey = isHeadNode(KeyOrNode) ? KeyOrNode.key : KeyOrNode;
-		return this;
-	}
-
 	setNode(node: HeadNode): SelectionState {
 		this.anchorNode = node;
 		this.focusNode = node;
-		return this;
-	}
-
-	setNodeKey(KeyOrNode: HeadNode): SelectionState;
-	setNodeKey(KeyOrNode: number | undefined): SelectionState;
-	setNodeKey(KeyOrNode: number | HeadNode | undefined): SelectionState {
-		const isNode = isHeadNode(KeyOrNode);
-		this.focusKey = isNode ? KeyOrNode.key : KeyOrNode;
-		this.anchorKey = isNode ? KeyOrNode.key : KeyOrNode;
 		return this;
 	}
 
@@ -595,7 +572,7 @@ class SelectionState {
 			anchorNode.sliceContent(SliceFrom, -1, key);
 			focusNode.sliceContent(SliceTo);
 
-			if (isBreakLine(anchorBlock)) this.toggleCollapse().setNodeKey(anchorBlock.getFirstChild(true));
+			if (isBreakLine(anchorBlock)) this.toggleCollapse().setNode(anchorBlock.getFirstChild(true));
 			else if (anchorNode.status === NodeStatus.REMOVED && anchorNode.status === NodeStatus.REMOVED) this.moveSelectionToNextSibling();
 			else {
 				this.toggleCollapse();
