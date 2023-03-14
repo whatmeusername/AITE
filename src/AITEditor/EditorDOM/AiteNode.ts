@@ -5,7 +5,7 @@ import {setProps} from "./helpers";
 import {AiteHTMLNode, AiteNodes} from "./interface";
 import {__nodeMap} from "./EditorDom";
 import {isAiteNode} from "./utils";
-import {isTextNode} from "../EditorUtils";
+import {isTextNode} from "../typeguards";
 
 class AiteNode {
 	type: string;

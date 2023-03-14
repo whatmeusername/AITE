@@ -1,6 +1,6 @@
-import {isBlockNode, isContentNode} from "../EditorUtils";
 import {unmountNode, getEditorState, BlockNode, remountNode, generateKey, BlockNodeType, mountNode, NodeTypes, BaseBlockNode, AiteNode} from "../index";
 import {ObservableHeadNode} from "../observers";
+import {isBlockNode, isContentNode} from "../typeguards";
 import {BaseNode, ContentNode, createTextNode, NodeType} from "./index";
 import {NodeStatus} from "./interface";
 

@@ -1,6 +1,6 @@
 import {EDITOR_PRIORITY} from "../ConstVariables";
 import {getEditorState} from "../EditorState";
-import {editorWarning, keyCodeValidator} from "../EditorUtils";
+import {EditorWarning, KeyCodeValidator} from "../typeguards";
 
 import type {
 	KeyboardEventCommand,
@@ -41,16 +41,6 @@ type commandTypes =
 	| "DRAGSTART_COMMAND"
 	| "DRAGEND_COMMAND";
 
-interface KEYBIND_COMMAND {
-	//eslint-disable-line
-	key: string;
-	shiftKey?: boolean;
-	ctrlKey?: boolean;
-	altKey?: boolean;
-	commandPriority: commandPriority;
-	action: (event: KeyboardEventCommand, ...args: any) => void;
-}
-
 interface rootCommandStorage {
 	SELECTION_COMMAND?: SELECTION_COMMAND;
 
@@ -66,7 +56,7 @@ interface rootCommandStorage {
 	// DROP_COMMAND?: any
 }
 
-interface commandStorage {
+interface CommandStorage {
 	DRAGSTART_COMMAND?: DRAGSTART_COMMAND;
 	DRAGEND_COMMAND?: DRAGEND_COMMAND;
 
@@ -93,27 +83,22 @@ interface commandStorage {
 type FindWithoutUndefined<O, K extends keyof O> = {[I in K]-?: O[K]};
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
-type GetCommandEventType<C extends keyof commandStorage> = ("action" extends keyof FindWithoutUndefined<commandStorage, C>[C]
-	? FindWithoutUndefined<FindWithoutUndefined<commandStorage, C>[C], "action">["action"] extends (...args: infer A) => any
+type GetCommandEventType<C extends keyof CommandStorage> = ("action" extends keyof FindWithoutUndefined<CommandStorage, C>[C]
+	? FindWithoutUndefined<FindWithoutUndefined<CommandStorage, C>[C], "action">["action"] extends (...args: infer A) => any
 		? A
 		: never
 	: never)[0];
 
-type GetCommandActionType<S extends keyof commandStorage> = "action" extends keyof FindWithoutUndefined<commandStorage, S>[S]
-	? FindWithoutUndefined<FindWithoutUndefined<commandStorage, S>[S], "action">["action"]
+type GetCommandActionType<S extends keyof CommandStorage> = "action" extends keyof FindWithoutUndefined<CommandStorage, S>[S]
+	? FindWithoutUndefined<FindWithoutUndefined<CommandStorage, S>[S], "action">["action"]
 	: never;
 
-type ActionType = UnionToIntersection<GetCommandActionType<keyof commandStorage>>;
+type ActionType = UnionToIntersection<GetCommandActionType<keyof CommandStorage>>;
 
-type decoratorStorage<S> = {[K in keyof S]+?: (...args: any) => any};
+type DecoratorStorage<S> = {[K in keyof S]+?: (...args: any) => any};
 
-const rootDecoratorStorage: decoratorStorage<rootCommandStorage> = {
-	// FOCUS_COMMAND: onFocusDecorator,
-	// BLUR_COMMAND: onBlurDecorator
-};
-
-const DecoratorStorage: decoratorStorage<commandStorage> = {
-	LETTER_INSERT_COMMAND: keyCodeValidator,
+const DecoratorStorage: DecoratorStorage<CommandStorage> = {
+	LETTER_INSERT_COMMAND: KeyCodeValidator,
 	LETTER_REMOVE_COMMAND: (event: KeyboardEventCommand) => {
 		return event.code === "Backspace";
 	},
@@ -123,7 +108,7 @@ const DecoratorStorage: decoratorStorage<commandStorage> = {
 };
 
 class EditorCommands {
-	commandStorage: commandStorage;
+	commandStorage: CommandStorage;
 	removeHandles: {[K: string]: (...args: any) => void};
 	rootCommands: rootCommandStorage;
 	currentEventPriority: null | number;
@@ -141,7 +126,7 @@ class EditorCommands {
 
 	listenRootEvent(): void {
 		if (this.removeHandles.SELECTION_COMMAND === undefined) {
-			const SelectionEvent = (event: any) => getEditorState().selectionState.getCaretPosition();
+			const SelectionEvent = () => getEditorState().selectionState.getCaretPosition();
 			document.addEventListener("selectionchange", SelectionEvent);
 			this.removeHandles["selectionchange"] = () => document.removeEventListener("selectionchange", SelectionEvent);
 		}
@@ -196,7 +181,7 @@ class EditorCommands {
 				commandPriority: commandPriority,
 				action: commandAction as ActionType,
 			};
-		} else editorWarning(true, `tried to reassign ${commandType} command. If you are sure to apply changes to command, then pass 'reassign' as true.`);
+		} else EditorWarning(true, `tried to reassign ${commandType} command. If you are sure to apply changes to command, then pass 'reassign' as true.`);
 	}
 
 	dispatchCommand(commandType: commandTypes, event: EventCommands, ...rest: any) {

@@ -1,11 +1,11 @@
 import type {ClassVariables, Nullable} from "../Interfaces";
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
-import {isLeafNode, isTextNode, isBlockNode, isHeadNode, isHorizontalRuleNode} from "../EditorUtils";
 import {getEditorState, AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData, NodeInsertionDeriction} from "../index";
 import {BaseNode, BreakLine, ContentNode, createBreakLine, HeadNode, TextNode} from "../nodes/index";
 import {getSelection, isSelectionBackward} from "./utils";
 import {ObservableSelection} from "../observers";
 import {NodeStatus} from "../nodes/interface";
+import {isBlockNode, isHorizontalRuleNode, isLeafNode, isTextNode} from "../typeguards";
 
 // TEMPERARY
 function isBreakLine(node: any): node is BreakLine {

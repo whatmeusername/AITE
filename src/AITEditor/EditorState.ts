@@ -1,11 +1,11 @@
 import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 
-import {editorWarning} from "./EditorUtils";
 import {onKeyDownEvent, onKeyUpEvent} from "./commands/EditorEvents";
 
 import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, AiteHTMLNode} from "./index";
 import {ClassVariables} from "./Interfaces";
 import {ContentNode} from "./nodes";
+import {EditorWarning} from "./typeguards";
 
 interface editorConf {
 	ContentNode: ContentNode;
@@ -142,7 +142,7 @@ class EditorState {
 		if (this.__previousSelection) {
 			//this.selectionState.insertSelectionData(this.__previousSelection);
 			this.selectionState.setCaretPosition();
-		} else editorWarning(true, "tried to set selection by previous selection data, when it undefined");
+		} else EditorWarning(true, "tried to set selection by previous selection data, when it undefined");
 	}
 
 	setPreviousSelection(): void {

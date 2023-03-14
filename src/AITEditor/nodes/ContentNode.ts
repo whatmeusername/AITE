@@ -1,11 +1,11 @@
-import {TextNode, createLinkNode, createTextNode, createBreakLine, HeadNode} from "./index";
+import {TextNode, HeadNode, createTextNode} from "./index";
 
-import {createBlockNode, createHorizontalRule} from "./BlockNode";
+import {createBlockNode} from "./BlockNode";
 
 import {BlockNodeType, BlockNode, NodeInsertionDeriction, createAiteNode, AiteNode} from "../index";
-import {isBlockNode, isLeafNode} from "../EditorUtils";
 import {ObservableChildren, ObservableChildrenProperty} from "../observers";
 import {NodeStatus} from "./interface";
+import {isBlockNode, isLeafNode} from "../typeguards";
 
 class ContentNode extends HeadNode {
 	children: BlockNodeType[];

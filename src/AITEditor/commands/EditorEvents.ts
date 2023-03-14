@@ -1,5 +1,5 @@
 import {getEditorState} from "../EditorState";
-import {isArrow, isBackwardRemoveWord, isBackwardRemoveLine, isForwardBackspace, isForwardRemoveLine, isForwardRemoveWord, isApple} from "../EditorUtils";
+import {isApple, isArrow, isBackwardRemoveLine, isBackwardRemoveWord, isForwardBackspace, isForwardRemoveLine, isForwardRemoveWord} from "../typeguards";
 
 function onBlurDecorator(callback?: (...args: any) => void): void {
 	const EditorState = getEditorState();
@@ -22,6 +22,7 @@ function onKeyDownEvent(event: KeyboardEvent): void {
 	if (EditorState !== undefined) {
 		const Key = event.key;
 		const isArrowKey = isArrow(event);
+		if (isArrowKey === false) event.preventDefault();
 		//TODO : REPLACE ACTIVE ELEMENT CONDITION AFTER REDESIGN
 		if (EditorState.EditorActiveElementState.isActive === false && isArrowKey === false) {
 			const EDC = EditorState.EditorCommands;
@@ -55,7 +56,7 @@ function onKeyDownEvent(event: KeyboardEvent): void {
 				event.preventDefault();
 				EDC?.dispatchCommand("ENTER_COMMAND", event);
 			} else if (isArrowKey === false) event.preventDefault();
-		} else if (isArrowKey === false) event.preventDefault();
+		}
 	} else event.preventDefault();
 }
 

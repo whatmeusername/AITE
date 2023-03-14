@@ -1,11 +1,11 @@
 import type {BlockNode} from "../nodes/BlockNode";
 import type {ContentNode} from "../nodes";
 import {filterNode, filterBlock} from "../EditorDOM";
-import {isBlockNode} from "../EditorUtils";
 import {Observe, Observable} from "./Observable/Observable";
 import {ObservableChildren} from "./ObservableChildren";
 import {set} from "./Observable";
 import {NodeStatus} from "../nodes/interface";
+import {isBlockNode} from "../typeguards";
 
 function ObservableChildrenProperty<T extends BlockNode | ContentNode>(node: T | Observable<T>): Observable<T> {
 	node = Observe(node) as Observable<T>;

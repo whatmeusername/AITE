@@ -1,5 +1,5 @@
 import {BaseNode} from "./index";
-import {getStyleData, isTextNode} from "../EditorUtils";
+import {getStyleData} from "../EditorUtils";
 
 import {createAiteNode} from "../index";
 import type {AiteNode} from "../index";
@@ -7,6 +7,7 @@ import type {AiteNode} from "../index";
 import {TextNodeAttr} from "./interface";
 import {ObservableTextNode} from "../observers/TextNodeObserver";
 import {StyleData} from "../Interfaces";
+import {isTextNode} from "../typeguards";
 
 function createTextNode(text: string = "", styles?: Array<string>) {
 	return new TextNode({plainText: text, styles: styles ?? []});

@@ -4,10 +4,10 @@ import {ClassVariables} from "../Interfaces";
 
 import {TextNode, HeadNode, NodeType, LeafNode, BreakLine, ContentNode, BaseNode} from "./index";
 
-import {isLeafNode, isDefined} from "../EditorUtils";
 import {ObservableChildren} from "../observers";
 import {ObservableChildrenProperty} from "../observers";
 import {AiteNode, createAiteNode, filterNode, NodeInsertionDeriction} from "../EditorDOM";
+import {isDefined, isLeafNode} from "../typeguards";
 
 type NodeTypes = BaseNode | LeafNode;
 type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;

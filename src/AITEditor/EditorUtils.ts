@@ -1,143 +1,7 @@
-import {KeyboardEventCommand} from "./commands/CommandTypes";
-
-import {BlockNode, AiteHTMLNode, HorizontalRuleNode, BaseBlockNode} from "./index";
-import {BaseNode, BreakLine, HeadNode, LeafNode, TextNode, ContentNode} from "./nodes/index";
+import {AiteHTMLNode, BaseNode, getSelectionState} from "./index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
 import {StyleData} from "./Interfaces";
-
-function isLeafNode(node: any): node is LeafNode {
-	return node instanceof LeafNode;
-}
-
-function isHeadNode(node: any): node is HeadNode {
-	return node instanceof HeadNode;
-}
-function isBaseNode(node: any): node is BaseNode {
-	return node instanceof BaseNode;
-}
-
-function keyCodeValidator(event: KeyboardEvent | React.KeyboardEvent): boolean {
-	const SYMBOLS = [
-		"Comma",
-		"Period",
-		"Minus",
-		"Equal",
-		"IntlBackslash",
-		"Slash",
-		"Quote",
-		"Semicolon",
-		"Backslash",
-		"BracketRight",
-		"BracketLeft",
-		"Backquote",
-	];
-
-	if (event.code.startsWith("Key") || event.code === "Space" || event.code.startsWith("Digit") || SYMBOLS.includes(event.code)) return true;
-	return false;
-}
-
-function isArrow(event: KeyboardEventCommand): boolean {
-	return event.code === "ArrowLeft" || event.code === "ArrowRight" || event.code === "ArrowUp" || event.code === "ArrowDown";
-}
-
-function isArrowLeft(event: KeyboardEventCommand): boolean {
-	return event.code === "ArrowLeft";
-}
-
-function isArrowRight(event: KeyboardEventCommand): boolean {
-	return event.code === "ArrowRight";
-}
-
-function isArrowUp(event: KeyboardEventCommand): boolean {
-	return event.code === "ArrowUp";
-}
-
-function isArrowDown(event: KeyboardEventCommand): boolean {
-	return event.code === "ArrowDown";
-}
-
-function editorWarning(shoudThrow: boolean, message: string): void {
-	if (shoudThrow) {
-		console.warn(`AITE internal warning: ${message}`);
-	}
-}
-
-function isTextNode(node: any): node is TextNode {
-	return node instanceof TextNode;
-}
-
-function isHorizontalRuleNode(node: any): node is HorizontalRuleNode {
-	return node instanceof HorizontalRuleNode;
-}
-
-function isBlockNode(node: any): node is BlockNode {
-	return node instanceof BlockNode;
-}
-
-function isBaseBlockNode(node: any): node is BaseBlockNode {
-	return node instanceof BaseBlockNode;
-}
-
-function isContentNode(node: any): node is ContentNode {
-	return node instanceof ContentNode;
-}
-
-function isBreakLine(node: any): node is BlockNode {
-	if (isLeafNode(node)) return false;
-	return node.children.length === 1 && (node.children[0] instanceof BreakLine || (node.children[0] as TextNode).content === "");
-}
-
-function isDefined(obj: any): boolean {
-	return obj !== undefined && obj !== null;
-}
-
-function isApple(): boolean {
-	return /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
-}
-
-function isMeta(event: KeyboardEventCommand): boolean {
-	if (isApple()) {
-		return event.metaKey;
-	}
-	return false;
-}
-
-function isAlt(event: KeyboardEventCommand): boolean {
-	return event.altKey;
-}
-
-function isCtrl(event: KeyboardEventCommand): boolean {
-	return event.ctrlKey;
-}
-
-function isForwardBackspace(event: KeyboardEventCommand): boolean {
-	return (event.code === "Delete" || event.code === "Backspace") && event.which === 46;
-}
-
-function isBackwardRemoveLine(event: KeyboardEventCommand): boolean {
-	if (isApple()) {
-		return (event.code === "Delete" || event.code === "Backspace") && isMeta(event);
-	} else return false;
-}
-
-function isForwardRemoveLine(event: KeyboardEventCommand): boolean {
-	if (isApple()) {
-		return (event.code === "Delete" || event.code === "Backspace") && event.which === 46 && isMeta(event);
-	} else return false;
-}
-
-function isBackwardRemoveWord(event: KeyboardEventCommand | React.KeyboardEvent): boolean {
-	if (isApple()) {
-		return event.code === "Backspace" && isAlt(event);
-	} else return event.code === "Backspace" && isCtrl(event);
-}
-
-function isForwardRemoveWord(event: KeyboardEventCommand): boolean {
-	if (isApple()) {
-		return (event.code === "Delete" || event.code === "Backspace") && isAlt(event) && event.which === 46;
-	} else return (event.code === "Delete" || event.code === "Backspace") && isCtrl(event) && event.which === 46;
-}
 
 function getStyleData(key: string): StyleData {
 	const style = defaultInlineStyles.find((style) => style.style === key);
@@ -177,31 +41,37 @@ function DiffNodeState(previousState: {[K: string]: any}, nextState: {[K: string
 	return statusObj;
 }
 
-export {
-	getDecoratorNode,
-	keyCodeValidator,
-	DiffNodeState,
-	editorWarning,
-	getStyleData,
-	isApple,
-	isLeafNode,
-	isBackwardRemoveLine,
-	isBackwardRemoveWord,
-	isForwardBackspace,
-	isForwardRemoveWord,
-	isForwardRemoveLine,
-	isArrow,
-	isArrowLeft,
-	isArrowRight,
-	isArrowUp,
-	isArrowDown,
-	isDefined,
-	isBaseNode,
-	isTextNode,
-	isHorizontalRuleNode,
-	isBlockNode,
-	isContentNode,
-	isBreakLine,
-	isBaseBlockNode,
-	isHeadNode,
-};
+function MergeSameNodes<T extends BaseNode[]>(children: T): T {
+	if (children.length <= 1) return children;
+
+	const selection = getSelectionState();
+	const newChildren: T = [] as unknown as T;
+
+	for (let i = 0; i < children.length; i++) {
+		const prevNode = newChildren[newChildren.length - 1];
+		const nextNode = children[i];
+		if (prevNode && prevNode.constructor === nextNode.constructor && prevNode.tryToMerge) {
+			const node = prevNode.tryToMerge(nextNode);
+			if (node) {
+				if (selection.anchorKey === nextNode.key) {
+					selection.setNode(node);
+					selection.anchorOffset += prevNode.length;
+					selection.focusOffset += prevNode.length;
+				} else if (selection.anchorKey === prevNode.key) {
+					selection.setNode(node);
+				}
+
+				newChildren.splice(newChildren.length - 1, 1);
+				newChildren.push(node);
+			} else {
+				newChildren.push(nextNode);
+			}
+		} else {
+			newChildren.push(nextNode);
+		}
+	}
+
+	return newChildren;
+}
+
+export {getDecoratorNode, DiffNodeState, getStyleData, MergeSameNodes};

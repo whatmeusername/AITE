@@ -1,8 +1,9 @@
-import {BlockNode, BlockNodeType, BlockTypes, NodeTypes} from "../nodes/BlockNode";
-import {isBaseBlockNode} from "../EditorUtils";
+import {BlockNode, BlockNodeType, NodeTypes} from "../nodes/BlockNode";
+
 import {ContentNode} from "../nodes";
 import {AiteNode} from "./AiteNode";
 import {AiteTextNode} from "./AiteTextNode";
+import {isBaseBlockNode} from "../typeguards";
 
 const generateKey = (() => {
 	let i = 1;

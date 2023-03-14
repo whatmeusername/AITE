@@ -1,7 +1,7 @@
 import {updateTextNodeContent} from "../EditorDOM";
 import {getSelectionState} from "../EditorState";
-import {isBlockNode} from "../EditorUtils";
 import {BreakLine, createTextNode, TextNode} from "../nodes";
+import {isBlockNode} from "../typeguards";
 import {set, Observable, Observe} from "./Observable";
 
 function ObservableTextNode(node: TextNode | Observable<TextNode>): Observable<TextNode> {

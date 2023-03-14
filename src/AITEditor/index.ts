@@ -3,3 +3,4 @@ export * from "./EditorDOM";
 export * from "./commands";
 export * from "./SelectionState";
 export * from "./nodes";
+export * from "./typeguards";
