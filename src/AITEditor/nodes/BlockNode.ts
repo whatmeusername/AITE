@@ -169,18 +169,6 @@ class BlockNode extends BaseBlockNode {
 		}
 	}
 
-	public removeNodeByKey(key: number): void {
-		const index = this.children.findIndex((node) => node.key === key);
-		if (index !== -1 && !this.isBreakLine) {
-			this.children.splice(index, 1);
-		} else {
-			this.remove();
-		}
-		if (this.children.length === 0) {
-			this.insertBreakLine();
-		}
-	}
-
 	public insertNode(node: NodeTypes, index: number, direction: NodeInsertionDeriction = NodeInsertionDeriction.BEFORE): NodeTypes | null {
 		if (index < 0) return null;
 

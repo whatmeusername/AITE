@@ -2,6 +2,7 @@ export * from "./interface";
 export * from "./EditorDom";
 export * from "./AiteNode";
 export * from "./AiteTextNode";
+export * from "./RootNode";
 
 export * from "./utils";
 export * from "./helpers";

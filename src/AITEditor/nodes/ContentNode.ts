@@ -69,11 +69,6 @@ class ContentNode extends HeadNode {
 		this.children = [...this.children.slice(0, index), node, ...this.children.slice(index)];
 	}
 
-	public removeNodeByKey(key: number) {
-		const index = this.children.findIndex((block) => block.key === key);
-		if (index !== -1) this.children.splice(index, 1);
-	}
-
 	public insertNodeBetween(block: BlockNodeType, start: number, end?: number): void {
 		if (end !== undefined) {
 			this.children = [...this.children.slice(0, start), block, ...this.children.slice(end ?? start)];
