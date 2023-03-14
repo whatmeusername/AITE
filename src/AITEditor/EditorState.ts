@@ -2,7 +2,7 @@ import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 
 import {onKeyDownEvent, onKeyUpEvent} from "./commands/EditorEvents";
 
-import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, AiteHTMLNode} from "./index";
+import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, createEditorRoot} from "./index";
 import {ClassVariables} from "./Interfaces";
 import {ContentNode} from "./nodes";
 import {EditorWarning} from "./typeguards";
@@ -26,10 +26,8 @@ function getEditorEventStatus(): boolean {
 }
 
 function isNodeActive(key: number | undefined): boolean {
-	if (key) {
-		return getEditorState().EditorActiveElementState?.activeNodeKey === key;
-	}
-	return false;
+	if (!key) return false;
+	return getEditorState().EditorActiveElementState?.activeNodeKey === key;
 }
 
 function updateActiveEditor(EditorState: EditorState) {
@@ -156,19 +154,17 @@ class EditorState {
 		// TODO:
 	}
 
-	render(parent?: HTMLElement): HTMLElement {
-		if (!parent) {
-			const node = returnSingleDOMNode(this.contentNode.createNodeState());
+	render(rootElement?: HTMLElement): HTMLElement {
+		if (!rootElement) {
+			const node = returnSingleDOMNode(createEditorRoot(this));
 			this.EditorDOMState.setDOMElement(node);
 			return node;
 		} else {
-			parent.replaceChildren(...returnSingleDOMNode(this.contentNode.createNodeState().children));
-			this.EditorDOMState.setDOMElement(parent as AiteHTMLNode);
-			return parent;
+			rootElement.replaceChildren(returnSingleDOMNode(createEditorRoot(this)));
+			this.EditorDOMState.setDOMElement(rootElement);
+			return rootElement;
 		}
 	}
 }
 
-export {isNodeActive, createEmptyEditorState, getEditorState, getSelectionState, getEditorEventStatus, updateActiveEditor};
-
-export type {EditorState};
+export {isNodeActive, createEmptyEditorState, getEditorState, getSelectionState, getEditorEventStatus, updateActiveEditor, EditorState};

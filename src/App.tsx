@@ -1,4 +1,4 @@
-import {AITEditor} from "./AITEditor/TextEditor";
+import {ReactAiteEditor} from "./AITEditor/TextEditor";
 import "./App.scss";
 
 function App() {
@@ -6,7 +6,7 @@ function App() {
 		<div className="App">
 			<p className="AITEditor__wrapper__label">developing version of AITEditor: 0.1v</p>
 			<div className="AITEditor__wrapper">
-				<AITEditor />
+				<ReactAiteEditor />
 			</div>
 		</div>
 	);

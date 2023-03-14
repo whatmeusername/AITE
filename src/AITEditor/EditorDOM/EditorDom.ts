@@ -4,7 +4,7 @@ import {Nullable} from "../Interfaces";
 export const __nodeMap: NodeMap = new Map();
 
 class EditorDOMState {
-	private __rootDOMElement: AiteHTMLNode | null;
+	private __rootDOMElement: HTMLElement | null;
 	private readonly __nodeMap: Map<string, AiteHTMLNode>;
 
 	constructor() {
@@ -25,11 +25,11 @@ class EditorDOMState {
 		}
 	}
 
-	public getRootHTMLNode(): AiteHTMLNode | null {
+	public getRootHTMLNode(): HTMLElement | null {
 		return this.__rootDOMElement;
 	}
 
-	public setDOMElement(node: AiteHTMLNode) {
+	public setDOMElement(node: HTMLElement) {
 		this.__rootDOMElement = node;
 	}
 }
