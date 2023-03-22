@@ -16,7 +16,7 @@ class AiteNode {
 	AiteNodeType: NodeType;
 	ref: Nullable<HeadNode>;
 
-	constructor(ref: Nullable<HeadNode>, type: string, props: Nullable<{[K: string]: any}>, children: Nullable<Array<AiteNodes>>) {
+	constructor(ref: Nullable<HeadNode>, type: string, props: Nullable<{[K: string]: any}>, children?: Nullable<Array<AiteNodes>>) {
 		this.type = type;
 		this.props = props ?? {};
 		this.children = children ?? [];
@@ -39,7 +39,7 @@ function createAiteNode(ref: HeadNode | null, type: string, props?: Nullable<{[K
 
 		return new AiteNode(ref, type, props, mappedChildren);
 	}
-	return new AiteNode(ref, type, props, children);
+	return new AiteNode(ref, type, props);
 }
 
 function createAiteDomNode(node: AiteNode): AiteHTMLNode {

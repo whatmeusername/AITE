@@ -43,6 +43,7 @@ function getDropCaretRange(event: DropEvent): Range | null {
 	return range;
 }
 
+//eslint-disable-next-line
 function canDropElement(event: DropEvent): boolean {
 	const target = event.target as AiteHTMLNode;
 	if (target && target.$isAiteNode) {
@@ -132,7 +133,7 @@ function ReactAiteEditor(): JSX.Element {
 		// 		// }
 		// 	}
 		// });
-	}, []); //eslint-disable-line
+	}, []);
 
 	return <div ref={EditorRef}></div>;
 }

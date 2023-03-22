@@ -1,6 +1,6 @@
 import type {ClassVariables, Nullable} from "../Interfaces";
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
-import {getEditorState, AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData, NodeInsertionDeriction} from "../index";
+import {AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData, NodeInsertionDeriction, getEditorState} from "../index";
 import {BaseNode, BreakLine, ContentNode, createBreakLine, HeadNode, TextNode} from "../nodes/index";
 import {getSelection, isSelectionBackward} from "./utils";
 import {ObservableSelection} from "../observers";
@@ -13,23 +13,23 @@ function isBreakLine(node: any): node is BreakLine {
 }
 
 class SelectionState {
-	_anchorOffset: number;
-	_focusOffset: number;
+	private _anchorOffset: number;
+	private _focusOffset: number;
 
-	anchorKey: Nullable<number>;
-	focusKey: Nullable<number>;
+	public anchorKey: Nullable<number>;
+	public focusKey: Nullable<number>;
 
-	anchorType: string | null;
-	focusType: string | null;
+	public anchorType: string | null;
+	public focusType: string | null;
 
-	isCollapsed: boolean;
-	sameBlock: boolean;
+	public isCollapsed: boolean;
+	public sameBlock: boolean;
 
-	anchorNode: Nullable<HeadNode>;
-	focusNode: Nullable<HeadNode>;
+	public anchorNode: Nullable<HeadNode>;
+	public focusNode: Nullable<HeadNode>;
 
-	anchorIndex: number;
-	focusIndex: number;
+	public anchorIndex: number;
+	public focusIndex: number;
 
 	constructor() {
 		this._anchorOffset = 0;
@@ -77,7 +77,7 @@ class SelectionState {
 	 * Resets SelectionState to it initial state
 	 * @returns SelectionState - собственный возрат
 	 */
-	resetSelection(): SelectionState {
+	public resetSelection(): SelectionState {
 		this.anchorNode = null;
 		this.focusNode = null;
 
@@ -99,7 +99,7 @@ class SelectionState {
 	 * Checks if selection anchor is on begging of block
 	 * @returns boolean
 	 */
-	isAnchorOnStart(forceBlock?: BlockNode): boolean {
+	public isAnchorOnStart(forceBlock?: BlockNode): boolean {
 		if (this.anchorOffset > 0) return false;
 
 		const firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.anchorNode?.getContentNode().blockNode?.getFirstChild();
@@ -112,7 +112,7 @@ class SelectionState {
 	 * Checks if selection focus is on begging of block
 	 * @returns boolean
 	 */
-	isFocusOnStart(forceBlock?: BlockNode): boolean {
+	public isFocusOnStart(forceBlock?: BlockNode): boolean {
 		if (this.focusOffset > 0) return false;
 
 		const firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.focusNode?.getContentNode().blockNode?.getFirstChild();
@@ -125,7 +125,7 @@ class SelectionState {
 	 * Checks if selection focus and anchor is on begging of block
 	 * @returns boolean
 	 */
-	isOffsetOnStart(forceBlock?: BlockNode): boolean {
+	public isOffsetOnStart(forceBlock?: BlockNode): boolean {
 		if (!this.isCollapsed || (this.anchorOffset > 0 && this.focusOffset > 0)) return false;
 		else if (this.anchorType === "breakline") return true;
 
@@ -139,7 +139,7 @@ class SelectionState {
 	 * Checks if selection focus and anchor is on end of block
 	 * @returns boolean
 	 */
-	isOffsetOnEnd(forceBlock?: BlockNode): boolean {
+	public isOffsetOnEnd(forceBlock?: BlockNode): boolean {
 		if (!this.isCollapsed || (this.anchorOffset < (this.anchorNode as BaseNode).length && this.focusOffset < (this.focusNode as BaseNode).length)) return false;
 		else if (this.anchorType === "breakline") return true;
 
@@ -153,13 +153,13 @@ class SelectionState {
 	 * Settings anchor and focus offsets to zero
 	 * @returns SelectionState - returning self
 	 */
-	offsetToZero(): SelectionState {
+	public offsetToZero(): SelectionState {
 		this.anchorOffset = 0;
 		this.focusOffset = 0;
 		return this;
 	}
 
-	setNode(node: HeadNode): SelectionState {
+	public setNode(node: HeadNode): SelectionState {
 		this.anchorNode = node;
 		this.focusNode = node;
 		return this;
@@ -170,7 +170,7 @@ class SelectionState {
 	 * @param  {ContentNode} ContentNode - ContentNode where next node will be searched
 	 * @returns SelectionState - Self return
 	 */
-	moveSelectionToNextSibling(startNode?: BlockNode): SelectionState {
+	public moveSelectionToNextSibling(startNode?: BlockNode): SelectionState {
 		let anchorBlock: BlockNode = startNode ?? ((this.anchorNode as BaseNode).parent as BlockNode);
 		let nextNode;
 		let shouldSearch = false;
@@ -228,7 +228,7 @@ class SelectionState {
 	 * @param  {ContentNode} ContentNode -  ContentNode where previous node will be searched
 	 * @returns SelectionState - Self return
 	 */
-	moveSelectionToPreviousSibling(startNode?: BlockNode): SelectionState {
+	public moveSelectionToPreviousSibling(startNode?: BlockNode): SelectionState {
 		let anchorBlock: BlockNode = startNode ?? ((this.anchorNode as BaseNode).parent as BlockNode);
 		let nextNode;
 		let shouldSearch = false;
@@ -286,7 +286,7 @@ class SelectionState {
 	 * Moving selection offset forward by 1
 	 * @returns SelectionState - Self return
 	 */
-	moveSelectionForward(): SelectionState {
+	public moveSelectionForward(): SelectionState {
 		this.anchorOffset += 1;
 		this.focusOffset += 1;
 		return this;
@@ -296,7 +296,7 @@ class SelectionState {
 	 * Moving selection offset backward by 1
 	 * @returns SelectionState - Self return
 	 */
-	moveSelectionBackward(): SelectionState {
+	public moveSelectionBackward(): SelectionState {
 		this.anchorOffset -= 1;
 		this.focusOffset -= 1;
 		return this;
@@ -307,7 +307,7 @@ class SelectionState {
 	 * @param  {boolean=false} focus - Collapse using focus data
 	 * @returns SelectionState - Self return
 	 */
-	toggleCollapse(focus: boolean = false): SelectionState {
+	public toggleCollapse(focus: boolean = false): SelectionState {
 		this.isCollapsed = true;
 		if (focus === true) {
 			this.anchorOffset = this.focusOffset;
@@ -325,7 +325,7 @@ class SelectionState {
 	 * @param  {Node|HTMLElement|AiteHTMLNode} node - Node which type shoul be defined
 	 * @returns string - Node type
 	 */
-	getNodeType(node: Node | HTMLElement | AiteHTMLNode): string | null {
+	public getNodeType(node: Node | HTMLElement | AiteHTMLNode): string | null {
 		if (node.nodeName === BREAK_LINE_TAGNAME) return BREAK_LINE_TYPE;
 		else if (node.nodeType === HTML_TEXT_NODE) return TEXT_NODE_TYPE;
 		else {
@@ -346,7 +346,7 @@ class SelectionState {
 	 * @param  {Node} node - node which data should be getted
 	 * @returns SelectedNodeData type
 	 */
-	getNodeData(node: AiteHTML): SelectedNodeData {
+	public getNodeData(node: AiteHTML): SelectedNodeData {
 		if ((node as AiteHTMLNode)?.dataset?.["aite_editor_root"]) {
 			node = node.firstChild as AiteHTML;
 		} else if (node instanceof Text) {
@@ -370,7 +370,7 @@ class SelectionState {
 	 * @param  {Range|undefined} forceRange - forced Range which data will be used to set selectionState data
 	 * @returns void
 	 */
-	getCaretPosition(forceRange?: AiteRange): void {
+	public getCaretPosition(forceRange?: AiteRange): void {
 		const selection = getSelection();
 
 		if (forceRange === undefined && (!selection.anchorNode || !selection.focusNode)) return;
@@ -415,11 +415,11 @@ class SelectionState {
 		}
 	}
 
-	isSameContentNode(node: AiteHTMLNode, secondNode: AiteHTMLNode): boolean {
+	public isSameContentNode(node: AiteHTMLNode, secondNode: AiteHTMLNode): boolean {
 		return node.closest("[data-aite_content_node]") === secondNode.closest("[data-aite_content_node]");
 	}
 
-	isSameBlockNode(node: AiteHTMLNode, secondNode: AiteHTMLNode): boolean {
+	public isSameBlockNode(node: AiteHTMLNode, secondNode: AiteHTMLNode): boolean {
 		return node.closest("[data-block-node]") === secondNode.closest("[data-block-node]");
 	}
 
@@ -427,21 +427,18 @@ class SelectionState {
 	 * Set caret position using
 	 * @returns void
 	 */
-	setCaretPosition(): void {
+	public setCaretPosition(): void {
 		const selection = window.getSelection();
 
 		if (selection) {
 			const range = document.createRange();
-			const EditorState = getEditorState();
 
-			const anchorNode = EditorState?.EditorDOMState.getNodeFromMap(this.anchorKey);
+			const anchorNode = this.anchorNode?.domRef;
 
 			if (anchorNode === undefined) {
 				this.getCaretPosition();
 				return;
 			}
-
-			this.anchorNode = anchorNode.$ref;
 
 			let focusNode;
 			let focusType;
@@ -450,9 +447,8 @@ class SelectionState {
 				focusNode = anchorNode;
 				this.focusNode = this.anchorNode;
 			} else {
-				focusNode = EditorState?.EditorDOMState.getNodeFromMap(this.focusKey);
+				focusNode = this.focusNode?.domRef;
 				if (focusNode === undefined) return;
-				this.focusNode = focusNode.$ref;
 			}
 
 			if (this.anchorType === TEXT_NODE_TYPE) {
@@ -488,7 +484,7 @@ class SelectionState {
 	 * Get current selectionState data
 	 * @returns insertSelection - selectionState Data
 	 */
-	get(): ClassVariables<SelectionState> {
+	public get(): ClassVariables<SelectionState> {
 		return {
 			anchorOffset: this.anchorOffset,
 			focusOffset: this.focusOffset,

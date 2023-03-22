@@ -1,26 +1,26 @@
-import type {TextNode, HeadNode, NodeType} from "../nodes/index";
+import type {HeadNode} from "../nodes/index";
 import {Nullable} from "../Interfaces";
 import type {AiteNode, AiteTextNode} from "./index";
+import {EditorState} from "../EditorState";
 
 type StringNumberBool = string | number | boolean;
 type AiteNodes = AiteNode | AiteTextNode;
 
-interface AiteHTMLNode extends HTMLElement {
+interface AiteBaseHTML {
+	$ref: Nullable<HeadNode>;
+	$editor?: EditorState;
 	$AiteNodeType: string;
 	$AiteNodeKey: Nullable<number>;
-	$isAiteNode: true;
-	$ref: Nullable<HeadNode>;
+	$isAiteNode: boolean;
+}
 
+interface AiteHTMLNode extends HTMLElement, AiteBaseHTML {
 	firstChild: AiteHTML;
 	parentNode: AiteHTMLNode;
 }
 
-interface AiteHTMLTextNode extends Text {
-	$AiteNodeType: string;
-	$AiteNodeKey: Nullable<number>;
-	$isAiteNode: true;
+interface AiteHTMLTextNode extends Text, AiteBaseHTML {
 	$isTextNode: true;
-	$ref: Nullable<TextNode>;
 }
 
 type AiteHTML = AiteHTMLNode | AiteHTMLTextNode;
@@ -37,4 +37,4 @@ enum ClassAttribute {
 }
 
 export {NodeInsertionDeriction, ClassAttribute};
-export type {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, AiteHTML, StringNumberBool, NodeMap};
+export type {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, AiteHTML, StringNumberBool, NodeMap, AiteBaseHTML};

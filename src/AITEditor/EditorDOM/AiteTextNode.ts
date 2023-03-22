@@ -1,6 +1,7 @@
 import {TextNode} from "../nodes";
 import {Nullable} from "../Interfaces";
 import {AiteHTMLTextNode} from "./interface";
+import {setProps} from "./helpers";
 
 class AiteTextNode {
 	children: string;

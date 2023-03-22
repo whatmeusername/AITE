@@ -1,7 +1,8 @@
-import {unmountNode, getEditorState, BlockNode, remountNode, generateKey, BlockNodeType, mountNode, NodeTypes, BaseBlockNode, AiteNode} from "../index";
+import {unmountNode, BlockNode, remountNode, generateKey, BlockNodeType, mountNode, NodeTypes, BaseBlockNode, AiteNode, AiteHTMLNode} from "../index";
+import {Nullable} from "../Interfaces";
 import {ObservableHeadNode} from "../observers";
 import {isBlockNode, isContentNode} from "../typeguards";
-import {BaseNode, ContentNode, createTextNode, NodeType} from "./index";
+import {BaseNode, ContentNode, NodeType} from "./index";
 import {NodeStatus} from "./interface";
 
 abstract class HeadNode {
@@ -10,6 +11,7 @@ abstract class HeadNode {
 	public type: NodeType;
 	public initData?: {[K: string]: any};
 	public parent: HeadNode | null;
+	public domRef: Nullable<AiteHTMLNode>;
 
 	constructor(type: NodeType, initData?: {[K: string]: any}) {
 		this.status = NodeStatus.UNMOUNTED;
@@ -71,14 +73,10 @@ abstract class HeadNode {
 	}
 
 	public remount(): NodeStatus {
-		const DOMnode = getEditorState().EditorDOMState.getNodeFromMap(this.key);
-		// HERE WE IGNORING SELF TYPE BECAUSE WE DOING DUCK TYPING TO CHECK IF CHILDREN CLASSES HAVE createNodeState
-		if (DOMnode !== undefined) {
-			// if((this as any).collectSameNodes){
-			//     (this as any).collectSameNodes();
-			// }
-			remountNode(this);
-		}
+		// if((this as any).collectSameNodes){
+		//     (this as any).collectSameNodes();
+		// }
+		remountNode(this);
 		return this.status;
 	}
 

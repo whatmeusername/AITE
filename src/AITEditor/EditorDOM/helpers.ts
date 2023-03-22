@@ -2,7 +2,7 @@ import {TextNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 import {AiteNode, createAiteDomNode} from "./AiteNode";
 import {AiteTextNode, createAiteText} from "./AiteTextNode";
-import {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, ClassAttribute, StringNumberBool} from "./interface";
+import {AiteHTML, AiteHTMLNode, AiteHTMLTextNode, AiteNodes, ClassAttribute, StringNumberBool} from "./interface";
 import {isAiteNode, isAiteTextNode, isEventProp, isNotEmpty} from "./utils";
 
 function addEventListeners<T extends HTMLElement>(target: T, type: string, listener: (...args: any[]) => void): T {
@@ -21,7 +21,9 @@ function setStyles<T extends HTMLElement>(target: T, styleObject: CSSStyleDeclar
 
 function setProps<T extends HTMLElement>(target: T, props: {[K: string]: any}): T {
 	Object.entries(props).forEach(([key, value]) => {
-		if (isEventProp(key)) addEventListeners(target, key, value);
+		//@ts-ignore
+		if (key.startsWith("$")) target[key] = value;
+		else if (isEventProp(key)) addEventListeners(target, key, value);
 		else setAttribute(target, key, value);
 	});
 	return target;
@@ -47,23 +49,16 @@ function removeAttribute<T extends HTMLElement>(target: T, attrName: string, val
 	return target;
 }
 
-function createAiteDOMNode(node: AiteNode | AiteTextNode): AiteHTMLNode | AiteHTMLTextNode {
-	if (node.ref) node.ref.status = NodeStatus.MOUNTED;
-
-	if (isAiteTextNode(node)) {
-		return createAiteText(node.children, node.ref as TextNode);
-	} else {
-		return createAiteDomNode(node);
+function createDOMElement(node: AiteTextNode | AiteNode, parentNode?: unknown): AiteHTMLNode | AiteHTMLTextNode {
+	const isText = isAiteTextNode(node);
+	const $node = isText ? createAiteText(node.children, node.ref as TextNode) : createAiteDomNode(node);
+	if (node.ref) {
+		node.ref.status = NodeStatus.MOUNTED;
+		node.ref.domRef = (isText ? parentNode : $node) as AiteHTMLNode;
 	}
-}
 
-function createDOMElement(node: AiteTextNode | AiteNode): AiteHTMLNode | AiteHTMLTextNode {
-	const $node = createAiteDOMNode(node);
 	if (isAiteNode(node) && $node instanceof HTMLElement) {
-		if (node.props) {
-			setProps($node, node.props);
-		}
-		node.children.map(createDOMElement).forEach($node.appendChild.bind($node));
+		node.children.map((node) => createDOMElement(node, $node)).forEach($node.appendChild.bind($node));
 	}
 	return $node;
 }
@@ -79,4 +74,30 @@ function returnSingleDOMNode(CurrentState: AiteNodes | AiteNodes[]): AiteHTMLNod
 	return createDOMElement(CurrentState as AiteNodes) as AiteHTMLNode;
 }
 
-export {addEventListeners, setStyles, setProps, setAttribute, removeAttribute, createAiteDOMNode, returnSingleDOMNode, createDOMElement};
+function PassContext(props: {[K: string]: any}, nodes: AiteNodes[]): AiteNode[];
+function PassContext(props: {[K: string]: any}, nodes: AiteNodes): AiteNode;
+function PassContext(props: {[K: string]: any}, nodes: AiteNodes | AiteNodes[]): AiteNodes | AiteNodes[] {
+	const passProps = (parent: AiteNodes | AiteNodes[]) => {
+		if (parent instanceof Text) return parent;
+
+		(Array.isArray(parent) ? parent : [parent]).forEach((child) => {
+			if (isAiteNode(child)) {
+				if (child.ref) {
+					Object.entries(props).forEach(([key, value]) => {
+						child.props["$" + key] = value;
+					});
+				}
+				if (child.children) passProps(child.children);
+			}
+		});
+		return parent;
+	};
+
+	if (Array.isArray(nodes)) {
+		passProps(nodes);
+		return nodes;
+	}
+	return passProps(nodes);
+}
+
+export {addEventListeners, setStyles, setProps, setAttribute, removeAttribute, returnSingleDOMNode, createDOMElement, PassContext};

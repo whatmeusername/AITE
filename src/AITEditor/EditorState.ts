@@ -2,7 +2,7 @@ import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 
 import {onKeyDownEvent, onKeyUpEvent} from "./commands/EditorEvents";
 
-import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, createEditorRoot} from "./index";
+import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, createEditorRoot, PassContext} from "./index";
 import {ClassVariables} from "./Interfaces";
 import {ContentNode} from "./nodes";
 import {EditorWarning} from "./typeguards";
@@ -156,11 +156,11 @@ class EditorState {
 
 	render(rootElement?: HTMLElement): HTMLElement {
 		if (!rootElement) {
-			const node = returnSingleDOMNode(createEditorRoot(this));
+			const node = returnSingleDOMNode(PassContext({editor: this}, createEditorRoot(this)));
 			this.EditorDOMState.setDOMElement(node);
 			return node;
 		} else {
-			rootElement.replaceChildren(returnSingleDOMNode(createEditorRoot(this)));
+			rootElement.replaceChildren(returnSingleDOMNode(PassContext({editor: this}, createEditorRoot(this))));
 			this.EditorDOMState.setDOMElement(rootElement);
 			return rootElement;
 		}

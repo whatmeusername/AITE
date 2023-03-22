@@ -1,21 +1,18 @@
 import {HeadNode} from "../nodes";
-import {AiteHTML} from "./interface";
-import {createDOMElement, getEditorState, returnSingleDOMNode} from "../index";
+import {createDOMElement, PassContext, returnSingleDOMNode} from "../index";
 
 function remountNode(node: HeadNode, childOnly: boolean = true): HeadNode {
-	const nodeState = (node as any)?.createNodeState();
-	if (nodeState) {
-		const currentDOMElement: AiteHTML | undefined = getEditorState().EditorDOMState.getNodeFromMap(node.key);
-		if (currentDOMElement) {
-			const newNodeState = (node as any).createNodeState();
+	if (node?.createNodeState) {
+		if (node.domRef && !(node.domRef instanceof Text)) {
+			const newNodeState = PassContext({editor: node.domRef.$editor}, node.createNodeState());
 			if (newNodeState === undefined) {
 				// TODO: REPLACE WITH ERROR FUNCTION
 				throw new Error("");
 			} else if (childOnly === false) {
-				currentDOMElement.parentNode?.replaceChild(createDOMElement(newNodeState), currentDOMElement);
+				node.domRef.parentNode?.replaceChild(createDOMElement(newNodeState), node.domRef);
 			} else if (childOnly === true && newNodeState.children) {
 				const newHTMLNode = returnSingleDOMNode(newNodeState.children);
-				currentDOMElement.replaceChildren.apply(currentDOMElement, Array.isArray(newHTMLNode) ? newHTMLNode : [newHTMLNode]);
+				node.domRef.replaceChildren.apply(node.domRef, Array.isArray(newHTMLNode) ? newHTMLNode : [newHTMLNode]);
 			} else {
 				// TODO: REPLACE WITH ERROR FUNCTION
 				throw new Error("");

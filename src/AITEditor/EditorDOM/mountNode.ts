@@ -1,22 +1,21 @@
 import {BaseBlockNode} from "../nodes/BlockNode";
-import {getEditorState} from "../EditorState";
 import {NodeInsertionDeriction} from "./interface";
 import {NodeStatus} from "../nodes/interface";
 import {BaseNode} from "../nodes";
-import {createDOMElement} from "./helpers";
+import {createDOMElement, PassContext} from "./helpers";
 
 function mountNode(node: BaseNode | BaseBlockNode): void {
 	const prevSibling = node.previousSibling();
 	const siblingNode = prevSibling ? prevSibling : node.nextSibling();
 	const insertDirection: NodeInsertionDeriction = prevSibling ? NodeInsertionDeriction.AFTER : NodeInsertionDeriction.BEFORE;
 
-	if (siblingNode) {
-		const siblingDOMElement = getEditorState().EditorDOMState.getNodeFromMap(siblingNode.key);
-		if (siblingDOMElement && node.status === NodeStatus.MOUNTED) {
+	if (siblingNode && siblingNode.domRef?.$editor) {
+		if (siblingNode.domRef && node.status === NodeStatus.MOUNTED) {
+			const nodeState = PassContext({editor: siblingNode.domRef.$editor}, node.createNodeState());
 			if (insertDirection === NodeInsertionDeriction.AFTER) {
-				siblingDOMElement.parentNode?.insertBefore(createDOMElement(node.createNodeState()), siblingDOMElement.nextSibling);
+				siblingNode.domRef.parentNode?.insertBefore(createDOMElement(nodeState), siblingNode.domRef.nextSibling);
 			} else if (insertDirection === NodeInsertionDeriction.BEFORE) {
-				siblingDOMElement.parentNode?.insertBefore(createDOMElement(node.createNodeState()), siblingDOMElement);
+				siblingNode.domRef.parentNode?.insertBefore(createDOMElement(nodeState), siblingNode.domRef);
 			}
 		}
 	} else {
