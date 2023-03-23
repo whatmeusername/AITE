@@ -2,7 +2,7 @@ import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 
 import {onKeyDownEvent, onKeyUpEvent} from "./commands/EditorEvents";
 
-import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, createEditorRoot, PassContext} from "./index";
+import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, PassContext, createEditorRoot} from "./index";
 import {ClassVariables} from "./Interfaces";
 import {ContentNode} from "./nodes";
 import {EditorWarning} from "./typeguards";
@@ -15,10 +15,6 @@ let ActiveEditorState: EditorState;
 
 function getEditorState(): EditorState {
 	return ActiveEditorState;
-}
-
-function getSelectionState(): SelectionState {
-	return ActiveEditorState.selectionState;
 }
 
 function getEditorEventStatus(): boolean {
@@ -167,4 +163,4 @@ class EditorState {
 	}
 }
 
-export {isNodeActive, createEmptyEditorState, getEditorState, getSelectionState, getEditorEventStatus, updateActiveEditor, EditorState};
+export {isNodeActive, createEmptyEditorState, getEditorState, getEditorEventStatus, updateActiveEditor, EditorState};

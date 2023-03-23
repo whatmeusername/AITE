@@ -1,4 +1,4 @@
-import {AiteHTMLNode, BaseNode, getSelectionState} from "./index";
+import {AiteHTMLNode, BaseNode} from "./index";
 
 import defaultInlineStyles from "./defaultStyles/defaultInlineStyles";
 import {StyleData} from "./Interfaces";
@@ -44,7 +44,8 @@ function DiffNodeState(previousState: {[K: string]: any}, nextState: {[K: string
 function MergeSameNodes<T extends BaseNode[]>(children: T): T {
 	if (children.length <= 1) return children;
 
-	const selection = getSelectionState();
+	const selection = children[0].domRef?.$editor?.selectionState;
+	if (!selection) return children;
 	const newChildren: T = [] as unknown as T;
 
 	for (let i = 0; i < children.length; i++) {
