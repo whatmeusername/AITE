@@ -1,5 +1,5 @@
 import {EDITOR_PRIORITY} from "../ConstVariables";
-import {getEditorState} from "../EditorState";
+import {EditorState} from "../EditorState";
 import {EditorWarning, KeyCodeValidator} from "../typeguards";
 
 import type {
@@ -112,8 +112,10 @@ class EditorCommands {
 	removeHandles: {[K: string]: (...args: any) => void};
 	rootCommands: rootCommandStorage;
 	currentEventPriority: null | number;
+	private EditorState: EditorState;
 
-	constructor() {
+	constructor(EditorState: EditorState) {
+		this.EditorState = EditorState;
 		this.commandStorage = {};
 		this.rootCommands = {
 			SELECTION_COMMAND: undefined,
@@ -126,12 +128,12 @@ class EditorCommands {
 
 	listenRootEvent(): void {
 		if (this.removeHandles.SELECTION_COMMAND === undefined) {
-			const SelectionEvent = () => getEditorState().selectionState.getCaretPosition();
+			const SelectionEvent = () => this.EditorState.selectionState.getCaretPosition();
 			document.addEventListener("selectionchange", SelectionEvent);
 			this.removeHandles["selectionchange"] = () => document.removeEventListener("selectionchange", SelectionEvent);
 		}
 
-		const EditorDOM = getEditorState().EditorDOMState.getRootHTMLNode();
+		const EditorDOM = this.EditorState.EditorDOMState.getRootHTMLNode();
 		Object.entries(this.rootCommands).map(([eventname, event]) => {
 			if (event !== undefined) {
 				let eventData: {eventname: undefined | string; event: undefined | ((...args: any) => void)} = {eventname: undefined, event: undefined};
@@ -191,24 +193,19 @@ class EditorCommands {
 		const EventPriority = EDITOR_PRIORITY[Command.commandPriority];
 
 		if (Command !== undefined) {
-			const editorState = getEditorState();
-			if (
-				(this.currentEventPriority === null || EventPriority <= this.currentEventPriority) &&
-				editorState !== undefined &&
-				editorState.editorEventsActive === true
-			) {
+			if ((this.currentEventPriority === null || EventPriority <= this.currentEventPriority) && this.EditorState.editorEventsActive === true) {
 				const passCaretSet = Command.commandPriority === "HIGH_IGNORECARET_COMMAND" || Command.commandPriority === "LOW_IGNORECARET_COMMAND";
 				this.currentEventPriority = EventPriority;
 
 				if (passCaretSet === false) {
-					editorState?.setPreviousSelection();
+					this.EditorState?.setPreviousSelection();
 				}
 
 				Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
 
 				if (passCaretSet === false) {
-					if (editorState !== undefined) {
-						editorState.selectionState.setCaretPosition();
+					if (this.EditorState !== undefined) {
+						this.EditorState.selectionState.setCaretPosition();
 					}
 				}
 				this.currentEventPriority = null;

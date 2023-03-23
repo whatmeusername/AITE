@@ -1,6 +1,6 @@
 import type {ClassVariables, Nullable} from "../Interfaces";
 import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
-import {AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData, NodeInsertionDeriction, getEditorState} from "../index";
+import {AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData, NodeInsertionDeriction} from "../index";
 import {BaseNode, BreakLine, ContentNode, createBreakLine, HeadNode, TextNode} from "../nodes/index";
 import {getSelection, isSelectionBackward} from "./utils";
 import {ObservableSelection} from "../observers";

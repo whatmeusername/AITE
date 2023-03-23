@@ -4,7 +4,7 @@ import {BaseNode} from "../../nodes/index";
 
 //eslint-disable-next-line
 import BlockResizeElemets from "./imageResizeElements";
-import {AiteNode, isNodeActive} from "../../index";
+import {AiteNode} from "../../index";
 
 export type floatType = "right" | "left" | "none";
 
@@ -152,7 +152,7 @@ class imageNode extends BaseNode {
 	}
 
 	createNodeState(): AiteNode {
-		const isActive = isNodeActive(this.key);
+		const isActive = false;
 
 		const imageNode = new AiteNode(
 			this,

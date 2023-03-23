@@ -1,7 +1,7 @@
 import React from "react";
 import type {imageNode} from "./imageNode";
 
-import {createAiteNode, AiteNode, getEditorState} from "../../index";
+import {createAiteNode, AiteNode} from "../../index";
 
 export default function CreateBlockResizeElements(node: imageNode) {
 	let StartX = 0;
@@ -14,6 +14,8 @@ export default function CreateBlockResizeElements(node: imageNode) {
 	let CurrentDragButtonClass: null | DOMTokenList = null;
 	let CurrentImageNode: null | HTMLImageElement = null;
 	let imageWrapperNode: null | HTMLSpanElement = null;
+
+	const EditorState = node.domRef?.$editor;
 
 	const events = {
 		draggable: false,
@@ -36,7 +38,7 @@ export default function CreateBlockResizeElements(node: imageNode) {
 				node.setWidth(parseInt(CurrentImageNode.style.width));
 			}
 		}
-		getEditorState().editorEventsActive = true;
+		if (EditorState) EditorState.editorEventsActive = true;
 	}
 
 	function DragStart(event: React.MouseEvent): void {
@@ -55,7 +57,9 @@ export default function CreateBlockResizeElements(node: imageNode) {
 
 			document.addEventListener("mouseup", stopResizing);
 			document.addEventListener("mousemove", SizeDrag);
-			setTimeout(() => (getEditorState().editorEventsActive = false), 0);
+			setTimeout(() => {
+				if (EditorState) EditorState.editorEventsActive = false;
+			}, 0);
 		}
 	}
 

@@ -11,84 +11,65 @@ interface editorConf {
 	ContentNode: ContentNode;
 }
 
-let ActiveEditorState: EditorState;
-
-function getEditorState(): EditorState {
-	return ActiveEditorState;
-}
-
-function getEditorEventStatus(): boolean {
-	return ActiveEditorState.editorEventsActive;
-}
-
-function isNodeActive(key: number | undefined): boolean {
-	if (!key) return false;
-	return getEditorState().EditorActiveElementState?.activeNodeKey === key;
-}
-
-function updateActiveEditor(EditorState: EditorState) {
-	ActiveEditorState = EditorState;
-}
-
 function createEmptyEditorState(initData?: editorConf) {
-	ActiveEditorState = new EditorState(initData);
+	const editorState = new EditorState(initData);
 
-	ActiveEditorState.EditorCommands.registerCommand("KEYDOWN_COMMAND", "HIGH_IGNORECARET_COMMAND", (event) => {
-		onKeyDownEvent(event);
+	editorState.EditorCommands.registerCommand("KEYDOWN_COMMAND", "HIGH_IGNORECARET_COMMAND", (event) => {
+		onKeyDownEvent(event, editorState);
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("KEYUP_COMMAND", "HIGH_IGNORECARET_COMMAND", (event) => {
-		onKeyUpEvent(event);
+	editorState.EditorCommands.registerCommand("KEYUP_COMMAND", "HIGH_IGNORECARET_COMMAND", (event) => {
+		onKeyUpEvent(event, editorState);
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("LETTER_INSERT_COMMAND", "HIGH_EDITOR_COMMAND", (event) => {
-		ActiveEditorState.selectionState.insertLetter(event);
+	editorState.EditorCommands.registerCommand("LETTER_INSERT_COMMAND", "HIGH_EDITOR_COMMAND", (event) => {
+		editorState.selectionState.insertLetter(event);
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("LETTER_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
-		ActiveEditorState.selectionState.removeLetter();
+	editorState.EditorCommands.registerCommand("LETTER_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
+		editorState.selectionState.removeLetter();
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("FORWARD_LETTER_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
+	editorState.EditorCommands.registerCommand("FORWARD_LETTER_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "character", "forward");
-		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.selectionState.removeLetter();
-		ActiveEditorState.replaceActiveSelectionWithPrevious();
+		editorState.selectionState.getCaretPosition();
+		editorState.selectionState.removeLetter();
+		editorState.replaceActiveSelectionWithPrevious();
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("ENTER_COMMAND", "HIGH_EDITOR_COMMAND", () => {
-		ActiveEditorState.selectionState.insertEnter();
+	editorState.EditorCommands.registerCommand("ENTER_COMMAND", "HIGH_EDITOR_COMMAND", () => {
+		editorState.selectionState.insertEnter();
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("WORD_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
+	editorState.EditorCommands.registerCommand("WORD_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "word", "backward");
-		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.selectionState.removeLetter();
-		if (ActiveEditorState.selectionState.isOffsetOnStart() === false) {
-			ActiveEditorState.selectionState.moveSelectionForward();
+		editorState.selectionState.getCaretPosition();
+		editorState.selectionState.removeLetter();
+		if (editorState.selectionState.isOffsetOnStart() === false) {
+			editorState.selectionState.moveSelectionForward();
 		}
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("FORWARD_WORD_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
+	editorState.EditorCommands.registerCommand("FORWARD_WORD_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "word", "forward");
-		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.selectionState.removeLetter();
-		ActiveEditorState.replaceActiveSelectionWithPrevious();
+		editorState.selectionState.getCaretPosition();
+		editorState.selectionState.removeLetter();
+		editorState.replaceActiveSelectionWithPrevious();
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("FORWARD_LINE_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
+	editorState.EditorCommands.registerCommand("FORWARD_LINE_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "lineboundary", "forward");
-		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.selectionState.removeLetter();
-		ActiveEditorState.replaceActiveSelectionWithPrevious();
+		editorState.selectionState.getCaretPosition();
+		editorState.selectionState.removeLetter();
+		editorState.replaceActiveSelectionWithPrevious();
 	});
 
-	ActiveEditorState.EditorCommands.registerCommand("LINE_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
+	editorState.EditorCommands.registerCommand("LINE_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		getMutatedSelection("extend", "lineboundary", "backward");
-		ActiveEditorState.selectionState.getCaretPosition();
-		ActiveEditorState.selectionState.removeLetter();
-		if (ActiveEditorState.selectionState.isOffsetOnStart() === false) {
-			ActiveEditorState.selectionState.moveSelectionForward();
+		editorState.selectionState.getCaretPosition();
+		editorState.selectionState.removeLetter();
+		if (editorState.selectionState.isOffsetOnStart() === false) {
+			editorState.selectionState.moveSelectionForward();
 		}
 	});
 
@@ -96,9 +77,9 @@ function createEmptyEditorState(initData?: editorConf) {
 	// 	ActiveEditorState.EditorActiveElementState?.handleElementClick(event),
 	// );
 
-	ActiveEditorState.EditorCommands.listenRootEvent();
+	editorState.EditorCommands.listenRootEvent();
 
-	return ActiveEditorState;
+	return editorState;
 }
 
 class EditorState {
@@ -117,11 +98,9 @@ class EditorState {
 	__previousSelection: ClassVariables<SelectionState> | undefined;
 
 	constructor(initData?: editorConf) {
-		updateActiveEditor(this);
-
 		this.contentNode = initData?.ContentNode ?? new ContentNode();
 		this.selectionState = new SelectionState();
-		this.EditorCommands = new EditorCommands();
+		this.EditorCommands = new EditorCommands(this);
 		this.EditorActiveElementState = new ActiveElementState();
 
 		this.focus = false;
@@ -163,4 +142,4 @@ class EditorState {
 	}
 }
 
-export {isNodeActive, createEmptyEditorState, getEditorState, getEditorEventStatus, updateActiveEditor, EditorState};
+export {createEmptyEditorState, EditorState};

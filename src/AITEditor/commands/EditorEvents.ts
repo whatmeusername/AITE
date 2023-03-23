@@ -1,24 +1,7 @@
-import {getEditorState} from "../EditorState";
+import {EditorState} from "../EditorState";
 import {isApple, isArrow, isBackwardRemoveLine, isBackwardRemoveWord, isForwardBackspace, isForwardRemoveLine, isForwardRemoveWord} from "../typeguards";
 
-function onBlurDecorator(callback?: (...args: any) => void): void {
-	const EditorState = getEditorState();
-	if (EditorState?.focus === true) {
-		EditorState.focus = false;
-		if (callback) callback();
-	}
-}
-
-function onFocusDecorator(callback?: (...args: any) => void): void {
-	const EditorState = getEditorState();
-	if (EditorState?.focus === false) {
-		EditorState.focus = true;
-		if (callback) callback();
-	}
-}
-
-function onKeyDownEvent(event: KeyboardEvent): void {
-	const EditorState = getEditorState();
+function onKeyDownEvent(event: KeyboardEvent, EditorState: EditorState): void {
 	if (EditorState !== undefined) {
 		const Key = event.key;
 		const isArrowKey = isArrow(event);
@@ -60,8 +43,7 @@ function onKeyDownEvent(event: KeyboardEvent): void {
 	} else event.preventDefault();
 }
 
-function onKeyUpEvent(event: KeyboardEvent): void {
-	const EditorState = getEditorState();
+function onKeyUpEvent(event: KeyboardEvent, EditorState: EditorState): void {
 	if (EditorState !== undefined) {
 		const isArrowKey = isArrow(event);
 
@@ -75,4 +57,4 @@ function onKeyUpEvent(event: KeyboardEvent): void {
 	} else event.preventDefault();
 }
 
-export {onBlurDecorator, onFocusDecorator, onKeyDownEvent, onKeyUpEvent};
+export {onKeyDownEvent, onKeyUpEvent};
