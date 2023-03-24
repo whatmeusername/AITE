@@ -67,11 +67,9 @@ function returnSingleDOMNode(CurrentState: AiteNodes): AiteHTMLNode;
 function returnSingleDOMNode(CurrentState: AiteNodes[]): (AiteHTMLNode | Text)[];
 function returnSingleDOMNode(CurrentState: AiteNodes | AiteNodes[]): AiteHTMLNode | (AiteHTMLNode | Text)[] {
 	if (Array.isArray(CurrentState)) {
-		const childrens: Array<AiteHTMLNode | Text> = [];
-		CurrentState.map(createDOMElement).forEach(($node) => childrens.push($node));
-		return childrens;
+		return CurrentState.map(createDOMElement);
 	}
-	return createDOMElement(CurrentState as AiteNodes) as AiteHTMLNode;
+	return createDOMElement(CurrentState) as AiteHTMLNode;
 }
 
 function PassContext(props: {[K: string]: any}, nodes: AiteNodes[]): AiteNode[];
@@ -79,7 +77,6 @@ function PassContext(props: {[K: string]: any}, nodes: AiteNodes): AiteNode;
 function PassContext(props: {[K: string]: any}, nodes: AiteNodes | AiteNodes[]): AiteNodes | AiteNodes[] {
 	const passProps = (parent: AiteNodes | AiteNodes[]) => {
 		if (parent instanceof Text) return parent;
-
 		(Array.isArray(parent) ? parent : [parent]).forEach((child) => {
 			if (isAiteNode(child)) {
 				if (child.ref) {

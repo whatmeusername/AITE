@@ -1,4 +1,5 @@
 import {useEffect, useRef} from "react";
+import {createTextNode, createBreakLine, createLinkNode, createHorizontalRule, createBlockNode} from "./index";
 
 import defaultBlocks from "./defaultStyles/defaultBlocks";
 
@@ -72,7 +73,39 @@ function ReactAiteEditor(): JSX.Element {
 	const EditorState = createEmptyEditorState();
 
 	useEffect(() => {
-		EditorState.render(EditorRef.current);
+		EditorState.setInitialLayout(
+			createBlockNode({blockWrapper: "header-two"}).append(
+				createTextNode("Программи́рование процесс"),
+				createTextNode(" создания"),
+				createTextNode(" чего то там"),
+			),
+			createHorizontalRule(),
+			createHorizontalRule(),
+			createHorizontalRule(),
+			createBreakLine(),
+			createBlockNode({blockWrapper: "standart"}).append(
+				createTextNode(
+					"Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.",
+					["ITALIC", "UNDERLINE", "BOLD"],
+				),
+				createTextNode("some amazing text number 1 ", ["ITALIC", "UNDERLINE", "BOLD"]),
+				createTextNode("some amazing text number 2", ["ITALIC", "UNDERLINE", "BOLD"]),
+			),
+			createBlockNode({blockWrapper: "header-one"}).append(
+				createLinkNode("https://yandex.ru").append(
+					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
+					createTextNode("середина ", []),
+					createTextNode("конец", ["UNDERLINE"]),
+				),
+				createTextNode("Языки программирования", ["STRIKETHROUGH", "UNDERLINE"]),
+				createLinkNode("https://yandex.ru").append(
+					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
+					createTextNode("середина ", []),
+					createTextNode("конец", ["UNDERLINE"]),
+				),
+				createTextNode(" текст после ссылки", ["ITALIC", "UNDERLINE"]),
+			),
+		).render(EditorRef.current);
 
 		// EditorRef.current.addEventListener("mousedown", (e) => {
 		// 	if (getEditorEventStatus() === false) e.preventDefault();

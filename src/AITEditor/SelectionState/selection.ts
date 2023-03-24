@@ -517,17 +517,15 @@ class SelectionState {
 
 		const handleOffsetStart = (): void => {
 			if (!blockNode) return;
-			else if (anchorBlock.isBreakLine) {
-				this.moveSelectionToPreviousSibling(anchorBlock);
-				anchorBlock.remove();
-				return;
-			}
 
 			const previousBlock = blockNode?.previousSibling();
 			if (!previousBlock) return;
 
 			if (isHorizontalRuleNode(previousBlock) || isBreakLine(previousBlock)) {
 				previousBlock.remove();
+			} else if (anchorBlock.isBreakLine) {
+				this.moveSelectionToPreviousSibling(anchorBlock);
+				anchorBlock.remove();
 			} else if (isBlockNode(previousBlock)) {
 				if (contentNode) {
 					contentNode.MergeBlockNode(previousBlock, blockNode);
@@ -615,8 +613,8 @@ class SelectionState {
 				}
 			}
 		} else if (this.isCollapsed) {
-			const anchorParent = (this.anchorNode as BaseNode).parent as BlockNode;
-			const focusParent = (this.anchorNode as BaseNode).parent as BlockNode;
+			const anchorParent = this.anchorNode.parent as BlockNode;
+			const focusParent = this.anchorNode.parent as BlockNode;
 			const {contentNode, index, blockNode} = this.anchorNode.getContentNode();
 			if (blockNode) {
 				const nodesAfterPointer = anchorParent.getNodesBetween(this.anchorNode.key, -1, false, false, undefined, true);

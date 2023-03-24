@@ -11,7 +11,6 @@ import {isDefined, isLeafNode} from "../typeguards";
 
 type NodeTypes = BaseNode | LeafNode;
 type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE;
-type BlockNodeType = BlockNode | HorizontalRuleNode;
 
 type BlockNodeVariables = Omit<ClassVariables<BlockNode>, "children">;
 
@@ -227,33 +226,6 @@ class BlockNode extends BaseBlockNode {
 	}
 }
 
-class HorizontalRuleNode extends BaseBlockNode {
-	constructor() {
-		super(HORIZONTAL_RULE_BLOCK_TYPE, []);
-	}
+export {createBlockNode, BlockNode, BaseBlockNode};
 
-	public createNodeState(): AiteNode {
-		const className = "AITE_editor_horizontal-rule";
-		const props = {
-			class: className,
-		};
-
-		return createAiteNode(this, "div", {contenteditable: false}, [createAiteNode(null, "hr", props, [])]);
-	}
-
-	public get length(): number {
-		return -1;
-	}
-
-	public clone(): HorizontalRuleNode {
-		return new HorizontalRuleNode();
-	}
-}
-
-function createHorizontalRule() {
-	return new HorizontalRuleNode();
-}
-
-export {createBlockNode, createHorizontalRule, BlockNode, HorizontalRuleNode, BaseBlockNode};
-
-export type {NodeTypes, BlockTypes, BlockNodeType};
+export type {NodeTypes, BlockTypes};

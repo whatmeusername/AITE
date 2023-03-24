@@ -35,7 +35,7 @@ class TextNode extends BaseNode {
 
 	public createNodeState(): AiteNode {
 		const props = {
-			className: this.styles.map((style) => style.class),
+			className: this.styles.map((style) => style.class).join(" "),
 		};
 		return createAiteNode(this, "span", props, [this.content]);
 	}

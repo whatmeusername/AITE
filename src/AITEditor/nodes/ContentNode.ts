@@ -1,51 +1,17 @@
-import {TextNode, HeadNode, createTextNode} from "./index";
+import {TextNode, HeadNode} from "./index";
 
-import {createBlockNode} from "./BlockNode";
-
-import {BlockNodeType, BlockNode, NodeInsertionDeriction, createAiteNode, AiteNode} from "../index";
+import {BaseBlockNode, BlockNode, NodeInsertionDeriction, createAiteNode, AiteNode} from "../index";
 import {ObservableChildren, ObservableChildrenProperty} from "../observers";
 import {NodeStatus} from "./interface";
 import {isBlockNode, isLeafNode} from "../typeguards";
 
 class ContentNode extends HeadNode {
-	children: BlockNodeType[];
+	children: BaseBlockNode[];
 
 	constructor() {
 		super("content");
 
-		this.children = ObservableChildren(this, [
-			createBlockNode({blockWrapper: "header-two"}).append(
-				createTextNode("Программи́рование процесс"),
-				createTextNode(" создания"),
-				createTextNode(" чего то там"),
-			),
-			// createHorizontalRule(),
-			// createHorizontalRule(),
-			// createHorizontalRule(),
-			// createBreakLine(),
-			// createBlockNode({blockWrapper: "standart"}).append(
-			// 	createTextNode(
-			// 		"Программи́рование — процесс создания компьютерных программ. По выражению одного из основателей языков программирования Никлауса Вирта «Программы = алгоритмы + структуры данных». Программирование основывается на использовании языков программирования, на которых записываются исходные тексты программ.",
-			// 		["ITALIC"],
-			// 	),
-			// 	createTextNode("some amazing text number 1 ", ["ITALIC", "BOLD"]),
-			// 	createTextNode("some amazing text number 2", ["ITALIC", "UNDERLINE", "BOLD"]),
-			// ),
-			// createBlockNode({blockWrapper: "header-one"}).append(
-			// 	createLinkNode("https://yandex.ru").append(
-			// 		createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
-			// 		createTextNode("середина ", []),
-			// 		createTextNode("конец", ["UNDERLINE"]),
-			// 	),
-			// 	createTextNode("Языки программирования", ["STRIKETHROUGH", "UNDERLINE"]),
-			// 	createLinkNode("https://yandex.ru").append(
-			// 		createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
-			// 		createTextNode("середина ", []),
-			// 		createTextNode("конец", ["UNDERLINE"]),
-			// 	),
-			// 	createTextNode(" текст после ссылки", ["ITALIC", "UNDERLINE"]),
-			// ),
-		]);
+		this.children = ObservableChildren(this, []);
 		return ObservableChildrenProperty(this).value();
 	}
 
@@ -57,19 +23,19 @@ class ContentNode extends HeadNode {
 		return this.children.length;
 	}
 
-	public append(...nodes: any[]): this {
+	public append(...nodes: BaseBlockNode[]): this {
 		this.children.push(...nodes);
 		return this;
 	}
 
-	public insertNode(node: BlockNodeType, index: number, direction: NodeInsertionDeriction = NodeInsertionDeriction.BEFORE): void {
+	public insertNode(node: BaseBlockNode, index: number, direction: NodeInsertionDeriction = NodeInsertionDeriction.BEFORE): void {
 		if (index < 0) return;
 
 		index = direction === NodeInsertionDeriction.AFTER ? index + 1 : index;
 		this.children = [...this.children.slice(0, index), node, ...this.children.slice(index)];
 	}
 
-	public insertNodeBetween(block: BlockNodeType, start: number, end?: number): void {
+	public insertNodeBetween(block: BaseBlockNode, start: number, end?: number): void {
 		if (end !== undefined) {
 			this.children = [...this.children.slice(0, start), block, ...this.children.slice(end ?? start)];
 		} else {
@@ -94,9 +60,9 @@ class ContentNode extends HeadNode {
 	 * @returns void
 	 */
 
-	public getBlockNodesBetween(startNode: BlockNodeType, endNode: BlockNodeType, returnAllIfNotFound?: boolean): BlockNodeType[] {
+	public getBlockNodesBetween(startNode: BaseBlockNode, endNode: BaseBlockNode, returnAllIfNotFound?: boolean): BaseBlockNode[] {
 		let startFound = false;
-		const nodes: BlockNodeType[] = [];
+		const nodes: BaseBlockNode[] = [];
 
 		const startKey = isLeafNode(startNode) ? (startNode.parent as BlockNode).key : startNode.key;
 		const endKey = isLeafNode(endNode) ? (endNode.parent as BlockNode).key : endNode.key;

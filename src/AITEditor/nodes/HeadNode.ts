@@ -1,4 +1,4 @@
-import {unmountNode, BlockNode, remountNode, generateKey, BlockNodeType, mountNode, NodeTypes, BaseBlockNode, AiteNode, AiteHTMLNode} from "../index";
+import {unmountNode, BlockNode, remountNode, generateKey, mountNode, NodeTypes, BaseBlockNode, AiteNode, AiteHTMLNode} from "../index";
 import {Nullable} from "../Interfaces";
 import {ObservableHeadNode} from "../observers";
 import {isBlockNode, isContentNode} from "../typeguards";
@@ -31,7 +31,7 @@ abstract class HeadNode {
 		index: number;
 		parentBlockNode: BlockNode | undefined;
 	} {
-		let c: NodeTypes | BlockNodeType | BaseNode = this as any;
+		let c: NodeTypes | BaseBlockNode | BaseNode = this as any;
 		let parentBlockNode;
 		while (c.parent) {
 			if (isBlockNode(c) && !parentBlockNode) {

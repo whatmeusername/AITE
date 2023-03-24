@@ -1,4 +1,4 @@
-import {BlockNode, BlockNodeType, NodeTypes} from "../nodes/BlockNode";
+import {BaseBlockNode, BlockNode, NodeTypes} from "../nodes/BlockNode";
 
 import {ContentNode} from "../nodes";
 import {AiteNode} from "./AiteNode";
@@ -32,18 +32,16 @@ function isNotEmpty(value: any): boolean {
 function filterNode(this: BlockNode, ...nodes: NodeTypes[]): NodeTypes[] {
 	const res: NodeTypes[] = [];
 	for (let i = 0; i < nodes.length; i++) {
-		const node = nodes[i];
-		res.push(node);
+		res.push(nodes[i]);
 	}
 	return res;
 }
 
-function filterBlock(this: ContentNode, ...nodes: BlockNodeType[]): BlockNodeType[] {
-	const res: BlockNodeType[] = [];
+function filterBlock(this: ContentNode, ...nodes: BaseBlockNode[]): BaseBlockNode[] {
+	const res: BaseBlockNode[] = [];
 	for (let i = 0; i < nodes.length; i++) {
-		const node = nodes[i];
-		if (isBaseBlockNode(node)) {
-			res.push(node);
+		if (isBaseBlockNode(nodes[i])) {
+			res.push(nodes[i]);
 		}
 	}
 	return res;

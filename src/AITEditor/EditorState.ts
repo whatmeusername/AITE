@@ -4,7 +4,7 @@ import {onKeyDownEvent, onKeyUpEvent} from "./commands/EditorEvents";
 
 import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, PassContext, createEditorRoot} from "./index";
 import {ClassVariables} from "./Interfaces";
-import {ContentNode} from "./nodes";
+import {BaseBlockNode, ContentNode} from "./nodes";
 import {EditorWarning} from "./typeguards";
 
 interface editorConf {
@@ -127,6 +127,11 @@ class EditorState {
 	}
 	onEditorDOMChange(): void {
 		// TODO:
+	}
+
+	setInitialLayout(...nodes: BaseBlockNode[]): EditorState {
+		this.contentNode.children = nodes;
+		return this;
 	}
 
 	render(rootElement?: HTMLElement): HTMLElement {
