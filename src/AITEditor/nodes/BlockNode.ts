@@ -26,7 +26,7 @@ abstract class BaseBlockNode extends HeadNode {
 	parent: ContentNode | BlockNode | null;
 
 	constructor(blockType?: BlockTypes, blockInlineStyles?: Array<string>, type?: NodeType, initData?: {[K: string]: any}) {
-		super(type ?? "block", initData);
+		super(false, type ?? "block", initData);
 		this.blockType = blockType ?? STANDART_BLOCK_TYPE;
 		this.blockInlineStyles = blockInlineStyles ?? [];
 		this.parent = null;

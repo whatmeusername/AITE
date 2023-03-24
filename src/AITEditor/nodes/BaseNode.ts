@@ -24,8 +24,8 @@ type DOMattr = {
 abstract class BaseNode extends HeadNode {
 	public parent: BlockNode | BaseNode | null;
 
-	constructor(type: NodeType, initData?: {[K: string]: any}) {
-		super(type, initData);
+	constructor(focusalbe: boolean, type: NodeType, initData?: {[K: string]: any}) {
+		super(focusalbe, type, initData);
 		this.parent = null;
 	}
 }

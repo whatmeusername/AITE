@@ -9,7 +9,7 @@ class ContentNode extends HeadNode {
 	children: BaseBlockNode[];
 
 	constructor() {
-		super("content");
+		super(false, "content");
 
 		this.children = ObservableChildren(this, []);
 		return ObservableChildrenProperty(this).value();

@@ -12,13 +12,15 @@ abstract class HeadNode {
 	public initData?: {[K: string]: any};
 	public parent: HeadNode | null;
 	public domRef: Nullable<AiteHTMLNode>;
+	public isFocusable: boolean;
 
-	constructor(type: NodeType, initData?: {[K: string]: any}) {
+	constructor(focusable: boolean, type: NodeType, initData?: {[K: string]: any}) {
 		this.status = NodeStatus.UNMOUNTED;
 		this.key = generateKey();
 		this.type = type;
 		this.initData = initData;
 		this.parent = null;
+		this.isFocusable = focusable;
 
 		return ObservableHeadNode(this).value();
 	}

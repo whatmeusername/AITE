@@ -18,7 +18,7 @@ class TextNode extends BaseNode {
 	private styles: StyleData[];
 
 	constructor(initData?: TextNodeAttr) {
-		super(initData?.type ?? "text", initData);
+		super(true, initData?.type ?? "text", initData);
 		this.content = initData?.plainText ?? "";
 		this.styles = initData?.styles ? initData.styles.map((style) => getStyleData(style)) : [];
 

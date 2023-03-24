@@ -61,7 +61,7 @@ class imageNode extends BaseNode {
 	ContentNode: ContentNode | undefined;
 
 	constructor(imageNodeConf: imageConf) {
-		super("element", imageNodeConf);
+		super(true, "element", imageNodeConf);
 		this.imageConf = {
 			src: imageNodeConf.src,
 			alt: imageNodeConf.alt ?? "",

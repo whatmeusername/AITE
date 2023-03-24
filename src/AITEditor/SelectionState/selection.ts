@@ -5,7 +5,7 @@ import {BaseNode, BreakLine, ContentNode, createBreakLine, HeadNode, TextNode} f
 import {getSelection, isSelectionBackward} from "./utils";
 import {ObservableSelection} from "../observers";
 import {NodeStatus} from "../nodes/interface";
-import {isBlockNode, isHorizontalRuleNode, isLeafNode, isTextNode} from "../typeguards";
+import {isBlockNode, isContentNode, isHorizontalRuleNode, isLeafNode, isTextNode} from "../typeguards";
 
 // TEMPERARY
 function isBreakLine(node: any): node is BreakLine {
@@ -170,53 +170,42 @@ class SelectionState {
 	 * @param  {ContentNode} ContentNode - ContentNode where next node will be searched
 	 * @returns SelectionState - Self return
 	 */
-	public moveSelectionToNextSibling(startNode?: BlockNode): SelectionState {
-		let anchorBlock: BlockNode = startNode ?? ((this.anchorNode as BaseNode).parent as BlockNode);
-		let nextNode;
-		let shouldSearch = false;
-
-		let currentNode = anchorBlock.getNodeByKey(this.anchorKey ?? -1) as BaseNode;
-		currentNode = (currentNode ? currentNode.nextSibling() : anchorBlock.children[this.anchorIndex + 1]) as BaseNode;
-
-		if (isLeafNode(anchorBlock) && !currentNode) {
-			const index = anchorBlock.getSelfIndex();
-			anchorBlock = anchorBlock.parent as BlockNode;
-			nextNode = anchorBlock.getChildrenByIndex(index + 1);
-			if (!nextNode) shouldSearch = true;
-		} else if (isLeafNode(currentNode)) {
-			anchorBlock = currentNode as BlockNode;
-			nextNode = anchorBlock.getFirstChild();
-		} else if (currentNode) {
-			anchorBlock = currentNode.parent as BlockNode;
-			nextNode = currentNode;
-		} else {
-			shouldSearch = true;
+	public moveSelectionToNextSibling(): SelectionState {
+		function getAvailableNextAncestor(node: Nullable<BaseNode>) {
+			if (!node) return node;
+			while (node.parent) {
+				const next = node.parent.nextSibling();
+				if (next) return next;
+				node = node.parent;
+			}
 		}
 
-		const getTextNode = (node: BlockNode): TextNode | null => {
-			for (let i = 0, l = node.length; i < l; i++) {
-				const node = anchorBlock.getChildrenByIndex(i);
-				if (isLeafNode(node)) {
-					return getTextNode(node);
-				} else if (isTextNode(node)) {
+		function getFocusableNode(ancestor: BlockNode): BaseNode {
+			for (let i = 0; i < ancestor.children.length; i++) {
+				const node = ancestor.children[i];
+				if (isBlockNode(node)) {
+					return getFocusableNode(node);
+				} else if (node.isFocusable) {
 					return node;
 				}
 			}
-			return null;
-		};
+			return ancestor;
+		}
 
-		if (shouldSearch || !isTextNode(nextNode)) {
-			while (anchorBlock) {
-				anchorBlock = anchorBlock.nextSibling() as BlockNode;
-				if (!isBlockNode(anchorBlock)) continue;
-				nextNode = getTextNode(anchorBlock);
-				if (nextNode) break;
-			}
+		let nextNode = this.anchorNode?.nextSibling();
+		if (!nextNode) nextNode = getAvailableNextAncestor(this.anchorNode);
+
+		while (nextNode && !nextNode.isFocusable && nextNode.type !== "content") {
+			nextNode = isBlockNode(nextNode) ? getFocusableNode(nextNode) : nextNode;
+			if (nextNode.isFocusable) break;
+			const nNode = nextNode.nextSibling();
+			nextNode = !nNode ? getAvailableNextAncestor(nNode) : nNode;
 		}
 
 		if (nextNode) {
-			this.anchorOffset = 0;
-			this.focusOffset = 0;
+			//TODO: FIX BUG WHEN CANT PLACE CARET ON 0:0 OFFSET
+			this.anchorOffset = 1;
+			this.focusOffset = 1;
 			this.anchorNode = nextNode;
 			this.focusNode = nextNode;
 		}
@@ -228,54 +217,41 @@ class SelectionState {
 	 * @param  {ContentNode} ContentNode -  ContentNode where previous node will be searched
 	 * @returns SelectionState - Self return
 	 */
-	public moveSelectionToPreviousSibling(startNode?: BlockNode): SelectionState {
-		let anchorBlock: BlockNode = startNode ?? ((this.anchorNode as BaseNode).parent as BlockNode);
-		let nextNode;
-		let shouldSearch = false;
-
-		let currentNode = anchorBlock.getNodeByKey(this.anchorKey ?? -1) as BaseNode;
-		currentNode = (currentNode ? currentNode.previousSibling() : anchorBlock.children[this.anchorIndex - 1]) as BaseNode;
-
-		if (isLeafNode(anchorBlock) && !currentNode) {
-			const index = anchorBlock.getSelfIndex();
-			anchorBlock = anchorBlock.parent as BlockNode;
-			nextNode = anchorBlock.getChildrenByIndex(index - 1);
-			if (!nextNode) shouldSearch = true;
-		} else if (isLeafNode(currentNode)) {
-			anchorBlock = currentNode as BlockNode;
-			nextNode = anchorBlock.getLastChild();
-		} else if (currentNode) {
-			anchorBlock = currentNode.parent as BlockNode;
-			nextNode = currentNode;
-		} else {
-			shouldSearch = true;
+	public moveSelectionToPreviousSibling(): SelectionState {
+		function getAvailablePreviousAncestor(node: Nullable<BaseNode>) {
+			if (!node) return node;
+			while (node.parent) {
+				const prev = node.parent.previousSibling();
+				if (prev) return prev;
+				node = node.parent;
+			}
 		}
 
-		const getTextNode = (node: BlockNode): TextNode | BreakLine | null => {
-			for (let i = node.length - 1, l = node.length; i < l; i++) {
-				const node = anchorBlock.getChildrenByIndex(i);
-				if (isLeafNode(node)) {
-					return getTextNode(node);
-				} else if (isTextNode(node) || isBreakLine(node)) {
+		function getFocusableNode(ancestor: BlockNode): BaseNode {
+			for (let i = ancestor.children.length - 1; i >= 0; i--) {
+				const node = ancestor.getChildrenByIndex(i);
+				if (isBlockNode(node)) {
+					return getFocusableNode(node);
+				} else if (node.isFocusable) {
 					return node;
 				}
 			}
-			return null;
-		};
+			return ancestor;
+		}
 
-		if (shouldSearch || !isTextNode(nextNode)) {
-			while (anchorBlock) {
-				anchorBlock = anchorBlock.previousSibling() as BlockNode;
-				if (!isBlockNode(anchorBlock)) continue;
-				nextNode = getTextNode(anchorBlock);
-				if (nextNode) break;
-			}
+		let nextNode = this.anchorNode?.previousSibling();
+		if (!nextNode) nextNode = getAvailablePreviousAncestor(this.anchorNode);
+
+		while (nextNode && !nextNode.isFocusable && nextNode.type !== "content") {
+			nextNode = isBlockNode(nextNode) ? getFocusableNode(nextNode) : nextNode;
+			if (nextNode.isFocusable) break;
+			const prevNode = nextNode.previousSibling();
+			nextNode = !prevNode ? getAvailablePreviousAncestor(nextNode) : prevNode;
 		}
 
 		if (nextNode) {
 			this.anchorOffset = nextNode.length;
 			this.focusOffset = nextNode.length;
-
 			this.anchorNode = nextNode;
 			this.focusNode = nextNode;
 		}
@@ -524,7 +500,7 @@ class SelectionState {
 			if (isHorizontalRuleNode(previousBlock) || isBreakLine(previousBlock)) {
 				previousBlock.remove();
 			} else if (anchorBlock.isBreakLine) {
-				this.moveSelectionToPreviousSibling(anchorBlock);
+				this.moveSelectionToPreviousSibling();
 				anchorBlock.remove();
 			} else if (isBlockNode(previousBlock)) {
 				if (contentNode) {
