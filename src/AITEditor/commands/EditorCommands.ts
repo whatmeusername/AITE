@@ -196,16 +196,10 @@ class EditorCommands {
 			const passCaretSet = Command.commandPriority === "HIGH_IGNORECARET_COMMAND" || Command.commandPriority === "LOW_IGNORECARET_COMMAND";
 			this.currentEventPriority = EventPriority;
 
-			if (passCaretSet === false) {
-				this.EditorState?.setPreviousSelection();
-			}
-
 			Command.action(event as GetCommandEventType<typeof commandType>, ...rest);
 
-			if (passCaretSet === false) {
-				if (this.EditorState !== undefined) {
-					this.EditorState.selectionState.setCaretPosition();
-				}
+			if (passCaretSet === false && this.EditorState !== undefined) {
+				this.EditorState.selectionState.setCaretPosition();
 			}
 			this.currentEventPriority = null;
 		} else event.preventDefault();

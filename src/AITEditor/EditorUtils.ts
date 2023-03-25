@@ -59,7 +59,6 @@ function MergeSameNodes<T extends BaseNode[]>(children: T): T {
 					selection.anchorOffset += prevNode.length;
 					selection.focusOffset += prevNode.length;
 				} else if (selection.anchorKey === prevNode.key) {
-					console.log(node);
 					selection.setNode(node);
 				}
 

@@ -108,7 +108,6 @@ class EditorState {
 
 		this.__readOnly = false;
 		this.EditorDOMState = new EditorDOMState();
-		this.__previousSelection = undefined;
 	}
 
 	replaceActiveSelectionWithPrevious(): void {
@@ -116,10 +115,6 @@ class EditorState {
 			//this.selectionState.insertSelectionData(this.__previousSelection);
 			this.selectionState.setCaretPosition();
 		} else EditorWarning(true, "tried to set selection by previous selection data, when it undefined");
-	}
-
-	setPreviousSelection(): void {
-		this.__previousSelection = this.selectionState.get();
 	}
 
 	onError(): void {

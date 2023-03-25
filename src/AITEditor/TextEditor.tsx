@@ -92,11 +92,6 @@ function ReactAiteEditor(): JSX.Element {
 				createTextNode("some amazing text number 2", ["ITALIC", "UNDERLINE", "BOLD"]),
 			),
 			createBlockNode({blockWrapper: "header-one"}).append(
-				createLinkNode("https://yandex.ru").append(
-					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
-					createTextNode("середина ", []),
-					createTextNode("конец", ["UNDERLINE"]),
-				),
 				createTextNode("Языки программирования", ["STRIKETHROUGH", "UNDERLINE"]),
 				createLinkNode("https://yandex.ru").append(
 					createTextNode("начало ", ["ITALIC", "UNDERLINE"]),
