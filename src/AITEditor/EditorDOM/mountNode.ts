@@ -12,6 +12,7 @@ function mountNode(node: BaseNode | BaseBlockNode): void {
 	if (siblingNode && siblingNode.domRef?.$editor) {
 		if (siblingNode.domRef && node.status === NodeStatus.MOUNTED) {
 			const nodeState = PassContext({editor: siblingNode.domRef.$editor}, node.createNodeState());
+
 			if (insertDirection === NodeInsertionDeriction.AFTER) {
 				siblingNode.domRef.parentNode?.insertBefore(createDOMElement(nodeState), siblingNode.domRef.nextSibling);
 			} else if (insertDirection === NodeInsertionDeriction.BEFORE) {

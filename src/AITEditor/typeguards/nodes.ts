@@ -1,5 +1,5 @@
 import {BlockNode, HorizontalRuleNode, BaseBlockNode} from "../index";
-import {BaseNode, BreakLine, HeadNode, LeafNode, TextNode, ContentNode} from "../nodes/index";
+import {BaseNode, BreakLineNode, HeadNode, LeafNode, TextNode, ContentNode} from "../nodes/index";
 
 function isTextNode(node: any): node is TextNode {
 	return node instanceof TextNode;
@@ -23,7 +23,7 @@ function isContentNode(node: any): node is ContentNode {
 
 function isBreakLine(node: any): node is BlockNode {
 	if (isLeafNode(node)) return false;
-	return node.children.length === 1 && (node.children[0] instanceof BreakLine || (node.children[0] as TextNode).content === "");
+	return node.children.length === 1 && (node.children[0] instanceof BreakLineNode || (node.children[0] as TextNode).content === "");
 }
 
 function isLeafNode(node: any): node is LeafNode {

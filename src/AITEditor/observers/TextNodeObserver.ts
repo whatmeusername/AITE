@@ -1,5 +1,5 @@
 import {updateTextNodeContent} from "../EditorDOM";
-import {BreakLine, createTextNode, TextNode} from "../nodes";
+import {BreakLineNode, createTextNode, TextNode} from "../nodes";
 import {isBlockNode} from "../typeguards";
 import {set, Observable, Observe} from "./Observable";
 
@@ -19,9 +19,9 @@ function ObservableTextNode(node: TextNode | Observable<TextNode>): Observable<T
 	);
 }
 
-function ObservableBreakline(node: BreakLine | Observable<BreakLine>): Observable<BreakLine> {
-	return (Observe(node) as Observable<BreakLine>).catch(
-		set((target: BreakLine, key: keyof BreakLine, value: string, observable: BreakLine) => {
+function ObservableBreakline(node: BreakLineNode | Observable<BreakLineNode>): Observable<BreakLineNode> {
+	return (Observe(node) as Observable<BreakLineNode>).catch(
+		set((target: BreakLineNode, key: keyof BreakLineNode, value: string, observable: BreakLineNode) => {
 			if (key === "content" && value !== "" && isBlockNode(target.parent)) {
 				const selectionState = target.domRef?.$editor?.selectionState;
 				const nextNode = createTextNode(value);

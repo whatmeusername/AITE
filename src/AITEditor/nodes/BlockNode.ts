@@ -2,7 +2,7 @@ import defaultBlocks from "../defaultStyles/defaultBlocks";
 import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from "../ConstVariables";
 import {ClassVariables} from "../Interfaces";
 
-import {TextNode, HeadNode, NodeType, LeafNode, BreakLine, ContentNode, BaseNode} from "./index";
+import {HeadNode, TextNode, NodeType, LeafNode, BreakLineNode, ContentNode, BaseNode} from "./index";
 
 import {ObservableChildren} from "../observers";
 import {ObservableChildrenProperty} from "../observers";
@@ -64,9 +64,8 @@ class BlockNode extends BaseBlockNode {
 
 	public replace<T extends this["children"][0], U extends this["children"][0]>(node: T, nodeToInsert: U): this {
 		if (node?.parent?.key !== this.key) return this;
-		const index = node.getSelfIndex();
+		this.insertNode(nodeToInsert, node.getSelfIndex());
 		node.remove();
-		this.insertNode(nodeToInsert, index);
 		return this;
 	}
 
@@ -131,7 +130,7 @@ class BlockNode extends BaseBlockNode {
 
 	get isBreakLine(): boolean {
 		return (
-			this.children.length === 0 || (this.children.length === 1 && (this.children[0] instanceof BreakLine || (this.children[0] as TextNode).content === ""))
+			this.children.length === 0 || (this.children.length === 1 && (this.children[0] instanceof BreakLineNode || (this.children[0] as TextNode).content === ""))
 		);
 	}
 
@@ -163,7 +162,7 @@ class BlockNode extends BaseBlockNode {
 
 	public insertBreakLine() {
 		if (this.children.length === 0) {
-			this.children = [new BreakLine()];
+			this.children = [new BreakLineNode()];
 			this.remount();
 		}
 	}
@@ -173,6 +172,8 @@ class BlockNode extends BaseBlockNode {
 
 		index = direction === NodeInsertionDeriction.AFTER ? index + 1 : index;
 		this.children = [...this.children.slice(0, index), node, ...this.children.slice(index)];
+		node.parent = this;
+
 		return node;
 	}
 

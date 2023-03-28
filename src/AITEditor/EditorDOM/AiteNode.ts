@@ -23,7 +23,7 @@ class AiteNode {
 		this.childrenLength = this.children?.length ?? 0;
 		this._key = ref?.key;
 		this.AiteNodeType = ref?.type ?? "element";
-		this.ref = ref;
+		this.ref = (ref as any)?.["NACT_OBSERVERABLE"]?.instance;
 	}
 }
 

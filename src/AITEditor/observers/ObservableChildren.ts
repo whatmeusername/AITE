@@ -1,5 +1,4 @@
-import type {BlockNode} from "../nodes/BlockNode";
-import {ContentNode} from "../nodes";
+import {ContentNode, createBreakLine, LeafNode, BlockNode, createBreakLineNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 import {MergeSameNodes} from "../EditorUtils";
 
@@ -18,6 +17,15 @@ function ObservableChildren<T extends BlockNode | ContentNode, U extends T["chil
 				};
 			}
 			return (target as any)[key];
+		},
+		set(target: U, key: string, value: any): boolean {
+			if (key === "length" && value === 0 && parent.status === NodeStatus.MOUNTED) {
+				if (parent instanceof LeafNode) {
+					parent.remove();
+				}
+			}
+			(target as any)[key] = value;
+			return true;
 		},
 	});
 

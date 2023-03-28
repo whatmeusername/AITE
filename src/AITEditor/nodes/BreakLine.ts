@@ -4,7 +4,7 @@ import {AiteNode, createAiteNode} from "../EditorDOM";
 import {ObservableBreakline} from "../observers/TextNodeObserver";
 import {TextNode} from "./TextNode";
 
-class BreakLine extends TextNode {
+class BreakLineNode extends TextNode {
 	constructor() {
 		super({type: BREAK_LINE_TYPE});
 
@@ -23,13 +23,17 @@ class BreakLine extends TextNode {
 		return 0;
 	}
 
-	public clone(): BreakLine {
-		return new BreakLine();
+	public clone(): BreakLineNode {
+		return new BreakLineNode();
 	}
 }
 
 function createBreakLine(): BlockNode {
-	return createBlockNode().append(new BreakLine());
+	return createBlockNode().append(new BreakLineNode());
 }
 
-export {BreakLine, createBreakLine};
+function createBreakLineNode(): BreakLineNode {
+	return new BreakLineNode();
+}
+
+export {BreakLineNode, createBreakLine, createBreakLineNode};

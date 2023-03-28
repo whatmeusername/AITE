@@ -1,15 +1,14 @@
-import type {ClassVariables, Nullable} from "../Interfaces";
-import {HTML_TEXT_NODE, BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
+import type {Nullable} from "../Interfaces";
+import {BREAK_LINE_TAGNAME, BREAK_LINE_TYPE, ELEMENT_NODE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
 import {AiteHTMLNode, BlockNode, AiteHTML, AiteRange, SelectedNodeData, NodeInsertionDeriction} from "../index";
-import {BaseNode, BreakLine, ContentNode, createBreakLine, HeadNode, TextNode} from "../nodes/index";
+import {BaseNode, BreakLineNode, ContentNode, createBreakLine, createBreakLineNode, HeadNode, NodeTypes} from "../nodes/index";
 import {getSelection, isSelectionBackward} from "./utils";
 import {ObservableSelection} from "../observers";
-import {NodeStatus} from "../nodes/interface";
-import {isBlockNode, isHorizontalRuleNode, isLeafNode, isTextNode} from "../typeguards";
+import {isBlockNode, isHorizontalRuleNode, isTextNode} from "../typeguards";
 
 // TEMPERARY
-function isBreakLine(node: any): node is BreakLine {
-	return node instanceof BreakLine;
+function isBreakLine(node: any): node is BreakLineNode {
+	return node instanceof BreakLineNode;
 }
 
 class SelectionState {
@@ -77,10 +76,11 @@ class SelectionState {
 	 * Checks if selection anchor is on begging of block
 	 * @returns boolean
 	 */
-	public isAnchorOnStart(forceBlock?: BlockNode): boolean {
-		if (this.anchorOffset > 0) return false;
+	public isAnchorOn(on: "end" | "start", forceBlock?: BlockNode): boolean {
+		if ((on === "start" && this.anchorOffset > 0) || (on === "end" && this.anchorOffset < (this.anchorNode as BaseNode).length)) return false;
 
-		const firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.anchorNode?.getContentNode().blockNode?.getFirstChild();
+		const top = forceBlock ?? this.anchorNode?.getContentNode().blockNode;
+		const firstNode = on === "start" ? top?.getFirstChild(true) : top?.getLastChild(true);
 		if (!firstNode) return false;
 
 		return this.anchorNode?.key === firstNode.key;
@@ -90,10 +90,11 @@ class SelectionState {
 	 * Checks if selection focus is on begging of block
 	 * @returns boolean
 	 */
-	public isFocusOnStart(forceBlock?: BlockNode): boolean {
-		if (this.focusOffset > 0) return false;
+	public isFocusOn(on: "end" | "start", forceBlock?: BlockNode): boolean {
+		if ((on === "start" && this.focusOffset > 0) || (on === "end" && this.focusOffset < (this.focusNode as BaseNode).length)) return false;
 
-		const firstNode = forceBlock ? forceBlock.getFirstChild(true) : this.focusNode?.getContentNode().blockNode?.getFirstChild();
+		const top = forceBlock ?? this.focusNode?.getContentNode().blockNode;
+		const firstNode = on === "start" ? top?.getFirstChild(true) : top?.getLastChild(true);
 		if (!firstNode) return false;
 
 		return this.focusNode?.key === firstNode.key;
@@ -195,12 +196,14 @@ class SelectionState {
 	 * @param  {ContentNode} ContentNode -  ContentNode where previous node will be searched
 	 * @returns SelectionState - Self return
 	 */
-	public moveSelectionToPreviousSibling(): SelectionState {
+	public moveSelectionToPreviousSibling(options?: {preventUpdate?: boolean; NodeBlockLevel?: boolean}): Nullable<NodeTypes> {
 		function getAvailablePreviousAncestor(node: Nullable<BaseNode>) {
 			if (!node) return node;
 			while (node.parent) {
 				const prev = node.previousSibling();
-				if (prev) return prev;
+				if (options?.NodeBlockLevel && node.parent.type === "content") {
+					return null;
+				} else if (prev) return prev;
 				node = node.parent;
 			}
 		}
@@ -227,13 +230,13 @@ class SelectionState {
 			nextNode = !prevNode ? getAvailablePreviousAncestor(nextNode) : prevNode;
 		}
 
-		if (nextNode) {
+		if (!options?.preventUpdate && nextNode) {
 			this.anchorOffset = nextNode.length;
 			this.focusOffset = nextNode.length;
 			this.anchorNode = nextNode;
 			this.focusNode = nextNode;
 		}
-		return this;
+		return nextNode;
 	}
 
 	/**
@@ -350,54 +353,58 @@ class SelectionState {
 	 * @returns void
 	 */
 	public setCaretPosition(): void {
-		const selection = window.getSelection();
-		if (!selection) return;
+		try {
+			const selection = window.getSelection();
+			if (!selection) return;
 
-		const range = document.createRange();
-		const anchorNode = this.anchorNode?.domRef;
+			const range = document.createRange();
+			const anchorNode = this.anchorNode?.domRef;
 
-		if (anchorNode === undefined) {
+			if (anchorNode === undefined) {
+				this.getCaretPosition();
+				return;
+			}
+
+			let focusNode;
+			let focusType;
+
+			if (this.isCollapsed) {
+				focusNode = anchorNode;
+				this.focusNode = this.anchorNode;
+			} else {
+				focusNode = this.focusNode?.domRef;
+				if (focusNode === undefined) return;
+			}
+
+			if (anchorNode && this.anchorType === TEXT_NODE_TYPE) {
+				const anchorNodeText = anchorNode.textContent;
+				if (anchorNodeText) {
+					if (this.anchorOffset > anchorNodeText.length) {
+						this.anchorOffset = anchorNodeText.length;
+					}
+					range.setStart(anchorNode?.firstChild as Node, this.anchorOffset);
+				}
+			} else if (this.anchorType === ELEMENT_NODE_TYPE || this.anchorType === BREAK_LINE_TYPE) {
+				range.setStart(anchorNode as HTMLElement as Node, 0);
+			}
+
+			if (focusType === TEXT_NODE_TYPE) {
+				const focusNodeText = (focusNode as Node).textContent;
+				if (focusNodeText !== null) {
+					if (this.focusOffset > focusNodeText.length) {
+						this.focusOffset = focusNodeText.length;
+					}
+					range.setEnd(focusNode?.firstChild as Node, this.focusOffset);
+				}
+			} else if (focusType === ELEMENT_NODE_TYPE || focusType === BREAK_LINE_TYPE) {
+				range.setEnd(focusNode as HTMLElement, 0);
+			}
+
+			selection.removeAllRanges();
+			selection.addRange(range);
+		} catch (_) {
 			this.getCaretPosition();
-			return;
 		}
-
-		let focusNode;
-		let focusType;
-
-		if (this.isCollapsed) {
-			focusNode = anchorNode;
-			this.focusNode = this.anchorNode;
-		} else {
-			focusNode = this.focusNode?.domRef;
-			if (focusNode === undefined) return;
-		}
-
-		if (this.anchorType === TEXT_NODE_TYPE) {
-			const anchorNodeText = (anchorNode as Node).textContent;
-			if (anchorNodeText) {
-				if (this.anchorOffset > anchorNodeText.length) {
-					this.anchorOffset = anchorNodeText.length;
-				}
-				range.setStart(anchorNode?.firstChild as Node, this.anchorOffset);
-			}
-		} else if (this.anchorType === ELEMENT_NODE_TYPE || this.anchorType === BREAK_LINE_TYPE) {
-			range.setStart(anchorNode as HTMLElement as Node, 0);
-		}
-
-		if (focusType === TEXT_NODE_TYPE) {
-			const focusNodeText = (focusNode as Node).textContent;
-			if (focusNodeText !== null) {
-				if (this.focusOffset > focusNodeText.length) {
-					this.focusOffset = focusNodeText.length;
-				}
-				range.setEnd(focusNode?.firstChild as Node, this.focusOffset);
-			}
-		} else if (focusType === ELEMENT_NODE_TYPE || focusType === BREAK_LINE_TYPE) {
-			range.setEnd(focusNode as HTMLElement, 0);
-		}
-
-		selection.removeAllRanges();
-		selection.addRange(range);
 	}
 
 	// TODO: MOVE METHOD TO SELECTION AS METHOD
@@ -427,7 +434,6 @@ class SelectionState {
 			if (isHorizontalRuleNode(previousBlock) || isBreakLine(previousBlock)) {
 				previousBlock.remove();
 			} else if (anchorBlock.isBreakLine) {
-				this.moveSelectionToPreviousSibling();
 				anchorBlock.remove();
 			} else if (isBlockNode(previousBlock)) {
 				if (contentNode) {
@@ -436,8 +442,12 @@ class SelectionState {
 			}
 		};
 
-		if (this.isCollapsed && isRemove && this.isOffsetOnStart(blockNode)) handleOffsetStart();
-		else if (this.sameBlock && (this.isCollapsed || isSelectionOnSameNode) && isTextNode(this.anchorNode)) {
+		if (isRemove && !blockNode?.isBreakLine && blockNode?.children && this.isAnchorOn("start") && this.isFocusOn("end")) {
+			const breakLine = createBreakLineNode();
+			blockNode.children = [breakLine];
+			breakLine.focus();
+		} else if (this.isCollapsed && isRemove && this.isOffsetOnStart(blockNode)) handleOffsetStart();
+		else if (this.sameBlock && (this.isCollapsed || isSelectionOnSameNode) && isTextNode(anchorNode)) {
 			SliceFrom = isRemove && this.isCollapsed ? this.anchorOffset - 1 : this.anchorOffset;
 
 			if (this.isCollapsed) {
@@ -449,8 +459,7 @@ class SelectionState {
 			} else if (!isRemove) {
 				this.moveSelectionForward();
 			}
-
-			this.anchorNode.sliceContent(SliceFrom, SliceTo, key);
+			anchorNode.sliceContent(SliceFrom, SliceTo, key);
 		} else if (this.sameBlock && isTextNode(anchorNode) && isTextNode(focusNode)) {
 			anchorBlock.getNodesBetween(anchorNode.key, focusNode.key).original.forEach((node) => node.remove());
 			anchorNode.sliceContent(SliceFrom, -1, key);
@@ -471,7 +480,6 @@ class SelectionState {
 			isTextNode(focusNode) ? focusNode.sliceContent(SliceTo) : focusNode.remove();
 
 			contentNode.MergeBlockNode(anchorBlock, focusBlock);
-			this.toggleCollapse(!anchorNode.status ? true : false);
 
 			if (!isRemove) this.moveSelectionForward();
 		}
