@@ -73,16 +73,26 @@ class SelectionState {
 		return this.anchorNode?.key === this.focusNode?.key;
 	}
 
-	public stabilize(): void {
+	public stabilize(focusPriority?: boolean): void {
 		const isAM = this.anchorNode?.status === NodeStatus.MOUNTED;
 		const isFM = this.focusNode?.status === NodeStatus.MOUNTED;
 
-		if (isAM) this.toggleCollapse();
-		else if (isFM) this.toggleCollapse(true).offsetToZero();
-		else {
-			const nextNode = this.previousSibling;
-			if (!nextNode) this.getCaretPosition();
-			else nextNode.focus();
+		if (focusPriority) {
+			if (isFM) this.toggleCollapse(true).offsetToZero();
+			else if (isAM) this.toggleCollapse();
+			else {
+				const nextNode = this.previousSibling;
+				if (!nextNode) this.getCaretPosition();
+				else nextNode.focus();
+			}
+		} else {
+			if (isAM) this.toggleCollapse();
+			else if (isFM) this.toggleCollapse(true).offsetToZero();
+			else {
+				const nextNode = this.previousSibling;
+				if (!nextNode) this.getCaretPosition();
+				else nextNode.focus();
+			}
 		}
 	}
 
@@ -408,7 +418,7 @@ class SelectionState {
 	}
 
 	// TODO: MOVE METHOD TO SELECTION AS METHOD
-	public insertLetter(KeyBoardEvent?: KeyboardEvent) {
+	public insertLetter(KeyBoardEvent?: KeyboardEvent, merge: boolean = true) {
 		const isSelectionOnSameNode = this.isSameNode;
 		let SliceFrom = this.anchorOffset;
 		const SliceTo = this.focusOffset;
@@ -478,7 +488,7 @@ class SelectionState {
 			focusBlock.getNodesBetween(-1, focusNode.key).original.forEach((node) => node.remove());
 			isTextNode(focusNode) ? focusNode.sliceContent(SliceTo) : focusNode.remove();
 
-			contentNode.MergeBlockNode(anchorBlock, focusBlock);
+			if (merge) contentNode.MergeBlockNode(anchorBlock, focusBlock);
 
 			if (!isRemove) this.moveSelectionForward();
 		}
@@ -499,35 +509,41 @@ class SelectionState {
 
 		const onStart = this.isOffsetOnStart();
 		const onEnd = this.isOffsetOnEnd();
+		const {contentNode, index, blockNode} = this.anchorNode.getContentNode();
 
 		if (onStart || onEnd) {
 			const newBreakLine = createBreakLine();
-			const {contentNode, index} = this.anchorNode.getContentNode();
 			if (contentNode) {
 				contentNode.insertNode(newBreakLine, index, onStart ? NodeInsertionDeriction.BEFORE : NodeInsertionDeriction.AFTER);
 				if (!onStart) {
 					this.setNode(newBreakLine.children[0]).offsetToZero();
 				}
 			}
-		} else if (this.isCollapsed) {
+		} else if (this.sameBlock) {
 			const anchorParent = this.anchorNode.parent as BlockNode;
-			const focusParent = this.anchorNode.parent as BlockNode;
-			const {contentNode, index, blockNode} = this.anchorNode.getContentNode();
+
+			if (!this.isSameNode) {
+				if (isTextNode(this.anchorNode)) this.anchorNode.sliceContent(this.anchorOffset, -1);
+				anchorParent.getNodesBetween(this.anchorNode.key, this.focusNode.key).original.forEach((node) => node.remove());
+			}
+
 			if (blockNode) {
-				const nodesAfterPointer = anchorParent.getNodesBetween(this.anchorNode.key, -1, false, false, undefined, true);
+				const nodesAfterPointer = anchorParent.getNodesBetween(this.focusNode.key, -1, false, false, undefined, true);
 				nodesAfterPointer.original.forEach((node) => node.remove());
 				const newBlockNode = blockNode.clone();
 
-				if (isTextNode(this.anchorNode)) {
-					const textNodePart = this.anchorNode.sliceToTextNode(this.anchorOffset, -1);
-					//TODO: MOVE TO GETNODESBETWEEN
-					newBlockNode.append(textNodePart);
-				} else this.anchorNode.remove();
+				if (isTextNode(this.focusNode)) {
+					const textNodePart = this.focusNode.sliceToTextNode(this.focusOffset, -1, !this.isSameNode);
+					if (this.isSameNode) this.focusNode.sliceContent(this.anchorOffset, -1);
+					if (textNodePart) newBlockNode.append(textNodePart);
+				} else this.focusNode.remove();
 
 				newBlockNode.append(...nodesAfterPointer.modified);
 				contentNode?.insertNode(newBlockNode, index, NodeInsertionDeriction.AFTER);
 				newBlockNode.getFirstChild().focus(true);
 			}
+		} else if (!this.sameBlock) {
+			this.insertLetter(undefined, false);
 		}
 	}
 }

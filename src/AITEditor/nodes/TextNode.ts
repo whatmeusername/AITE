@@ -58,19 +58,20 @@ class TextNode extends BaseNode {
 		}
 	}
 
-	public sliceToTextNode(start: number, end: number): TextNode {
+	public sliceToTextNode(start: number, end: number, update: boolean = true): TextNode | null {
 		let slicedContent = "";
 		if (end !== undefined && end !== -1) {
 			slicedContent = this.content.slice(start, end);
-			this.content = this.content.slice(0, start) + this.content.slice(end);
+			if (update) this.content = this.content.slice(0, start) + this.content.slice(end);
 		} else if (end === undefined) {
 			slicedContent = this.content.slice(0, start);
-			this.content = this.content.slice(start);
+			if (update) this.content = this.content.slice(start);
 		} else {
 			slicedContent = this.content.slice(start);
-			this.content = this.content.slice(0, start);
+			if (update) this.content = this.content.slice(0, start);
 		}
-		return this.createSelfNode({...this.initData, plainText: slicedContent});
+		if (slicedContent !== "") return this.createSelfNode({...this.initData, plainText: slicedContent});
+		return null;
 	}
 
 	public tryToMerge(node: BaseNode): TextNode | null {

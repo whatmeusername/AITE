@@ -43,6 +43,7 @@ function createEmptyEditorState(initData?: editorConf) {
 
 	editorState.EditorCommands.registerCommand("ENTER_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		editorState.selectionState.insertEnter();
+		editorState.selectionState.stabilize(true);
 	});
 
 	editorState.EditorCommands.registerCommand("WORD_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
