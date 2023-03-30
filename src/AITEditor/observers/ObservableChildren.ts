@@ -9,7 +9,7 @@ function ObservableChildren<T extends BlockNode | ContentNode, U extends T["chil
 				return function (...items: U) {
 					items.forEach((node) => {
 						node.parent = parent;
-						if (node.status === NodeStatus.UNMOUNTED) {
+						if (parent.status === NodeStatus.MOUNTED && node.status === NodeStatus.UNMOUNTED) {
 							node.mount();
 						}
 					});

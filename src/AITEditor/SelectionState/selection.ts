@@ -27,9 +27,6 @@ class SelectionState {
 	public anchorNode: Nullable<HeadNode>;
 	public focusNode: Nullable<HeadNode>;
 
-	public anchorIndex: number;
-	public focusIndex: number;
-
 	constructor() {
 		this._anchorOffset = 0;
 		this._focusOffset = 0;
@@ -45,9 +42,6 @@ class SelectionState {
 
 		this.anchorNode = null;
 		this.focusNode = null;
-
-		this.anchorIndex = -1;
-		this.focusIndex = -1;
 
 		return ObservableSelection(this).value();
 	}
@@ -309,6 +303,8 @@ class SelectionState {
 	public getCaretPosition(forceRange?: AiteRange): void {
 		const selection = getSelection();
 
+		console.log(selection);
+
 		if (forceRange === undefined && (!selection.anchorNode || !selection.focusNode)) return;
 
 		const range = forceRange ?? selection.getRangeAt(0);
@@ -345,7 +341,7 @@ class SelectionState {
 	}
 
 	public isSameBlockNode(node: AiteHTMLNode, secondNode: AiteHTMLNode): boolean {
-		return node.closest("[data-block-node]") === secondNode.closest("[data-block-node]");
+		return false; //node.$ref?.getContentNode().blockNode?.key === secondNode.$ref?.getContentNode().blockNode?.key;
 	}
 
 	/**
@@ -353,6 +349,7 @@ class SelectionState {
 	 * @returns void
 	 */
 	public setCaretPosition(): void {
+		console.log("T");
 		try {
 			const selection = window.getSelection();
 			if (!selection) return;
@@ -522,12 +519,13 @@ class SelectionState {
 				if (isTextNode(this.anchorNode)) {
 					const textNodePart = this.anchorNode.sliceToTextNode(this.anchorOffset, -1);
 					//TODO: MOVE TO GETNODESBETWEEN
+					console.log(textNodePart);
 					newBlockNode.append(textNodePart);
 				} else this.anchorNode.remove();
 
 				newBlockNode.append(...nodesAfterPointer.modified);
 				contentNode?.insertNode(newBlockNode, index, NodeInsertionDeriction.AFTER);
-				this.moveSelectionToNextSibling();
+				newBlockNode.getFirstChild().focus(true);
 			}
 		}
 	}

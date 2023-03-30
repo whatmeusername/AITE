@@ -36,14 +36,14 @@ abstract class HeadNode {
 		let c: NodeTypes | BaseBlockNode | BaseNode = this as any;
 		let parentBlockNode;
 		while (c.parent) {
-			if (isBlockNode(c) && !parentBlockNode) {
+			if (!parentBlockNode && isBlockNode(c)) {
 				parentBlockNode = c;
 			}
-			if (isContentNode(c.parent)) {
+			if (c.parent.type === "content") {
 				return {
-					contentNode: c.parent,
+					contentNode: c.parent as ContentNode,
 					blockNode: c as BlockNode,
-					index: c.parent.children.findIndex((n) => n.key === c.key),
+					index: (c.parent as ContentNode).children.findIndex((n) => n.key === c.key),
 					parentBlockNode: parentBlockNode,
 				};
 			}
@@ -107,12 +107,12 @@ abstract class HeadNode {
 		return null;
 	}
 
-	public focus(): this {
+	public focus(start?: boolean): this {
 		const selection = this.domRef?.$editor?.selectionState;
 		if (selection) {
 			selection.setNode(this);
-			selection.anchorOffset = this.length;
-			selection.focusOffset = this.length;
+			selection.anchorOffset = start ? 0 : this.length;
+			selection.focusOffset = start ? 0 : this.length;
 			console.log({...selection}, this);
 		}
 		return this;

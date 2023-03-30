@@ -70,8 +70,7 @@ class BlockNode extends BaseBlockNode {
 	}
 
 	public append(...nodes: NodeTypes[]): this {
-		const filteredNodes = filterNode.apply(this, nodes);
-		this.children.push(...filteredNodes);
+		this.children.push(...nodes);
 		return this;
 	}
 
@@ -152,7 +151,6 @@ class BlockNode extends BaseBlockNode {
 		const className = "";
 		const props = {
 			className: className,
-			"data-block-node": true,
 		};
 
 		const children: Array<AiteNode> = this.children.map((node) => node.createNodeState());
