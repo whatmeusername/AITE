@@ -6,6 +6,8 @@ import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, ret
 import {ClassVariables} from "./Interfaces";
 import {BaseBlockNode, ContentNode} from "./nodes";
 import {EditorWarning} from "./typeguards";
+import {BREAK_LINE_TYPE} from "./ConstVariables";
+import {NodeStatus} from "./nodes/interface";
 
 interface editorConf {
 	ContentNode: ContentNode;
@@ -24,10 +26,12 @@ function createEmptyEditorState(initData?: editorConf) {
 
 	editorState.EditorCommands.registerCommand("LETTER_INSERT_COMMAND", "HIGH_EDITOR_COMMAND", (event) => {
 		editorState.selectionState.insertLetter(event);
+		editorState.selectionState.stabilize();
 	});
 
 	editorState.EditorCommands.registerCommand("LETTER_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {
 		editorState.selectionState.removeLetter();
+		editorState.selectionState.stabilize();
 	});
 
 	editorState.EditorCommands.registerCommand("FORWARD_LETTER_REMOVE_COMMAND", "HIGH_EDITOR_COMMAND", () => {

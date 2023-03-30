@@ -1,4 +1,4 @@
-import {TextNode} from "../nodes";
+import {HeadNode, TextNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 import {AiteNode, createAiteDomNode} from "./AiteNode";
 import {AiteTextNode, createAiteText} from "./AiteTextNode";
@@ -97,4 +97,15 @@ function PassContext(props: {[K: string]: any}, nodes: AiteNodes | AiteNodes[]):
 	return passProps(nodes);
 }
 
-export {addEventListeners, setStyles, setProps, setAttribute, removeAttribute, returnSingleDOMNode, createDOMElement, PassContext};
+function DeepSetProperty<T extends HeadNode>(obj: T, key: keyof T, value: any): T {
+	const DeepSet = (parent: T): T => {
+		(Array.isArray(parent) ? parent : [parent]).forEach((child) => {
+			child[key] = value;
+			if (child.children) DeepSet(child.children as any);
+		});
+		return parent;
+	};
+	return DeepSet(obj);
+}
+
+export {addEventListeners, setStyles, setProps, setAttribute, removeAttribute, returnSingleDOMNode, createDOMElement, PassContext, DeepSetProperty};

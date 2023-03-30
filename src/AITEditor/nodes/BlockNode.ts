@@ -1,5 +1,5 @@
 import defaultBlocks from "../defaultStyles/defaultBlocks";
-import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE} from "../ConstVariables";
+import {STANDART_BLOCK_TYPE, HORIZONTAL_RULE_BLOCK_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
 import {ClassVariables} from "../Interfaces";
 
 import {HeadNode, TextNode, NodeType, LeafNode, BreakLineNode, ContentNode, BaseNode} from "./index";
@@ -14,7 +14,7 @@ type BlockTypes = typeof STANDART_BLOCK_TYPE | typeof HORIZONTAL_RULE_BLOCK_TYPE
 
 type BlockNodeVariables = Omit<ClassVariables<BlockNode>, "children">;
 
-type allowedToInsert = "all" | "element" | "text";
+type allowedToInsert = "all" | "element" | typeof TEXT_NODE_TYPE;
 
 function createBlockNode(initData?: BlockNodeVariables) {
 	return new BlockNode(initData);

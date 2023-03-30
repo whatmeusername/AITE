@@ -1,4 +1,4 @@
-import {unmountNode, BlockNode, remountNode, generateKey, mountNode, NodeTypes, BaseBlockNode, AiteNode, AiteHTMLNode} from "../index";
+import {unmountNode, BlockNode, remountNode, generateKey, mountNode, NodeTypes, BaseBlockNode, AiteNode, AiteHTMLNode, DeepSetProperty} from "../index";
 import {Nullable} from "../Interfaces";
 import {ObservableHeadNode} from "../observers";
 import {isBlockNode, isContentNode} from "../typeguards";
@@ -64,6 +64,7 @@ abstract class HeadNode {
 	public remove() {
 		if (this.parent && this.status === NodeStatus.MOUNTED && (isBlockNode(this.parent) || isContentNode(this.parent))) {
 			this.status = NodeStatus.REMOVED;
+			DeepSetProperty(this, "status", NodeStatus.REMOVED);
 			unmountNode(this);
 			this.parent.children?.splice(this.getSelfIndex(), 1);
 		}
@@ -113,7 +114,6 @@ abstract class HeadNode {
 			selection.setNode(this);
 			selection.anchorOffset = start ? 0 : this.length;
 			selection.focusOffset = start ? 0 : this.length;
-			console.log({...selection}, this);
 		}
 		return this;
 	}

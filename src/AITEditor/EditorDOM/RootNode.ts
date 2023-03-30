@@ -22,10 +22,7 @@ function createEditorRoot(EditorState: EditorState): AiteNode {
 		},
 	};
 
-	console.time("perfomance");
-	const n = createAiteNode(null, "div", props, [EditorState.contentNode.createNodeState()]);
-	console.timeEnd("perfomance");
-	return n;
+	return createAiteNode(null, "div", props, [EditorState.contentNode.createNodeState()]);
 }
 
 export {createEditorRoot};

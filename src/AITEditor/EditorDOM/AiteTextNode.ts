@@ -1,7 +1,7 @@
 import {TextNode} from "../nodes";
 import {Nullable} from "../Interfaces";
 import {AiteHTMLTextNode} from "./interface";
-import {setProps} from "./helpers";
+import {TEXT_NODE_TYPE} from "../ConstVariables";
 
 class AiteTextNode {
 	children: string;
@@ -18,7 +18,7 @@ function createAiteText(string: string, ref?: Nullable<TextNode>): AiteHTMLTextN
 	const textNode: AiteHTMLTextNode = document.createTextNode(string) as AiteHTMLTextNode;
 	textNode.$isAiteNode = true;
 	textNode.$isTextNode = true;
-	textNode.$AiteNodeType = "text";
+	textNode.$AiteNodeType = TEXT_NODE_TYPE;
 	textNode.$ref = ref ?? null;
 	return textNode;
 }

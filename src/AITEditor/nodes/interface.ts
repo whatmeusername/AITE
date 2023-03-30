@@ -1,3 +1,4 @@
+import {BREAK_LINE_TYPE, TEXT_NODE_TYPE} from "../ConstVariables";
 import type {DOMNodeData} from "./BaseNode";
 
 interface DOMTextAttr extends DOMNodeData {
@@ -7,7 +8,7 @@ interface DOMTextAttr extends DOMNodeData {
 interface TextNodeAttr {
 	plainText?: string;
 	styles?: string[];
-	type?: "breakline" | "text";
+	type?: typeof BREAK_LINE_TYPE | typeof TEXT_NODE_TYPE;
 }
 
 interface NodeUpdateOptions {

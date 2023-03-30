@@ -36,7 +36,6 @@ class LinkNode extends LeafNode {
 		const props = {
 			href: this.__url,
 			className: className,
-			"data-aite-node": true,
 		};
 
 		const children: Array<AiteNode> = [];

@@ -8,6 +8,7 @@ import {TextNodeAttr} from "./interface";
 import {ObservableTextNode} from "../observers/TextNodeObserver";
 import {StyleData} from "../Interfaces";
 import {isTextNode} from "../typeguards";
+import {TEXT_NODE_TYPE} from "../ConstVariables";
 
 function createTextNode(text: string = "", styles?: Array<string>) {
 	return new TextNode({plainText: text, styles: styles ?? []});
@@ -18,7 +19,7 @@ class TextNode extends BaseNode {
 	private styles: StyleData[];
 
 	constructor(initData?: TextNodeAttr) {
-		super(true, initData?.type ?? "text", initData);
+		super(true, initData?.type ?? TEXT_NODE_TYPE, initData);
 		this.content = initData?.plainText ?? "";
 		this.styles = initData?.styles ? initData.styles.map((style) => getStyleData(style)) : [];
 
