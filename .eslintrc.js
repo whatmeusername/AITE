@@ -1,41 +1,23 @@
 module.exports = {
-	"env": {
-		"browser": true,
-		"es2021": true,
-		node: true
+	env: {
+		browser: true,
+		es2021: true,
+		node: true,
+		mocha: true,
 	},
-	"extends": [
-		"eslint:recommended",
-		"plugin:react/recommended",
-		"plugin:@typescript-eslint/recommended"
-	],
-	"overrides": [
-	],
-	"parser": "@typescript-eslint/parser",
-	"parserOptions": {
-		"ecmaVersion": "latest",
-		"sourceType": "module"
+	extends: ["eslint:recommended", "plugin:react/recommended", "plugin:@typescript-eslint/recommended"],
+	overrides: [],
+	parser: "@typescript-eslint/parser",
+	parserOptions: {
+		ecmaVersion: "latest",
+		sourceType: "module",
 	},
-	"plugins": [
-		"react",
-		"@typescript-eslint"
-	],
-	"rules": {
-		"indent": [
-			"off",
-		],
-		"linebreak-style": [
-			"error",
-			"unix"
-		],
-		"quotes": [
-			"error",
-			"double"
-		],
-		"semi": [
-			"error",
-			"always"
-		],
+	plugins: ["react", "@typescript-eslint"],
+	rules: {
+		indent: ["off"],
+		"linebreak-style": ["error", "unix"],
+		quotes: ["error", "double"],
+		semi: ["error", "always"],
 		"@typescript-eslint/no-inferrable-types": "off",
 		"@typescript-eslint/no-explicit-any": "off",
 		"prefer-spread": "off",
@@ -43,6 +25,6 @@ module.exports = {
 		"@typescript-eslint/no-non-null-assertion": "off",
 		"@typescript-eslint/no-this-alias": "off",
 		"no-mixed-spaces-and-tabs": "off",
-		"@typescript-eslint/ban-ts-comment" : "off",
-	}
+		"@typescript-eslint/ban-ts-comment": "off",
+	},
 };
