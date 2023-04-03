@@ -6,7 +6,7 @@ import {HeadNode, TextNode, NodeType, LeafNode, BreakLineNode, ContentNode, Base
 
 import {ObservableChildren} from "../observers";
 import {ObservableChildrenProperty} from "../observers";
-import {AiteNode, createAiteNode, filterNode, NodeInsertionDeriction} from "../EditorDOM";
+import {AiteNode, createAiteNode, NodeInsertionDeriction} from "../EditorDOM";
 import {isDefined, isLeafNode} from "../typeguards";
 
 type NodeTypes = BaseNode | LeafNode;

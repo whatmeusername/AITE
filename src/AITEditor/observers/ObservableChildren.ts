@@ -1,4 +1,4 @@
-import {ContentNode, createBreakLine, LeafNode, BlockNode, createBreakLineNode} from "../nodes";
+import {ContentNode, LeafNode, BlockNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 import {MergeSameNodes} from "../EditorUtils";
 

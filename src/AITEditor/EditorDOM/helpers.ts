@@ -2,7 +2,7 @@ import {HeadNode, TextNode} from "../nodes";
 import {NodeStatus} from "../nodes/interface";
 import {AiteNode, createAiteDomNode} from "./AiteNode";
 import {AiteTextNode, createAiteText} from "./AiteTextNode";
-import {AiteHTML, AiteHTMLNode, AiteHTMLTextNode, AiteNodes, ClassAttribute, StringNumberBool} from "./interface";
+import {AiteHTMLNode, AiteHTMLTextNode, AiteNodes, ClassAttribute, StringNumberBool} from "./interface";
 import {isAiteNode, isAiteTextNode, isEventProp, isNotEmpty} from "./utils";
 
 function addEventListeners<T extends HTMLElement>(target: T, type: string, listener: (...args: any[]) => void): T {

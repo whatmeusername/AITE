@@ -1,16 +1,18 @@
 import {TextNode, HeadNode} from "./index";
 
-import {BaseBlockNode, BlockNode, NodeInsertionDeriction, createAiteNode, AiteNode} from "../index";
+import {BaseBlockNode, BlockNode, NodeInsertionDeriction, createAiteNode, AiteNode, EditorState} from "../index";
 import {ObservableChildren, ObservableChildrenProperty} from "../observers";
 import {NodeStatus} from "./interface";
 import {isBlockNode, isLeafNode} from "../typeguards";
 
 class ContentNode extends HeadNode {
+	private isRoot: boolean;
 	children: BaseBlockNode[];
 
-	constructor() {
+	constructor(isRoot: boolean = false) {
 		super(false, "content");
 
+		this.isRoot = isRoot;
 		this.children = ObservableChildren(this, []);
 		return ObservableChildrenProperty(this).value();
 	}
@@ -104,7 +106,36 @@ class ContentNode extends HeadNode {
 		}
 	}
 
-	public createNodeState(): AiteNode {
+	public createNodeState(EditorState?: EditorState): AiteNode {
+		if (this.isRoot && EditorState) {
+			const props = {
+				contentEditable: true,
+				style: {fontSize: "16px"},
+				class: "AITE__editor",
+				"data-aite_editor_root": true,
+				spellCheck: "false",
+				onClick: (event: MouseEvent) => {
+					EditorState.EditorCommands.dispatchCommand("CLICK_COMMAND", event);
+				},
+				onKeyDown: (event: KeyboardEvent) => {
+					EditorState?.EditorCommands.dispatchCommand("KEYDOWN_COMMAND", event);
+				},
+				onKeyUp: (event: KeyboardEvent) => {
+					EditorState?.EditorCommands.dispatchCommand("KEYUP_COMMAND", event);
+				},
+				onDrop: (event: DragEvent) => {
+					event.preventDefault();
+				},
+			};
+
+			return createAiteNode(
+				null,
+				"div",
+				props,
+				this.children.map((node) => node.createNodeState()),
+			);
+		}
+
 		return createAiteNode(
 			null,
 			"div",

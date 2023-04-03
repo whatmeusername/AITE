@@ -2,12 +2,10 @@ import ActiveElementState from "./packages/AITE_ActiveState/activeElementState";
 
 import {onKeyDownEvent, onKeyUpEvent} from "./commands/EditorEvents";
 
-import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, PassContext, createEditorRoot} from "./index";
+import {EditorDOMState, getMutatedSelection, SelectionState, EditorCommands, returnSingleDOMNode, PassContext} from "./index";
 import {ClassVariables} from "./Interfaces";
 import {BaseBlockNode, ContentNode} from "./nodes";
 import {EditorWarning} from "./typeguards";
-import {BREAK_LINE_TYPE} from "./ConstVariables";
-import {NodeStatus} from "./nodes/interface";
 
 interface editorConf {
 	ContentNode: ContentNode;
@@ -103,7 +101,7 @@ class EditorState {
 	__previousSelection: ClassVariables<SelectionState> | undefined;
 
 	constructor(initData?: editorConf) {
-		this.contentNode = initData?.ContentNode ?? new ContentNode();
+		this.contentNode = initData?.ContentNode ?? new ContentNode(true);
 		this.selectionState = new SelectionState();
 		this.EditorCommands = new EditorCommands(this);
 		this.EditorActiveElementState = new ActiveElementState();
@@ -136,11 +134,11 @@ class EditorState {
 
 	render(rootElement?: HTMLElement): HTMLElement {
 		if (!rootElement) {
-			const node = returnSingleDOMNode(PassContext({editor: this}, createEditorRoot(this)));
+			const node = returnSingleDOMNode(PassContext({editor: this}, this.contentNode.createNodeState(this)));
 			this.EditorDOMState.setDOMElement(node);
 			return node;
 		} else {
-			rootElement.replaceChildren(returnSingleDOMNode(PassContext({editor: this}, createEditorRoot(this))));
+			rootElement.replaceChildren(returnSingleDOMNode(PassContext({editor: this}, this.contentNode.createNodeState(this))));
 			this.EditorDOMState.setDOMElement(rootElement);
 			return rootElement;
 		}
